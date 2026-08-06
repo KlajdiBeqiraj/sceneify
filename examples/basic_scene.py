@@ -27,6 +27,7 @@ def main() -> None:
     )
     print("Scene nodes:", scene.to_dict()["name"])
     print("Cached assets under:", Path(".sceneify_cache").resolve())
+    # Press Enter (or Ctrl+C) to stop and return to the shell.
     scene.run()
 
 

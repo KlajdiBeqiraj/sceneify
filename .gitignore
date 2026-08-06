@@ -10,7 +10,7 @@ __pycache__/
 dist/
 build/
 
-# Virtual envs
+# Virtual envs (uv manages .venv)
 .venv/
 venv/
 
@@ -18,17 +18,20 @@ venv/
 web/node_modules/
 web/dist/
 
-# Local assets / downloads (demos fetch public files)
+# Local assets / downloads
 .sceneify_cache/
 *.glb
 *.gltf
 *.ply
 !docs/**
+examples/out_*.json
+*.sceneify.json
 
 # OS / IDE
 .DS_Store
 .idea/
 .vscode/
+*.swp
 
 # Secrets (never commit)
 *.pem

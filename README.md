@@ -1,74 +1,84 @@
 # sceneify
 
-Compose interactive 3D scenes from Python.
+Compose interactive 3D worlds from Python.
 
-`sceneify` is a small PyPI-oriented toolkit for building multi-asset 3D worlds
-with a Streamlit-like API: load several GLB (and other mesh) files, group them
-into objects, place annotations, draw trajectories, then open a browser viewer.
+`sceneify` is a PyPI-oriented toolkit with a Streamlit-like API: load several
+GLB assets, use a GLB as the world environment, place objects on it, annotate,
+draw trajectories, edit transforms in the browser, then save/load the scene.
 
 ## Status
 
-Alpha scaffold. The Python scene graph and local server work; the React /
-React Three Fiber viewer builds under `web/`. PLY rendering and richer object
-tools will grow next.
+Alpha (v0.3). Core authoring loop works:
 
-## Install (editable)
+- geometric environment rules
+- world mesh environment
+- viewer edit mode + inspector
+- `scene.save` / `Scene.load` JSON format
 
-```bash
-cd work/sceneify
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-
-cd web
-npm install
-npm run build
-cd ..
-```
+Tooling is **uv-first** (lockfile, dependency groups, CI). See
+[docs/development.md](docs/development.md) and [docs/roadmap.md](docs/roadmap.md).
 
 ## Quick start
+
+```bash
+uv python install
+uv sync --all-extras
+
+cd web && npm ci && npm run build && cd ..
+uv run python examples/world_edit_save.py
+```
+
+Press Enter to stop the server. In the viewer: toggle **Edit on**, move objects,
+save from the sidebar.
 
 ```python
 import sceneify as sf
 from sceneify.demo_assets import download_public_asset
 
-helmet = download_public_asset("damaged_helmet")
-avocado = download_public_asset("avocado")
+world = download_public_asset("damaged_helmet")
+prop = download_public_asset("avocado")
 
 scene = sf.Scene("demo")
-scene.add_glb("helmet", helmet)
-scene.add_glb("avocado", avocado, position=(1.5, 0, 0), scale=(8, 8, 8))
-scene.add_object("props", label="Props", children=["helmet", "avocado"])
-scene.add_annotation("a1", position=(0, 1.1, 0), label="Helmet")
-scene.add_trajectory(
-    "path",
-    points=[(-1, 0.2, 1), (0, 0.8, 1.2), (1.5, 0.2, 1)],
-)
+env = scene.set_environment(bounds_min=(-4, 0, -4), bounds_max=(4, 4, 4), snap=0.1)
+env.set_world_glb(str(world))
+scene.place_on_world("prop", prop, x=1.2, z=0.3, scale=(10, 10, 10))
+scene.save("world.sceneify.json")
 scene.run()
 ```
 
-Or run the bundled example:
+Reload later:
+
+```python
+scene = sf.Scene.load("world.sceneify.json")
+scene.run()
+```
+
+## Examples
 
 ```bash
-python examples/basic_scene.py
+uv run python examples/basic_scene.py
+uv run python examples/environment_rules.py
+uv run python examples/world_edit_save.py
+uv run pytest
 ```
 
 ## Public demo assets
 
-See [docs/demo-assets.md](docs/demo-assets.md) for public GLB/PLY sources and
-the `sceneify fetch-demo` CLI.
+See [docs/demo-assets.md](docs/demo-assets.md).
 
 ```bash
-sceneify list-demos
-sceneify fetch-demo damaged_helmet
+uv run sceneify list-demos
+uv run sceneify fetch-demo damaged_helmet
 ```
 
 ## Layout
 
-- `src/sceneify/` Python package (scene graph, server, demo downloads)
+- `src/sceneify/` Python package
 - `web/` React + R3F viewer
-- `examples/` runnable samples
-- `docs/` guides
+- `examples/` samples
+- `tests/` unit tests
+- `docs/` guides and roadmap
+- `uv.lock` reproducible Python deps
 
 ## License
 
