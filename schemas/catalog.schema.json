@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sceneify asset catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "version", "assets"],
+  "properties": {
+    "format": {"const": "sceneify-asset-catalog"},
+    "version": {"const": 2},
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "anyOf": [
+          {"required": ["path"]},
+          {"required": ["source"]}
+        ],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "format": {"type": "string", "minLength": 1},
+          "license": {"type": "string", "minLength": 1},
+          "source": {"type": "string", "minLength": 1},
+          "checksum": {"type": "string", "minLength": 1},
+          "thumbnail": {"type": "string", "minLength": 1},
+          "byteSize": {"type": "integer", "minimum": 0},
+          "animations": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "tags": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "metadata": {"type": "object"}
+        }
+      }
+    }
+  }
+}

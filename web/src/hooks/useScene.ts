@@ -1,11 +1,25 @@
-import type { ScenePayload } from "../types/scene";
+import type { Material, Physics, ScenePayload } from "../types/scene";
+
+export class RevisionConflict extends Error {
+  constructor() {
+    super("Scene changed on the server. Reloading the latest revision.");
+  }
+}
+
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, init);
+  if (response.status === 409) {
+    throw new RevisionConflict();
+  }
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || `Request failed (${response.status})`);
+  }
+  return response.json() as Promise<T>;
+}
 
 export async function fetchScene(): Promise<ScenePayload> {
-  const response = await fetch("/api/scene");
-  if (!response.ok) {
-    throw new Error(`Failed to load scene (${response.status})`);
-  }
-  return response.json();
+  return request<ScenePayload>("/api/scene");
 }
 
 export function assetUrl(source: string): string {
@@ -15,39 +29,76 @@ export function assetUrl(source: string): string {
   return `/api/asset?path=${encodeURIComponent(source)}`;
 }
 
+export type CatalogAsset = {
+  id: string;
+  name?: string;
+  path?: string;
+  source?: string;
+  format: string;
+  license?: string;
+  checksum?: string;
+  thumbnail?: string;
+  byteSize?: number;
+  animations?: string[];
+  tags?: string[];
+  metadata?: Record<string, unknown>;
+};
+
 export type NodePatch = {
+  label?: string;
   position?: number[];
   rotation?: number[];
   scale?: number[];
   visible?: boolean;
+  parentId?: string | null;
+  tags?: string[];
+  material?: Material;
+  physics?: Physics;
   apply_environment?: boolean;
 };
 
 export async function patchNode(
   nodeId: string,
   patch: NodePatch,
+  revision?: number,
 ): Promise<{ scene: ScenePayload }> {
-  const response = await fetch(`/api/nodes/${encodeURIComponent(nodeId)}`, {
+  return request(`/api/nodes/${encodeURIComponent(nodeId)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(patch),
+    body: JSON.stringify({ ...patch, revision }),
   });
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || `Failed to patch node (${response.status})`);
-  }
-  return response.json();
 }
 
-export async function saveScene(path: string): Promise<string> {
-  const response = await fetch("/api/scene/save", {
+export async function sceneCommand(
+  command: string,
+  payload: Record<string, unknown> = {},
+  revision?: number,
+): Promise<{ scene: ScenePayload; commandId?: string }> {
+  return request("/api/scene/commands", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path }),
+    body: JSON.stringify({ command, revision, ...payload }),
   });
-  if (!response.ok) {
-    throw new Error(`Failed to save scene (${response.status})`);
-  }
-  const data = await response.json();
-  return data.saved as string;
+}
+
+export async function importGlb(file: File, revision?: number): Promise<{ scene: ScenePayload }> {
+  const body = new FormData();
+  body.append("file", file);
+  if (revision !== undefined) body.append("revision", String(revision));
+  return request("/api/assets/import", { method: "POST", body });
+}
+
+export async function fetchCatalog(query = "", tags: string[] = []): Promise<CatalogAsset[]> {
+  const params = new URLSearchParams({ q: query });
+  tags.forEach((tag) => params.append("tag", tag));
+  return request<CatalogAsset[]>(`/api/assets?${params}`);
+}
+
+export async function saveScene(path: string, revision?: number): Promise<string> {
+  const data = await request<{ saved: string }>("/api/scene/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, revision }),
+  });
+  return data.saved;
 }

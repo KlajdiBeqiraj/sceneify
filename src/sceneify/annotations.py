@@ -13,6 +13,8 @@ from sceneify.types import Vec3, as_vec3
 class Annotation:
     id: str
     position: Vec3
+    target_id: str | None = None
+    offset: Vec3 = (0.0, 0.0, 0.0)
     label: str | None = None
     description: str | None = None
     color: str = "#ffcc00"
@@ -24,6 +26,8 @@ class Annotation:
             "kind": "annotation",
             "id": self.id,
             "position": list(self.position),
+            "targetId": self.target_id,
+            "offset": list(self.offset),
             "label": self.label,
             "description": self.description,
             "color": self.color,
@@ -36,6 +40,8 @@ def build_annotation(
     annotation_id: str,
     position: Sequence[float],
     *,
+    target_id: str | None = None,
+    offset: Sequence[float] | None = None,
     label: str | None = None,
     description: str | None = None,
     color: str = "#ffcc00",
@@ -45,6 +51,8 @@ def build_annotation(
     return Annotation(
         id=annotation_id,
         position=as_vec3(position),
+        target_id=target_id,
+        offset=as_vec3(offset),
         label=label,
         description=description,
         color=color,

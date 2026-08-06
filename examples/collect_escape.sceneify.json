@@ -1,0 +1,3374 @@
+{
+  "format": "sceneify-scene",
+  "version": 2,
+  "scene": {
+    "schemaVersion": 2,
+    "name": "Collect and Escape",
+    "background": "#1c2438",
+    "environment": null,
+    "meshes": [
+      {
+        "kind": "mesh",
+        "id": "floor_-2_-4",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.0,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-2_-3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.0,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-2_-2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.0,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-2_-1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.0,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-2_0",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-2_1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.0,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-2_2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.0,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-2_3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.0,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-1_-4",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-1_-3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-1_-2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-1_-1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-1_0",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-1_1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-1_2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_-1_3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_0_-4",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_0_-3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_0_-2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_0_-1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_0_1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_0_2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_0_3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_1_-4",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.0,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_1_-3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.0,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_1_-2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.0,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_1_-1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.0,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_1_1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.0,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_1_2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.0,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_1_3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.0,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_2_-4",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.0,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_2_-3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.0,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_2_-2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.0,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_2_-1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.0,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_2_0",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_2_1",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.0,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_2_2",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.0,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "floor_2_3",
+        "parentId": null,
+        "tags": [
+          "architecture",
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.0,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/floor_tile_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "player_visual",
+        "parentId": "player",
+        "tags": [],
+        "position": [
+          0.0,
+          -0.78,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.78,
+          0.78,
+          0.78
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {
+          "visualFor": "player",
+          "animation": {
+            "autoplay": "Idle",
+            "states": {
+              "idle": "Idle",
+              "move": "Walking_A",
+              "run": "Running_A",
+              "jump": "Jump_Full_Short"
+            },
+            "fadeSeconds": 0.16
+          }
+        },
+        "source": "examples/assets/kaykit/knight.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "left_wall_0",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -10.0,
+          0.0,
+          -14.0
+        ],
+        "rotation": [
+          0.0,
+          1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "left_wall_1",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -10.0,
+          0.0,
+          -10.0
+        ],
+        "rotation": [
+          0.0,
+          1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "left_wall_2",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -10.0,
+          0.0,
+          -6.0
+        ],
+        "rotation": [
+          0.0,
+          1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "left_wall_3",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -10.0,
+          0.0,
+          -2.0
+        ],
+        "rotation": [
+          0.0,
+          1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "left_wall_4",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -10.0,
+          0.0,
+          2.0
+        ],
+        "rotation": [
+          0.0,
+          1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "left_wall_5",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -10.0,
+          0.0,
+          6.0
+        ],
+        "rotation": [
+          0.0,
+          1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "left_wall_6",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -10.0,
+          0.0,
+          10.0
+        ],
+        "rotation": [
+          0.0,
+          1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "right_wall_0",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          10.0,
+          0.0,
+          -14.0
+        ],
+        "rotation": [
+          0.0,
+          -1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "right_wall_1",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          10.0,
+          0.0,
+          -10.0
+        ],
+        "rotation": [
+          0.0,
+          -1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "right_wall_2",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          10.0,
+          0.0,
+          -6.0
+        ],
+        "rotation": [
+          0.0,
+          -1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "right_wall_3",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          10.0,
+          0.0,
+          -2.0
+        ],
+        "rotation": [
+          0.0,
+          -1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "right_wall_4",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          10.0,
+          0.0,
+          2.0
+        ],
+        "rotation": [
+          0.0,
+          -1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "right_wall_5",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          10.0,
+          0.0,
+          6.0
+        ],
+        "rotation": [
+          0.0,
+          -1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "right_wall_6",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          10.0,
+          0.0,
+          10.0
+        ],
+        "rotation": [
+          0.0,
+          -1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "gate_arch_left",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -4.0,
+          0.0,
+          -14.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_arched.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "gate_arch_right",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          4.0,
+          0.0,
+          -14.0
+        ],
+        "rotation": [
+          0.0,
+          3.1416,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/wall_broken.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "pillar_gate_l",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -2.2,
+          0.0,
+          -13.2
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.85,
+          0.85,
+          0.85
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/pillar.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "pillar_gate_r",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          2.2,
+          0.0,
+          -13.2
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.85,
+          0.85,
+          0.85
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/pillar.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "cover_barrel_a_visual",
+        "parentId": null,
+        "tags": [
+          "prop"
+        ],
+        "position": [
+          -5.2,
+          0.0,
+          4.5
+        ],
+        "rotation": [
+          0.0,
+          0.35,
+          0.0
+        ],
+        "scale": [
+          0.65,
+          0.65,
+          0.65
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/barrel_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "cover_barrel_b_visual",
+        "parentId": null,
+        "tags": [
+          "prop"
+        ],
+        "position": [
+          5.5,
+          0.0,
+          -5.5
+        ],
+        "rotation": [
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "scale": [
+          0.65,
+          0.65,
+          0.65
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/barrel_large.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "cover_chest_visual",
+        "parentId": null,
+        "tags": [
+          "prop"
+        ],
+        "position": [
+          -4.5,
+          0.0,
+          -7.0
+        ],
+        "rotation": [
+          0.0,
+          0.4,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/chest_gold.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "coin_1_visual",
+        "parentId": "coin_1",
+        "tags": [],
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          2.2,
+          2.2,
+          2.2
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {
+          "visualFor": "coin_1"
+        },
+        "source": "examples/assets/kaykit/coin.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "coin_2_visual",
+        "parentId": "coin_2",
+        "tags": [],
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          2.2,
+          2.2,
+          2.2
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {
+          "visualFor": "coin_2"
+        },
+        "source": "examples/assets/kaykit/coin.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "coin_3_visual",
+        "parentId": "coin_3",
+        "tags": [],
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          2.2,
+          2.2,
+          2.2
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {
+          "visualFor": "coin_3"
+        },
+        "source": "examples/assets/kaykit/coin.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "hazard_torch_l",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "light"
+        ],
+        "position": [
+          -1.8,
+          1.35,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/torch_lit.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "hazard_torch_r",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "light"
+        ],
+        "position": [
+          5.8,
+          1.35,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          3.1416,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/torch_lit.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "checkpoint_torch_l",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "light"
+        ],
+        "position": [
+          -2.6,
+          1.35,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/torch_lit.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "checkpoint_torch_r",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "light"
+        ],
+        "position": [
+          2.6,
+          1.35,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/torch_lit.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "checkpoint_pillar_l",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          -2.6,
+          0.0,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.55,
+          0.55,
+          0.55
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/pillar.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "checkpoint_pillar_r",
+        "parentId": null,
+        "tags": [
+          "architecture"
+        ],
+        "position": [
+          2.6,
+          0.0,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.55,
+          0.55,
+          0.55
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/pillar.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "goal_chest",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "goal"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          -15.2
+        ],
+        "rotation": [
+          0.0,
+          3.1416,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/chest_gold.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "torch_wall_0",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "light"
+        ],
+        "position": [
+          -9.2,
+          1.55,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/torch_lit.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "torch_wall_1",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "light"
+        ],
+        "position": [
+          9.2,
+          1.55,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          3.1416,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/torch_lit.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "torch_wall_2",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "light"
+        ],
+        "position": [
+          -9.2,
+          1.55,
+          -10.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/torch_lit.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "torch_wall_3",
+        "parentId": null,
+        "tags": [
+          "prop",
+          "light"
+        ],
+        "position": [
+          9.2,
+          1.55,
+          -10.0
+        ],
+        "rotation": [
+          0.0,
+          3.1416,
+          0.0
+        ],
+        "scale": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/torch_lit.glb",
+        "format": "glb"
+      },
+      {
+        "kind": "mesh",
+        "id": "spawn_barrel",
+        "parentId": null,
+        "tags": [
+          "prop"
+        ],
+        "position": [
+          -5.5,
+          0.0,
+          11.5
+        ],
+        "rotation": [
+          0.0,
+          0.6,
+          0.0
+        ],
+        "scale": [
+          0.65,
+          0.65,
+          0.65
+        ],
+        "visible": true,
+        "material": null,
+        "physics": null,
+        "meta": {},
+        "source": "examples/assets/kaykit/barrel_large.glb",
+        "format": "glb"
+      }
+    ],
+    "objects": [],
+    "primitives": [
+      {
+        "kind": "primitive",
+        "id": "ground",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.0,
+          -2.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#3d4658",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "plane",
+        "size": [
+          24.0,
+          0.2,
+          36.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "player",
+        "parentId": null,
+        "tags": [
+          "player"
+        ],
+        "position": [
+          0.0,
+          0.78,
+          10.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#53b1fd",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "dynamic",
+          "collider": "capsule",
+          "sensor": false,
+          "mass": 1
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "capsule",
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "radius": 0.38,
+        "height": 0.9
+      },
+      {
+        "kind": "primitive",
+        "id": "wall_left",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          -10.25,
+          2.0,
+          -2.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#475467",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.0,
+          4.0,
+          32.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "wall_right",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          10.25,
+          2.0,
+          -2.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#475467",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.0,
+          4.0,
+          32.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "wall_south",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          0.0,
+          2.0,
+          14.25
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#475467",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          20.0,
+          4.0,
+          1.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "wall_north_left",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          -6.0,
+          2.0,
+          -14.25
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#475467",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          8.0,
+          4.0,
+          1.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "wall_north_right",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          6.0,
+          2.0,
+          -14.25
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#475467",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          8.0,
+          4.0,
+          1.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "cover_barrel_a",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          -5.2,
+          0.85,
+          4.5
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#667085",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.1700000000000002,
+          1.3,
+          1.1700000000000002
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "cover_barrel_b",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          5.5,
+          0.85,
+          -5.5
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#667085",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.1700000000000002,
+          1.3,
+          1.1700000000000002
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "cover_chest",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          -4.5,
+          0.55,
+          -7.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#667085",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.36,
+          0.968,
+          1.528
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "coin_1",
+        "parentId": null,
+        "tags": [
+          "collectible"
+        ],
+        "position": [
+          -5.0,
+          0.55,
+          7.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#fdb022",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "ball",
+          "sensor": true,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "sphere",
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "radius": 0.45,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "coin_2",
+        "parentId": null,
+        "tags": [
+          "collectible"
+        ],
+        "position": [
+          6.5,
+          0.55,
+          2.8
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#fdb022",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "ball",
+          "sensor": true,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "sphere",
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "radius": 0.45,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "coin_3",
+        "parentId": null,
+        "tags": [
+          "collectible"
+        ],
+        "position": [
+          0.0,
+          0.55,
+          -9.5
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#fdb022",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "ball",
+          "sensor": true,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "sphere",
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "radius": 0.45,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "hazard",
+        "parentId": null,
+        "tags": [
+          "hazard"
+        ],
+        "position": [
+          2.0,
+          0.45,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#3b1218",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": true,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          7.2,
+          1.0,
+          3.6
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "hazard_pit_visual",
+        "parentId": null,
+        "tags": [
+          "hazard",
+          "decoration"
+        ],
+        "position": [
+          2.0,
+          -0.18,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#1a0c10",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": null,
+        "meta": {
+          "renderPrimitive": true
+        },
+        "primitive": "box",
+        "size": [
+          8.0,
+          0.08,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "checkpoint",
+        "parentId": null,
+        "tags": [
+          "checkpoint"
+        ],
+        "position": [
+          0.0,
+          0.5,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#d6a65f",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": true,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          1.6,
+          1.2
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "goal",
+        "parentId": null,
+        "tags": [
+          "goal"
+        ],
+        "position": [
+          0.0,
+          1.0,
+          -15.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#12b76a",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": true,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          3.5,
+          2.2,
+          1.4
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "spawn_barrel_col",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          -5.5,
+          0.85,
+          11.5
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#667085",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.1700000000000002,
+          1.3,
+          1.1700000000000002
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      }
+    ],
+    "annotations": [],
+    "trajectories": [],
+    "game": {
+      "version": 1,
+      "actionMaps": {
+        "default": {
+          "moveForward": [
+            "KeyW",
+            "ArrowUp"
+          ],
+          "moveBack": [
+            "KeyS",
+            "ArrowDown"
+          ],
+          "moveLeft": [
+            "KeyA",
+            "ArrowLeft"
+          ],
+          "moveRight": [
+            "KeyD",
+            "ArrowRight"
+          ],
+          "jump": [
+            "Space"
+          ]
+        }
+      },
+      "controllers": [
+        {
+          "nodeId": "player",
+          "moveSpeed": 5.5,
+          "jumpSpeed": 7.0,
+          "actionMap": "default"
+        }
+      ],
+      "cameras": [
+        {
+          "targetId": "player",
+          "distance": 9.5,
+          "height": 4.8,
+          "smoothing": 0.12
+        }
+      ],
+      "collectibles": [
+        {
+          "nodeId": "coin_1",
+          "value": 1,
+          "event": "collect",
+          "respawnSeconds": null
+        },
+        {
+          "nodeId": "coin_2",
+          "value": 1,
+          "event": "collect",
+          "respawnSeconds": null
+        },
+        {
+          "nodeId": "coin_3",
+          "value": 1,
+          "event": "collect",
+          "respawnSeconds": null
+        }
+      ],
+      "hazards": [
+        {
+          "nodeId": "hazard",
+          "damage": 1,
+          "event": "hazard",
+          "resetToCheckpoint": true
+        }
+      ],
+      "checkpoints": [
+        {
+          "nodeId": "checkpoint",
+          "event": "checkpoint"
+        }
+      ],
+      "goals": [
+        {
+          "nodeId": "goal",
+          "event": "goal",
+          "requiredScore": 3
+        }
+      ],
+      "hud": {
+        "showScore": true,
+        "showHealth": true,
+        "showTimer": true,
+        "title": "Collect & Escape"
+      },
+      "timer": {
+        "seconds": 90,
+        "mode": "countdown",
+        "startOnLoad": true,
+        "timeoutEvent": "timeout"
+      },
+      "win": {
+        "event": "goal",
+        "message": "You gathered the relics and escaped the dungeon."
+      },
+      "lose": {
+        "event": "timeout",
+        "message": "A hazard ended the run. Try a safer route."
+      }
+    },
+    "presentation": {
+      "grid": false,
+      "helpers": false,
+      "shadows": true,
+      "exposure": 1.28,
+      "environmentPreset": "sunset",
+      "fog": {
+        "color": "#243044",
+        "near": 32,
+        "far": 64
+      },
+      "camera": {
+        "position": [
+          0,
+          10,
+          18
+        ],
+        "target": [
+          0,
+          1,
+          0
+        ],
+        "fov": 46
+      },
+      "title": "Collect & Escape",
+      "subtitle": "A third-person browser game authored entirely from Python"
+    }
+  }
+}

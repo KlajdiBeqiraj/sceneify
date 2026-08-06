@@ -1,84 +1,218 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="sceneify" width="160" />
+</p>
+
 # sceneify
 
-Compose interactive 3D worlds from Python.
+Build interactive browser-based 3D worlds from Python.
 
-`sceneify` is a PyPI-oriented toolkit with a Streamlit-like API: load several
-GLB assets, use a GLB as the world environment, place objects on it, annotate,
-draw trajectories, edit transforms in the browser, then save/load the scene.
+`sceneify` is a PyPI library with a Streamlit-like authoring API. Python defines the scene and
+game behavior, while the bundled web viewer provides view, edit, and play modes.
 
-## Status
+## Install
 
-Alpha (v0.3). Core authoring loop works:
-
-- geometric environment rules
-- world mesh environment
-- viewer edit mode + inspector
-- `scene.save` / `Scene.load` JSON format
-
-Tooling is **uv-first** (lockfile, dependency groups, CI). See
-[docs/development.md](docs/development.md) and [docs/roadmap.md](docs/roadmap.md).
-
-## Quick start
+With uv:
 
 ```bash
-uv python install
-uv sync --all-extras
-
-cd web && npm ci && npm run build && cd ..
-uv run python examples/world_edit_save.py
+uv add sceneify
 ```
 
-Press Enter to stop the server. In the viewer: toggle **Edit on**, move objects,
-save from the sidebar.
+With pip:
+
+```bash
+pip install sceneify
+```
+
+The published wheel includes the viewer. Node.js is required only when developing the viewer
+itself.
+
+## Create a world from Python or the editor
 
 ```python
 import sceneify as sf
-from sceneify.demo_assets import download_public_asset
 
-world = download_public_asset("damaged_helmet")
-prop = download_public_asset("avocado")
-
-scene = sf.Scene("demo")
-env = scene.set_environment(bounds_min=(-4, 0, -4), bounds_max=(4, 4, 4), snap=0.1)
-env.set_world_glb(str(world))
-scene.place_on_world("prop", prop, x=1.2, z=0.3, scale=(10, 10, 10))
+scene = sf.Scene("my-level")
+scene.create_primitive(
+    "ground",
+    "plane",
+    size=(16, 1, 16),
+    material=sf.Material("#344054"),
+    physics=sf.Physics(body="fixed", collider="cuboid"),
+)
 scene.save("world.sceneify.json")
 scene.run()
 ```
 
-Reload later:
+`scene.run()` opens the world editor. It can create primitives, import GLB files, instantiate
+catalog assets, edit materials and physics, organize the hierarchy, undo commands, and save a
+versioned scene.
+
+The saved level becomes the input to a game script:
 
 ```python
+import sceneify as sf
+
 scene = sf.Scene.load("world.sceneify.json")
-scene.run()
+
+
+@scene.on_event
+def game_event(current: sf.Scene, event: sf.SemanticEvent) -> None:
+    print(event.name, event.node_id)
+
+
+scene.play()
 ```
 
-## Examples
+## Make a Python game
+
+Python declares the world, controls, camera, sensors, HUD, timer, and outcomes. The browser runs
+latency-sensitive movement and physics, while WebSocket carries semantic events and scene edits.
+
+```python
+import sceneify as sf
+
+scene = sf.Scene("collect")
+scene.create_primitive(
+    "player",
+    "capsule",
+    position=(0, 1, 0),
+    physics=sf.Physics(body="dynamic", collider="capsule"),
+)
+
+game = sf.Game()
+game.action_map(
+    moveForward=["KeyW", "ArrowUp"],
+    moveBack=["KeyS", "ArrowDown"],
+    moveLeft=["KeyA", "ArrowLeft"],
+    moveRight=["KeyD", "ArrowRight"],
+    jump=["Space"],
+)
+game.add_controller("player")
+game.follow_camera("player")
+game.set_hud(title="Collect and Escape")
+game.set_timer(90)
+scene.set_game(game)
+scene.play()
+```
+
+Run the complete third-person vertical slice with a skinned KayKit character,
+animation blending, GLB dungeon props, physics, collectibles, and HUD:
+
+```bash
+uv run python examples/collect_escape.py
+```
+
+Open the same world in authoring mode:
+
+```bash
+uv run python examples/collect_escape.py --edit
+```
+
+Run the Roman-inspired environment showcase with local HDR lighting, CC0 sculptures,
+curated ruins, and mouse-driven points of interest:
+
+```bash
+uv run python examples/roman_environment.py
+```
+
+Open the same environment in the authoring editor:
+
+```bash
+uv run python examples/roman_environment.py --edit
+```
+
+Hover a gold marker to reveal context. Click it to focus the camera on the anchored
+object with a slow orbit, show a responsive info panel, and emit a `poi_selected`
+semantic event to Python. Press Escape (or Close) to return to the overview. In edit
+mode the same markers keep hover and selection without taking over the camera or
+gizmos. Asset sources and licenses are listed in
+[`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md). Demo binaries remain in the Git
+repository but are excluded from the PyPI wheel and source distribution.
+
+Anchor POIs to scene objects instead of duplicating absolute coordinates:
+
+```python
+scene.add_annotation(
+    "statue_info",
+    target_id="marble_bust",
+    offset=(0, 2, 0),
+    label="Marble Bust 01",
+)
+```
+
+See [docs/protocol.md](docs/protocol.md) for synchronization and semantic events.
+
+## Use with Gymnasium and Stable Baselines3
+
+The optional RL extra installs Gymnasium only:
+
+```bash
+uv add "sceneify[rl]"
+```
+
+`sceneify.rl.ReachTargetEnv` trains headless and can stream a human render to the browser. Stable
+Baselines3 is not a sceneify dependency. Add it to the application that needs it:
+
+```bash
+uv add stable-baselines3 "sceneify[rl]"
+uv run python examples/rl_sb3_stub.py
+```
+
+## Build worlds with a coding agent
+
+sceneify does not run a language model and does not install a model provider. It exposes a
+versioned scene schema, an asset catalog, and deterministic actions. A developer's coding agent
+can translate text into those actions using existing GLB assets.
+
+```python
+import sceneify as sf
+
+scene = sf.Scene("warehouse")
+catalog = sf.AssetCatalog.load("assets.catalog.json")
+tools = sf.WorldTools(scene, catalog)
+
+tools.apply({"action": "set_world", "asset": "warehouse_shell"})
+tools.apply(
+    {
+        "action": "add_asset",
+        "asset": "forklift",
+        "id": "forklift_1",
+        "position": [2, 0, -1],
+    }
+)
+tools.apply({"action": "save", "path": "warehouse.sceneify.json"})
+```
+
+Run `sceneify tool-spec` to print the neutral action descriptor. See
+[docs/agent-tools.md](docs/agent-tools.md), [docs/catalog.md](docs/catalog.md), and
+[docs/schema.md](docs/schema.md).
+
+The `sceneify[llm]` extra is a dependency-free compatibility marker. Agent tools ship in the core
+package and remain independent from model SDKs.
+
+## Optional extras
+
+```bash
+uv add "sceneify[mesh]"
+uv add "sceneify[rl]"
+uv add "sceneify[llm]"
+```
+
+* `mesh` adds local geometry processing with trimesh and NumPy
+* `rl` adds the Gymnasium environment interface
+* `llm` keeps a provider-neutral install target without installing model runtimes
+
+## Examples and checks
 
 ```bash
 uv run python examples/basic_scene.py
-uv run python examples/environment_rules.py
 uv run python examples/world_edit_save.py
+uv run python examples/collect_escape.py
 uv run pytest
 ```
 
-## Public demo assets
-
-See [docs/demo-assets.md](docs/demo-assets.md).
-
-```bash
-uv run sceneify list-demos
-uv run sceneify fetch-demo damaged_helmet
-```
-
-## Layout
-
-- `src/sceneify/` Python package
-- `web/` React + R3F viewer
-- `examples/` samples
-- `tests/` unit tests
-- `docs/` guides and roadmap
-- `uv.lock` reproducible Python deps
+Development uses uv, Python 3.13, and the committed lockfile. See
+[docs/development.md](docs/development.md).
 
 ## License
 

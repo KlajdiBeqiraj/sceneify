@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sceneify"
-version = "0.3.1"
-description = "Compose interactive 3D worlds from Python: multi-asset scenes, environment rules, edit, and save/load."
+version = "0.4.0"
+description = "Build interactive browser-based 3D worlds, games, and RL environments from Python."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -19,6 +19,9 @@ keywords = [
   "gltf",
   "ply",
   "scene",
+  "websocket",
+  "gymnasium",
+  "reinforcement-learning",
   "visualization",
   "three.js",
 ]
@@ -39,12 +42,17 @@ dependencies = [
   "uvicorn[standard]>=0.35",
   "pydantic>=2.11",
   "httpx>=0.28",
+  "python-multipart>=0.0.20",
 ]
 
 [project.optional-dependencies]
+llm = []
 mesh = [
   "trimesh>=4.6",
   "numpy>=2.2",
+]
+rl = [
+  "gymnasium>=1.3.0",
 ]
 
 [project.urls]
@@ -72,10 +80,21 @@ include = [
   "/web",
   "/examples",
   "/docs",
+  "/schemas",
   "/tests",
   "/README.md",
+  "/THIRD_PARTY_ASSETS.md",
   "/LICENSE",
 ]
+exclude = [
+  "/examples/assets/**",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sceneify"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"schemas" = "sceneify/schemas"
 
 [tool.ruff]
 line-length = 100

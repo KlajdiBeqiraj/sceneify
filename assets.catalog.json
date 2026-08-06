@@ -1,0 +1,128 @@
+{
+  "format": "sceneify-asset-catalog",
+  "version": 2,
+  "assets": [
+    {
+      "id": "kaykit-knight",
+      "path": "examples/assets/kaykit/knight.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0",
+      "checksum": "sha256:f575446600d30f7988b2862776d1ed4aa6b85b6235dde08ae6c69326342dae30",
+      "animations": ["Idle", "Walking_A", "Running_A", "Jump_Full_Short"],
+      "tags": ["character", "animated", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-coin",
+      "path": "examples/assets/kaykit/coin.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "tags": ["pickup", "dungeon", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-chest",
+      "path": "examples/assets/kaykit/chest_gold.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "tags": ["prop", "dungeon", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-arched-wall",
+      "path": "examples/assets/kaykit/wall_arched.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "tags": ["architecture", "dungeon", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-broken-wall",
+      "path": "examples/assets/kaykit/wall_broken.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "tags": ["architecture", "dungeon", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-pillar",
+      "path": "examples/assets/kaykit/pillar.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "tags": ["architecture", "dungeon", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-torch",
+      "path": "examples/assets/kaykit/torch_lit.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "tags": ["prop", "light", "dungeon", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-barrel",
+      "path": "examples/assets/kaykit/barrel_large.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "tags": ["prop", "dungeon", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-floor-tile",
+      "path": "examples/assets/kaykit/floor_tile_large.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "tags": ["architecture", "floor", "dungeon", "game"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "roman-ruins",
+      "path": "examples/assets/roman/modular_ruins.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://poly.pizza/m/F2LAK03B0r",
+      "checksum": "sha256:0f942354dd20b00b91d2ce9d1641da481fab553361139877cd23dcdc62cfaa55",
+      "tags": ["architecture", "ruins", "roman"],
+      "metadata": {"creator": "Quaternius"}
+    },
+    {
+      "id": "roman-fountain",
+      "path": "examples/assets/roman/fountain.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://poly.pizza/m/WHc7dwttlk",
+      "tags": ["architecture", "fountain", "roman"],
+      "metadata": {"creator": "Isa Lousberg"}
+    },
+    {
+      "id": "roman-marble-bust",
+      "path": "examples/assets/roman/marble_bust.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/marble_bust_01",
+      "checksum": "sha256:20f446aaa4f2c33728632283d0fc4e0169c8a64cae7d7c5de8de690b12d9cd10",
+      "tags": ["sculpture", "marble", "roman"],
+      "metadata": {"creator": "Poly Haven"}
+    },
+    {
+      "id": "roman-horse-statue",
+      "path": "examples/assets/roman/horse_statue.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/horse_statue_01",
+      "checksum": "sha256:a479f160ec91e834ba84d0f55191cdaf973d38a84fbde862a80544676241d564",
+      "tags": ["sculpture", "monument", "roman"],
+      "metadata": {"creator": "Poly Haven"}
+    }
+  ]
+}

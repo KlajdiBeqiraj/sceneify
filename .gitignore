@@ -17,6 +17,8 @@ venv/
 # Node
 web/node_modules/
 web/dist/
+web/playwright-report/
+web/test-results/
 
 # Local assets / downloads
 .sceneify_cache/
@@ -24,8 +26,12 @@ web/dist/
 *.gltf
 *.ply
 !docs/**
+!examples/assets/**/*.glb
+!examples/assets/**/*.hdr
 examples/out_*.json
 *.sceneify.json
+!examples/collect_escape.sceneify.json
+!examples/roman_environment.sceneify.json
 
 # OS / IDE
 .DS_Store

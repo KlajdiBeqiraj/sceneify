@@ -39,7 +39,19 @@ uv run sceneify list-demos
 ```bash
 cd web
 npm ci
+npm test
 npm run build
+```
+
+The production build is written to `src/sceneify/_web` so the PyPI wheel contains a ready-to-use
+viewer. Rebuild it after changing `web/src`.
+
+Browser end-to-end tests use the bundled example and a real Python server:
+
+```bash
+cd web
+npx playwright install chromium
+npm run test:e2e
 ```
 
 During viewer development:
@@ -61,13 +73,14 @@ GitHub Actions runs:
 - `uv sync --frozen --all-extras`
 - `ruff check` + `ruff format --check`
 - `pytest` on Python 3.12 and 3.13
-- `npm ci` + `npm run build` for the viewer
+- `npm ci` + `npm test` + `npm run build` for the viewer
 
 ## Publishing (personal)
 
 When ready:
 
 ```bash
+cd web && npm ci && npm run build && cd ..
 uv build
 uv publish
 ```
