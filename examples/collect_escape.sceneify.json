@@ -4,7 +4,7 @@
   "scene": {
     "schemaVersion": 2,
     "name": "Collect and Escape",
-    "background": "#1c2438",
+    "background": "#120e18",
     "environment": null,
     "meshes": [
       {
@@ -1154,7 +1154,7 @@
         "tags": [],
         "position": [
           0.0,
-          -0.78,
+          -0.7,
           0.0
         ],
         "rotation": [
@@ -1178,9 +1178,10 @@
               "idle": "Idle",
               "move": "Walking_A",
               "run": "Running_A",
-              "jump": "Jump_Full_Short"
+              "jump": "Jump_Full_Short",
+              "attack": "1H_Melee_Attack_Chop"
             },
-            "fadeSeconds": 0.16
+            "fadeSeconds": 0.12
           }
         },
         "source": "examples/assets/kaykit/knight.glb",
@@ -1951,7 +1952,7 @@
           "light"
         ],
         "position": [
-          -2.6,
+          -2.8,
           1.35,
           -4.0
         ],
@@ -1981,7 +1982,7 @@
           "light"
         ],
         "position": [
-          2.6,
+          2.8,
           1.35,
           -4.0
         ],
@@ -2000,64 +2001,6 @@
         "physics": null,
         "meta": {},
         "source": "examples/assets/kaykit/torch_lit.glb",
-        "format": "glb"
-      },
-      {
-        "kind": "mesh",
-        "id": "checkpoint_pillar_l",
-        "parentId": null,
-        "tags": [
-          "architecture"
-        ],
-        "position": [
-          -2.6,
-          0.0,
-          -4.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          0.55,
-          0.55,
-          0.55
-        ],
-        "visible": true,
-        "material": null,
-        "physics": null,
-        "meta": {},
-        "source": "examples/assets/kaykit/pillar.glb",
-        "format": "glb"
-      },
-      {
-        "kind": "mesh",
-        "id": "checkpoint_pillar_r",
-        "parentId": null,
-        "tags": [
-          "architecture"
-        ],
-        "position": [
-          2.6,
-          0.0,
-          -4.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          0.55,
-          0.55,
-          0.55
-        ],
-        "visible": true,
-        "material": null,
-        "physics": null,
-        "meta": {},
-        "source": "examples/assets/kaykit/pillar.glb",
         "format": "glb"
       },
       {
@@ -2244,15 +2187,15 @@
     "primitives": [
       {
         "kind": "primitive",
-        "id": "ground",
+        "id": "ground_-2_-4",
         "parentId": null,
         "tags": [
           "ground"
         ],
         "position": [
-          0.0,
-          0.0,
-          -2.0
+          -8.0,
+          0.025,
+          -16.0
         ],
         "rotation": [
           0.0,
@@ -2266,7 +2209,7 @@
         ],
         "visible": true,
         "material": {
-          "color": "#3d4658",
+          "color": "#2b3344",
           "opacity": 1.0,
           "wireframe": false,
           "roughness": 1.0,
@@ -2288,11 +2231,2046 @@
         "meta": {
           "renderPrimitive": false
         },
-        "primitive": "plane",
+        "primitive": "box",
         "size": [
-          24.0,
-          0.2,
-          36.0
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-2_-3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.025,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-2_-2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.025,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-2_-1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.025,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-2_0",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.025,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-2_1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.025,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-2_2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.025,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-2_3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -8.0,
+          0.025,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-1_-4",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.025,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-1_-3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.025,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-1_-2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.025,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-1_-1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.025,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-1_0",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.025,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-1_1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.025,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-1_2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.025,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_-1_3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          -4.0,
+          0.025,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_0_-4",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.025,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_0_-3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.025,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_0_-2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.025,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_0_-1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.025,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_0_1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.025,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_0_2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.025,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_0_3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          0.0,
+          0.025,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_1_-4",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.025,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_1_-3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.025,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_1_-2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.025,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_1_-1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.025,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_1_1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.025,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_1_2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.025,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_1_3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          4.0,
+          0.025,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_2_-4",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.025,
+          -16.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_2_-3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.025,
+          -12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_2_-2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.025,
+          -8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_2_-1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.025,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_2_0",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.025,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_2_1",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.025,
+          4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_2_2",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.025,
+          8.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "ground_2_3",
+        "parentId": null,
+        "tags": [
+          "ground"
+        ],
+        "position": [
+          8.0,
+          0.025,
+          12.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2b3344",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          4.0,
+          0.05,
+          4.0
         ],
         "radius": 0.5,
         "height": 1.0
@@ -2306,7 +4284,7 @@
         ],
         "position": [
           0.0,
-          0.78,
+          0.75,
           10.0
         ],
         "rotation": [
@@ -2349,8 +4327,8 @@
           1.0,
           1.0
         ],
-        "radius": 0.38,
-        "height": 0.9
+        "radius": 0.3,
+        "height": 0.8
       },
       {
         "kind": "primitive",
@@ -2628,6 +4606,118 @@
           8.0,
           4.0,
           1.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "pillar_gate_l_col",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          -2.2,
+          1.2,
+          -13.2
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#667085",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.1,
+          2.4,
+          1.1
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "pillar_gate_r_col",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          2.2,
+          1.2,
+          -13.2
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#667085",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.1,
+          2.4,
+          1.1
         ],
         "radius": 0.5,
         "height": 1.0
@@ -2974,7 +5064,7 @@
         ],
         "position": [
           2.0,
-          0.45,
+          -0.6,
           0.0
         ],
         "rotation": [
@@ -3013,9 +5103,9 @@
         },
         "primitive": "box",
         "size": [
-          7.2,
-          1.0,
-          3.6
+          7.6,
+          1.6,
+          3.8
         ],
         "radius": 0.5,
         "height": 1.0
@@ -3030,7 +5120,7 @@
         ],
         "position": [
           2.0,
-          -0.18,
+          -0.35,
           0.0
         ],
         "rotation": [
@@ -3073,6 +5163,210 @@
       },
       {
         "kind": "primitive",
+        "id": "pit_rim_n",
+        "parentId": null,
+        "tags": [
+          "hazard",
+          "decoration"
+        ],
+        "position": [
+          2.0,
+          0.04,
+          -2.05
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#4a1d24",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": null,
+        "meta": {
+          "renderPrimitive": true
+        },
+        "primitive": "box",
+        "size": [
+          8.0,
+          0.08,
+          0.2
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "pit_rim_s",
+        "parentId": null,
+        "tags": [
+          "hazard",
+          "decoration"
+        ],
+        "position": [
+          2.0,
+          0.04,
+          2.05
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#4a1d24",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": null,
+        "meta": {
+          "renderPrimitive": true
+        },
+        "primitive": "box",
+        "size": [
+          8.0,
+          0.08,
+          0.2
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "pit_rim_w",
+        "parentId": null,
+        "tags": [
+          "hazard",
+          "decoration"
+        ],
+        "position": [
+          -1.85,
+          0.04,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#4a1d24",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": null,
+        "meta": {
+          "renderPrimitive": true
+        },
+        "primitive": "box",
+        "size": [
+          0.2,
+          0.08,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "pit_rim_e",
+        "parentId": null,
+        "tags": [
+          "hazard",
+          "decoration"
+        ],
+        "position": [
+          5.85,
+          0.04,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#4a1d24",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": null,
+        "meta": {
+          "renderPrimitive": true
+        },
+        "primitive": "box",
+        "size": [
+          0.2,
+          0.08,
+          4.0
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
         "id": "checkpoint",
         "parentId": null,
         "tags": [
@@ -3080,7 +5374,7 @@
         ],
         "position": [
           0.0,
-          0.5,
+          0.55,
           -4.0
         ],
         "rotation": [
@@ -3095,7 +5389,7 @@
         ],
         "visible": true,
         "material": {
-          "color": "#d6a65f",
+          "color": "#5eead4",
           "opacity": 1.0,
           "wireframe": false,
           "roughness": 1.0,
@@ -3119,9 +5413,111 @@
         },
         "primitive": "box",
         "size": [
-          4.0,
-          1.6,
-          1.2
+          3.6,
+          1.4,
+          3.6
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "checkpoint_pad",
+        "parentId": null,
+        "tags": [
+          "checkpoint",
+          "decoration"
+        ],
+        "position": [
+          0.0,
+          0.05,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#2dd4bf",
+          "opacity": 0.45,
+          "wireframe": false,
+          "roughness": 0.25,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": null,
+        "meta": {
+          "renderPrimitive": true
+        },
+        "primitive": "box",
+        "size": [
+          3.4,
+          0.1,
+          3.4
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "checkpoint_ring",
+        "parentId": null,
+        "tags": [
+          "checkpoint",
+          "decoration"
+        ],
+        "position": [
+          0.0,
+          0.12,
+          -4.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#99f6e4",
+          "opacity": 0.28,
+          "wireframe": false,
+          "roughness": 0.2,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": null,
+        "meta": {
+          "renderPrimitive": true
+        },
+        "primitive": "box",
+        "size": [
+          3.8,
+          0.04,
+          3.8
         ],
         "radius": 0.5,
         "height": 1.0
@@ -3177,6 +5573,62 @@
           3.5,
           2.2,
           1.4
+        ],
+        "radius": 0.5,
+        "height": 1.0
+      },
+      {
+        "kind": "primitive",
+        "id": "goal_chest_col",
+        "parentId": null,
+        "tags": [
+          "obstacle",
+          "collider"
+        ],
+        "position": [
+          0.0,
+          0.6,
+          -15.2
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "visible": true,
+        "material": {
+          "color": "#667085",
+          "opacity": 1.0,
+          "wireframe": false,
+          "roughness": 1.0,
+          "metalness": 0.0,
+          "baseColorTexture": null,
+          "normalTexture": null,
+          "metallicRoughnessTexture": null,
+          "textureRepeat": [
+            1.0,
+            1.0
+          ]
+        },
+        "physics": {
+          "body": "fixed",
+          "collider": "cuboid",
+          "sensor": false,
+          "mass": 1.0
+        },
+        "meta": {
+          "renderPrimitive": false
+        },
+        "primitive": "box",
+        "size": [
+          1.7,
+          1.21,
+          1.91
         ],
         "radius": 0.5,
         "height": 1.0
@@ -3262,6 +5714,10 @@
           ],
           "jump": [
             "Space"
+          ],
+          "attack": [
+            "KeyJ",
+            "Mouse0"
           ]
         }
       },
@@ -3322,6 +5778,71 @@
           "requiredScore": 3
         }
       ],
+      "enemies": {
+        "spawnPoints": [
+          [
+            -8.0,
+            0.75,
+            -8.0
+          ],
+          [
+            8.0,
+            0.75,
+            -8.0
+          ],
+          [
+            -8.0,
+            0.75,
+            6.0
+          ],
+          [
+            8.0,
+            0.75,
+            6.0
+          ],
+          [
+            0.0,
+            0.75,
+            -12.0
+          ]
+        ],
+        "types": [
+          {
+            "kind": "knight",
+            "source": "examples/assets/kaykit/knight.glb",
+            "maxAlive": 2,
+            "intervalSeconds": 5.0,
+            "speed": 2.9,
+            "scale": 0.75,
+            "health": 3,
+            "contactDamage": 1,
+            "hitEvent": "hazard",
+            "animation": {
+              "idle": "Idle",
+              "run": "Running_A",
+              "hit": "Hit_A",
+              "death": "Death_A"
+            }
+          },
+          {
+            "kind": "mage",
+            "source": "examples/assets/kaykit/mage.glb",
+            "maxAlive": 2,
+            "intervalSeconds": 6.5,
+            "speed": 2.3,
+            "scale": 0.75,
+            "health": 2,
+            "contactDamage": 1,
+            "hitEvent": "hazard",
+            "animation": {
+              "idle": "Idle",
+              "run": "Running_A",
+              "hit": "Hit_A",
+              "death": "Death_A"
+            }
+          }
+        ]
+      },
       "hud": {
         "showScore": true,
         "showHealth": true,
@@ -3340,35 +5861,37 @@
       },
       "lose": {
         "event": "timeout",
-        "message": "A hazard ended the run. Try a safer route."
+        "message": "You fell in the pit or ran out of health. Fight smarter next time."
       }
     },
     "presentation": {
       "grid": false,
       "helpers": false,
       "shadows": true,
-      "exposure": 1.28,
-      "environmentPreset": "sunset",
+      "exposure": 1.15,
+      "environmentPreset": "night",
       "fog": {
-        "color": "#243044",
-        "near": 32,
-        "far": 64
+        "color": "#120e18",
+        "near": 22,
+        "far": 48
       },
       "camera": {
         "position": [
           0,
-          10,
-          18
+          9,
+          16
         ],
         "target": [
           0,
           1,
-          0
+          2
         ],
-        "fov": 46
+        "fov": 48
       },
       "title": "Collect & Escape",
-      "subtitle": "A third-person browser game authored entirely from Python"
+      "subtitle": "A third-person browser game authored entirely from Python",
+      "ambientIntensity": 0.35,
+      "keyLightIntensity": 1.15
     }
   }
 }

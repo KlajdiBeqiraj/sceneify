@@ -23,6 +23,7 @@ test("filters and instantiates a catalog GLB", async ({ page }) => {
   await expect(page.getByText(/CC0-1.0/).first()).toBeVisible();
   await page.getByLabel("Filter by tag").fill("animated");
   await expect(page.getByText("knight", { exact: true })).toBeVisible();
+  await expect(page.getByText("mage", { exact: true })).toBeVisible();
   await page.getByText("knight", { exact: true }).dblclick();
   await expect(page.getByText(/Added examples\/assets\/kaykit\/knight.glb/)).toBeVisible();
 });
@@ -42,7 +43,9 @@ test("scene.play starts a standalone playable view", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Create" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Collect & Escape" })).toBeVisible();
   await page.getByRole("button", { name: "Start run" }).click();
-  await expect(page.getByText("Move: WASD or arrows")).toBeVisible();
+  await expect(page.getByText(/Move: WASD/)).toBeVisible();
+  await expect(page.getByText(/Attack: J/)).toBeVisible();
+  await expect(page.getByText("Health")).toBeVisible();
   await page.waitForTimeout(800);
   const canvas = page.locator("canvas");
   const beforeMove = (await canvas.getAttribute("data-sceneify-player-position"))!
@@ -80,23 +83,17 @@ test("renders the Roman GLB environment as a clean standalone view", async ({ pa
   await page.goto("http://127.0.0.1:4175");
   await expect(page.getByRole("button", { name: "Create" })).toHaveCount(0);
   await expect(page.locator("canvas")).toBeVisible();
-  const poi = page.getByRole("button", { name: "Point of interest: The civic fountain" });
-  await expect(poi).toBeVisible();
-  await poi.hover();
-  await expect(page.getByText("A CC0 fountain model by Isa Lousberg")).toBeVisible();
-  await poi.click();
-  await page.mouse.move(10, 700);
+  await expect(page.getByText("Automatic camera tour")).toBeVisible();
+  // Guided tour starts automatically and eventually reaches the fountain exhibit.
+  await expect(page.locator("canvas")).toHaveAttribute("data-sceneify-tour-stop", /.+/);
+  await expect
+    .poll(async () => page.locator("canvas").getAttribute("data-sceneify-poi-focus"), {
+      timeout: 25000,
+    })
+    .toBe("poi_fountain");
   await expect(page.locator("[data-poi-focus-panel='poi_fountain']")).toBeVisible();
-  await expect(page.locator("canvas")).toHaveAttribute("data-sceneify-poi-focus", "poi_fountain");
   await expect(page.getByText("The civic fountain")).toBeVisible();
-  // Orbiting focus keeps markers in motion; dispatch a DOM click to switch POI.
-  await page.locator('[data-poi-id="poi_bust"]').evaluate((element) => {
-    (element as HTMLButtonElement).click();
-  });
-  await expect(page.locator("canvas")).toHaveAttribute("data-sceneify-poi-focus", "poi_bust");
-  await page.keyboard.press("Escape");
-  await expect(page.locator("canvas")).not.toHaveAttribute("data-sceneify-poi-focus");
-  await expect(page.locator("[data-poi-focus-panel]")).toHaveCount(0);
+  await expect(page.locator(".poi-tour-cue")).toHaveText(/Tight FOV push|daylight readable/i);
   expect(browserErrors).toEqual([]);
 });
 

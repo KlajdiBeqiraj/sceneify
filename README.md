@@ -121,11 +121,10 @@ Open the same environment in the authoring editor:
 uv run python examples/roman_environment.py --edit
 ```
 
-Hover a gold marker to reveal context. Click it to focus the camera on the anchored
-object with a slow orbit, show a responsive info panel, and emit a `poi_selected`
-semantic event to Python. Press Escape (or Close) to return to the overview. In edit
-mode the same markers keep hover and selection without taking over the camera or
-gizmos. Asset sources and licenses are listed in
+The Roman showcase runs an automatic camera tour along a predefined path: wide
+establishing shots, travel through the plaza, and close framing of each exhibit
+with lowered lighting and a stable info panel. Markers remain for hover context in
+edit mode. Asset sources and licenses are listed in
 [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md). Demo binaries remain in the Git
 repository but are excluded from the PyPI wheel and source distribution.
 

@@ -11,8 +11,9 @@ included for the public examples and are not part of the Sceneify Python wheel.
   - https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0
 - License: CC0 1.0 Universal
 - Files: `examples/assets/kaykit/*.glb`
-- Modifications: selected files were renamed for consistent paths. `knight.glb` uses
-  Meshopt geometry compression and WebP textures; its rig and clips are unchanged.
+- Modifications: selected files were renamed for consistent paths. `knight.glb` and
+  `mage.glb` use Meshopt geometry compression and WebP textures; rigs and clips are
+  unchanged.
 
 ## Quaternius modular ruins
 

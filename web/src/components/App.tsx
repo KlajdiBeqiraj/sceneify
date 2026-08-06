@@ -161,7 +161,12 @@ export function App() {
       dispatch({ type: "gamePickup", id: nodeId, value });
       if (state.score + value >= gameConfig.requiredScore) setStatus("All relics collected. Find the exit.");
     } else if (event === "hazard") {
-      dispatch({ type: "gameLose" });
+      if (nodeId.startsWith("enemy:")) {
+        const amount = Number(nodeId.slice("enemy:".length)) || 1;
+        dispatch({ type: "gameDamage", amount });
+      } else {
+        dispatch({ type: "gameLose" });
+      }
     } else if (event === "checkpoint") {
       const node = primitiveById(scene, nodeId);
       if (node) dispatch({ type: "checkpoint", position: node.position as [number, number, number] });
@@ -189,10 +194,10 @@ export function App() {
       toolbar={<TopToolbar sceneName={scene.name} revision={scene.revision} connection={connection} transformMode={state.transformMode} busy={busy} onTransformMode={(mode) => dispatch({ type: "transformMode", mode })} onUndo={() => command("undo", {}, "Undid command")} onRedo={() => command("redo", {}, "Redid command")} onSave={() => void onSave()} onReload={() => void reload()} onToggleLeft={() => dispatch({ type: "toggleLeft" })} onPlay={togglePlay} />}
       rail={<IconRail panel={state.leftPanel} playing={playing} onPanel={(panel) => dispatch({ type: "panel", panel })} onToggleInspector={() => dispatch({ type: "toggleInspector" })} onPlay={togglePlay} />}
       left={left}
-      viewport={<><Viewport key={connection} scene={scene} selectedId={state.selectedId} editing={editorConnected && !running} playing={running} gameActive={state.gamePhase === "playing"} collectedIds={state.collectedIds} gameRun={state.gameRun} transformMode={state.transformMode} snap={state.snap} onSelect={(id) => dispatch({ type: "select", id })} onTransform={(id, position, rotation, scale) => applyPatch(id, { position, rotation, scale })} onGameEvent={gameEvent} onAnnotationEvent={(name, nodeId) => sendSemanticEvent(name, nodeId)} />{running && scene.game && <GameOverlay phase={state.gamePhase} score={state.score} targetScore={gameConfig.requiredScore} timeLeft={state.timeLeft} title={gameConfig.title} onStart={() => {
+      viewport={<><Viewport key={connection} scene={scene} selectedId={state.selectedId} editing={editorConnected && !running} playing={running} gameActive={state.gamePhase === "playing"} collectedIds={state.collectedIds} gameRun={state.gameRun} transformMode={state.transformMode} snap={state.snap} onSelect={(id) => dispatch({ type: "select", id })} onTransform={(id, position, rotation, scale) => applyPatch(id, { position, rotation, scale })} onGameEvent={gameEvent} onAnnotationEvent={(name, nodeId) => sendSemanticEvent(name, nodeId)} />{running && scene.game && <GameOverlay phase={state.gamePhase} score={state.score} targetScore={gameConfig.requiredScore} health={state.health} maxHealth={state.maxHealth} timeLeft={state.timeLeft} title={gameConfig.title} onStart={() => {
         dispatch({ type: "gameStart", timeLimit: gameConfig.seconds, spawn: playerSpawn });
         sendSemanticEvent("game_started");
-      }} onExit={runtimeMode === "edit" ? () => setPlaying(false) : undefined} />}{running && !scene.game && scene.presentation?.title && <div className="showcase-title"><span>Sceneify environment study</span><h1>{scene.presentation.title}</h1>{scene.presentation.subtitle && <p>{scene.presentation.subtitle}</p>}<small>Drag to orbit · Scroll to explore · Click a gold point to focus</small></div>}</>}
+      }} onExit={runtimeMode === "edit" ? () => setPlaying(false) : undefined} />}{running && !scene.game && scene.presentation?.title && <div className="showcase-title"><span>Sceneify environment study</span><h1>{scene.presentation.title}</h1>{scene.presentation.subtitle && <p>{scene.presentation.subtitle}</p>}<small>{scene.presentation.cameraTour?.autoplay ? "Automatic camera tour · close framing · selective light dimming" : "Drag to orbit · Scroll to explore"}</small></div>}</>}
       inspector={<Inspector scene={scene} selectedId={state.selectedId} gameplayRole={state.selectedId ? roles.get(state.selectedId) ?? "none" : "none"} onGameplayRole={(id, role) => command("set_gameplay_role", { id, role }, `Set ${id} role to ${role}`)} onClose={() => dispatch({ type: "toggleInspector" })} onPatch={applyPatch} onDuplicate={(id) => command("duplicate", { id }, `Duplicated ${id}`)} onDelete={(id) => command("delete", { id }, `Deleted ${id}`)} />}
       status={<StatusBar status={`${status}${savePath ? "" : ""}`} protocol={protocol} revision={scene.revision} selectedId={state.selectedId} />}
     />

@@ -25,7 +25,15 @@ def test_collect_escape_uses_animated_glb_visuals() -> None:
     floors = [node for node in scene["meshes"] if node["id"].startswith("floor_")]
     assert len(floors) >= 20
     assert all(node["source"].endswith("floor_tile_large.glb") for node in floors)
-    assert scene["presentation"]["environmentPreset"] == "sunset"
+    assert scene["presentation"]["environmentPreset"] == "night"
+    player_node = next(node for node in scene["primitives"] if node["id"] == "player")
+    assert abs(player_node["position"][1] - 0.75) < 1e-6
+    ground_slabs = [node for node in scene["primitives"] if node["id"].startswith("ground_")]
+    assert len(ground_slabs) >= 20
+    assert all(node["physics"]["collider"] == "cuboid" for node in ground_slabs)
+    # Pit cells keep visuals missing and no physics slab under the kill volume.
+    assert not any(node["id"] in {"ground_0_0", "ground_1_0"} for node in ground_slabs)
+    assert not any(node["id"] in {"floor_0_0", "floor_1_0"} for node in scene["meshes"])
     colliders = [
         node
         for node in scene["primitives"]
@@ -39,6 +47,10 @@ def test_collect_escape_uses_animated_glb_visuals() -> None:
     assert pit["meta"].get("renderPrimitive") is not False
     checkpoint = next(node for node in scene["primitives"] if node["id"] == "checkpoint")
     assert checkpoint["meta"].get("renderPrimitive") is False
+    pad = next(node for node in scene["primitives"] if node["id"] == "checkpoint_pad")
+    assert pad["material"]["opacity"] < 1
+    assert pad["meta"].get("renderPrimitive") is not False
+    assert not any(node["id"].startswith("checkpoint_pillar") for node in scene["meshes"])
     goal = next(node for node in scene["primitives"] if node["id"] == "goal")
     assert goal["meta"].get("renderPrimitive") is False
     assert any(node["id"] == "goal_chest" for node in scene["meshes"])
@@ -50,6 +62,15 @@ def test_collect_escape_uses_animated_glb_visuals() -> None:
     assert next(node for node in scene["meshes"] if node["id"] == "player_visual")[
         "scale"
     ][1] == 0.78
+    enemy_kinds = {item["kind"] for item in scene["game"]["enemies"]["types"]}
+    assert enemy_kinds == {"knight", "mage"}
+    assert len(scene["game"]["enemies"]["spawnPoints"]) >= 4
+    for enemy in scene["game"]["enemies"]["types"]:
+        assert (ROOT / enemy["source"]).is_file()
+        assert int(enemy.get("health", 0)) >= 1
+    assert "attack" in next(
+        node for node in scene["meshes"] if node["id"] == "player_visual"
+    )["meta"]["animation"]["states"]
 
 
 def test_roman_showcase_has_local_presentation_and_interactive_pois() -> None:
@@ -65,10 +86,13 @@ def test_roman_showcase_has_local_presentation_and_interactive_pois() -> None:
     }
     bust_poi = next(item for item in scene["annotations"] if item["id"] == "poi_bust")
     assert bust_poi["offset"] == [0.0, 1.95, 0.0]
-    assert all(
-        annotation["meta"]["interaction"]["clickEvent"] == "poi_selected"
-        for annotation in scene["annotations"]
-    )
+    tour = scene["presentation"]["cameraTour"]
+    assert tour["autoplay"] is True
+    assert tour["loop"] is True
+    assert len(tour["stops"]) >= 6
+    assert any(stop.get("annotationId") == "poi_fountain" for stop in tour["stops"])
+    assert any(stop.get("spotlight") for stop in tour["stops"])
+    assert any((stop.get("lightScale") or 1) < 0.5 for stop in tour["stops"])
     for mesh in scene["meshes"]:
         asset = ROOT / mesh["source"]
         assert asset.is_file()

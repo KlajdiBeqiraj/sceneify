@@ -34,8 +34,16 @@ describe("editor reducer", () => {
     state = editorReducer(state, { type: "gamePickup", id: "coin" });
     state = editorReducer(state, { type: "gamePickup", id: "coin" });
     state = editorReducer(state, { type: "gameTick", delta: 2 });
-    expect(state).toMatchObject({ gamePhase: "playing", score: 1, timeLeft: 8 });
+    expect(state).toMatchObject({ gamePhase: "playing", score: 1, timeLeft: 8, health: 3 });
     expect(editorReducer(state, { type: "gameWin" }).gamePhase).toBe("won");
+  });
+
+  it("applies combat damage until the run is lost", () => {
+    let state = editorReducer(initialEditorState, { type: "gameStart", timeLimit: 20 });
+    state = editorReducer(state, { type: "gameDamage", amount: 1 });
+    expect(state).toMatchObject({ health: 2, gamePhase: "playing" });
+    state = editorReducer(state, { type: "gameDamage", amount: 2 });
+    expect(state).toMatchObject({ health: 0, gamePhase: "lost" });
   });
 
   it("prevents hierarchy cycles", () => {

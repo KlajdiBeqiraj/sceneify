@@ -51,13 +51,37 @@ await shot("after-03-collect-moved.png", "http://127.0.0.1:4174", async (p) => {
   await p.keyboard.up("w");
 });
 await shot("after-04-roman-overview.png", "http://127.0.0.1:4175");
-await shot("after-05-roman-poi-focus.png", "http://127.0.0.1:4175", async (p) => {
-  await p.getByRole("button", { name: "Point of interest: The civic fountain" }).click();
-  await p.waitForTimeout(2200);
+await shot("after-05-roman-fountain-close.png", "http://127.0.0.1:4175", async (p) => {
+  await p.waitForFunction(
+    () => document.querySelector("canvas")?.dataset.sceneifyPoiFocus === "poi_fountain",
+    null,
+    { timeout: 30000 },
+  );
+  await p.waitForTimeout(1200);
 });
-await shot("after-06-roman-poi-switch.png", "http://127.0.0.1:4175", async (p) => {
-  await p.getByRole("button", { name: "Point of interest: Horse Statue 01" }).click();
-  await p.waitForTimeout(2400);
+await shot("after-06-roman-bust-dim.png", "http://127.0.0.1:4175", async (p) => {
+  await p.waitForFunction(
+    () => document.querySelector("canvas")?.dataset.sceneifyPoiFocus === "poi_bust",
+    null,
+    { timeout: 45000 },
+  );
+  await p.waitForTimeout(1200);
+});
+await shot("after-07-roman-horse-front.png", "http://127.0.0.1:4175", async (p) => {
+  await p.waitForFunction(
+    () => document.querySelector("canvas")?.dataset.sceneifyPoiFocus === "poi_horse",
+    null,
+    { timeout: 60000 },
+  );
+  await p.waitForTimeout(1200);
+});
+await shot("after-08-roman-arch-full.png", "http://127.0.0.1:4175", async (p) => {
+  await p.waitForFunction(
+    () => document.querySelector("canvas")?.dataset.sceneifyPoiFocus === "poi_ruins",
+    null,
+    { timeout: 60000 },
+  );
+  await p.waitForTimeout(1200);
 });
 
 await browser.close();

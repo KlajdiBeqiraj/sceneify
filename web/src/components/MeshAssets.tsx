@@ -97,7 +97,7 @@ export function GlbVisual({
   animationState = "idle",
 }: {
   node: MeshNode;
-  animationState?: "idle" | "move" | "run" | "jump";
+  animationState?: "idle" | "move" | "run" | "jump" | "attack" | "hit" | "death";
 }) {
   const gltf = useGLTF(assetUrl(node.source));
   const cloned = useMemo(() => {
@@ -131,11 +131,25 @@ export function GlbVisual({
 
   useEffect(() => {
     cloned.traverse((child) => {
-      const mesh = child as Mesh;
-      if (mesh.isMesh) {
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+      // KayKit characters ship with sheathed/offhand sword sockets — keep the main blade visible.
+      if (child.name === "1H_Sword" || child.name.includes("1H_Sword")) {
+        child.visible = !child.name.includes("Offhand");
       }
+      const mesh = child as Mesh;
+      if (!mesh.isMesh) return;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      materials.forEach((material) => {
+        if (!material) return;
+        // Keep intentional glass/water alpha; force solid props fully opaque.
+        if ((material.opacity ?? 1) >= 0.99) {
+          material.transparent = false;
+          material.opacity = 1;
+          material.depthWrite = true;
+          material.needsUpdate = true;
+        }
+      });
     });
   }, [cloned]);
 
@@ -144,15 +158,19 @@ export function GlbVisual({
     const action = actions[clipName];
     if (!action) return;
     const fade = animation?.fadeSeconds ?? 0.18;
-    action
-      .reset()
-      .setLoop(animation?.loop === false ? LoopOnce : LoopRepeat, animation?.loop === false ? 1 : Infinity)
-      .fadeIn(fade)
-      .play();
+    const oneShot =
+      animation?.loop === false ||
+      animationState === "attack" ||
+      animationState === "hit" ||
+      animationState === "death";
+    action.reset();
+    action.setLoop(oneShot ? LoopOnce : LoopRepeat, oneShot ? 1 : Infinity);
+    if (oneShot) action.clampWhenFinished = true;
+    action.fadeIn(fade).play();
     return () => {
       action.fadeOut(fade);
     };
-  }, [actions, animation?.fadeSeconds, animation?.loop, clipName]);
+  }, [actions, animation?.fadeSeconds, animation?.loop, animationState, clipName]);
 
   return <primitive object={cloned} />;
 }

@@ -10,6 +10,8 @@ export type EditorState = {
   inspectorOpen: boolean;
   gamePhase: GamePhase;
   score: number;
+  health: number;
+  maxHealth: number;
   timeLeft: number;
   checkpoint: [number, number, number];
   collectedIds: string[];
@@ -27,6 +29,7 @@ export type EditorAction =
   | { type: "gameStart"; timeLimit: number; spawn?: [number, number, number] }
   | { type: "gameTick"; delta: number }
   | { type: "gamePickup"; id: string; value?: number }
+  | { type: "gameDamage"; amount?: number }
   | { type: "gameWin" }
   | { type: "gameLose" }
   | { type: "checkpoint"; position: [number, number, number] }
@@ -42,6 +45,8 @@ export const initialEditorState: EditorState = {
   inspectorOpen: true,
   gamePhase: "menu",
   score: 0,
+  health: 3,
+  maxHealth: 3,
   timeLeft: 90,
   checkpoint: [0, 1, 0],
   collectedIds: [],
@@ -76,6 +81,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         ...state,
         gamePhase: "playing",
         score: 0,
+        health: state.maxHealth,
         timeLeft: action.timeLimit,
         checkpoint: action.spawn ?? [0, 1, 0],
         collectedIds: [],
@@ -93,6 +99,15 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         score: state.score + (action.value ?? 1),
         collectedIds: [...state.collectedIds, action.id],
       };
+    case "gameDamage": {
+      if (state.gamePhase !== "playing") return state;
+      const health = Math.max(0, state.health - (action.amount ?? 1));
+      return {
+        ...state,
+        health,
+        gamePhase: health === 0 ? "lost" : "playing",
+      };
+    }
     case "gameWin":
       return { ...state, gamePhase: "won" };
     case "gameLose":
@@ -104,6 +119,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         ...state,
         gamePhase: "menu",
         score: 0,
+        health: state.maxHealth,
         timeLeft: 90,
         checkpoint: [0, 1, 0],
         collectedIds: [],

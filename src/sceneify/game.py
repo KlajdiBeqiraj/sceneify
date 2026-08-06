@@ -90,6 +90,35 @@ class Outcome:
 
 
 @dataclass
+class EnemyType:
+    """Continuously spawning chase enemy declared for the browser runtime."""
+
+    kind: str
+    source: str
+    max_alive: int = 2
+    interval_seconds: float = 4.5
+    speed: float = 2.6
+    scale: float = 0.75
+    health: int = 3
+    contact_damage: int = 1
+    hit_event: str = "hazard"
+    animation: dict[str, str] = field(
+        default_factory=lambda: {
+            "idle": "Idle",
+            "run": "Running_A",
+            "hit": "Hit_A",
+            "death": "Death_A",
+        }
+    )
+
+
+@dataclass
+class EnemyWave:
+    spawn_points: list[tuple[float, float, float]] = field(default_factory=list)
+    types: list[EnemyType] = field(default_factory=list)
+
+
+@dataclass
 class GameManifest:
     """Complete game runtime declaration serialized in scene JSON."""
 
@@ -100,6 +129,7 @@ class GameManifest:
     hazards: list[Hazard] = field(default_factory=list)
     checkpoints: list[Checkpoint] = field(default_factory=list)
     goals: list[Goal] = field(default_factory=list)
+    enemies: EnemyWave | None = None
     hud: HUD | None = None
     timer: Timer | None = None
     win: Outcome = field(default_factory=lambda: Outcome("goal", "You win"))
@@ -127,6 +157,48 @@ class GameManifest:
 
     def add_goal(self, node_id: str, **options: Any) -> Goal:
         return self._append(self.goals, Goal(node_id, **options))
+
+    def set_enemies(
+        self,
+        *,
+        spawn_points: list[tuple[float, float, float] | list[float]],
+        types: list[dict[str, Any]],
+    ) -> EnemyWave:
+        """Configure continuously spawning chase enemies for the runtime."""
+        wave = EnemyWave(
+            spawn_points=[
+                (float(point[0]), float(point[1]), float(point[2])) for point in spawn_points
+            ],
+            types=[
+                EnemyType(
+                    kind=str(item["kind"]),
+                    source=str(item["source"]),
+                    max_alive=int(item.get("max_alive", item.get("maxAlive", 2))),
+                    interval_seconds=float(
+                        item.get("interval_seconds", item.get("intervalSeconds", 4.5))
+                    ),
+                    speed=float(item.get("speed", 2.6)),
+                    scale=float(item.get("scale", 0.75)),
+                    health=int(item.get("health", 3)),
+                    contact_damage=int(
+                        item.get("contact_damage", item.get("contactDamage", 1))
+                    ),
+                    hit_event=str(item.get("hit_event", item.get("hitEvent", "hazard"))),
+                    animation=dict(
+                        item.get("animation")
+                        or {
+                            "idle": "Idle",
+                            "run": "Running_A",
+                            "hit": "Hit_A",
+                            "death": "Death_A",
+                        }
+                    ),
+                )
+                for item in types
+            ],
+        )
+        self.enemies = wave
+        return wave
 
     def set_hud(self, **options: Any) -> HUD:
         self.hud = HUD(**options)
@@ -183,6 +255,14 @@ class GameManifest:
             "hazards": [_camel_dict(value) for value in self.hazards],
             "checkpoints": [_camel_dict(value) for value in self.checkpoints],
             "goals": [_camel_dict(value) for value in self.goals],
+            "enemies": (
+                {
+                    "spawnPoints": [list(point) for point in self.enemies.spawn_points],
+                    "types": [_camel_dict(item) for item in self.enemies.types],
+                }
+                if self.enemies
+                else None
+            ),
             "hud": _camel_dict(self.hud) if self.hud else None,
             "timer": _camel_dict(self.timer) if self.timer else None,
             "win": _camel_dict(self.win),
@@ -275,6 +355,12 @@ class GameManifest:
         if lose:
             manifest.lose = Outcome(
                 str(lose.get("event", "timeout")), str(lose.get("message", "You lose"))
+            )
+        enemies = values.get("enemies")
+        if enemies:
+            manifest.set_enemies(
+                spawn_points=enemies.get("spawnPoints") or [],
+                types=enemies.get("types") or [],
             )
         return manifest
 

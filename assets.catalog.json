@@ -10,7 +10,18 @@
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0",
       "checksum": "sha256:f575446600d30f7988b2862776d1ed4aa6b85b6235dde08ae6c69326342dae30",
       "animations": ["Idle", "Walking_A", "Running_A", "Jump_Full_Short"],
-      "tags": ["character", "animated", "game"],
+      "tags": ["character", "animated", "game", "enemy"],
+      "metadata": {"creator": "Kay Lousberg"}
+    },
+    {
+      "id": "kaykit-mage",
+      "path": "examples/assets/kaykit/mage.glb",
+      "format": "glb",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0",
+      "checksum": "sha256:d7b8aa86b80e4835b6a8b27c96263278f05915cf878c31cbbfbc5cec32895f39",
+      "animations": ["Idle", "Walking_A", "Running_A", "Spellcast_Shoot"],
+      "tags": ["character", "animated", "game", "enemy"],
       "metadata": {"creator": "Kay Lousberg"}
     },
     {

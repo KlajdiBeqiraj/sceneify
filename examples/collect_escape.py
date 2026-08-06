@@ -9,8 +9,13 @@ from sceneify import Game, Material, Physics, Scene
 
 # KayKit Dungeon Remastered measured AABB sizes (meters at scale 1).
 FLOOR_TILE = 4.0
+# floor_tile_large top sits near y=0.05 at scale 1.
+FLOOR_TOP = 0.05
 BARREL = (1.8, 2.0, 1.8)
 CHEST = (1.7, 1.21, 1.91)
+# Rapier capsule: total height = 2 * halfHeight + 2 * radius
+CAPSULE_HALF = 0.4
+CAPSULE_RADIUS = 0.3
 
 KAYKIT = "examples/assets/kaykit"
 
@@ -20,56 +25,57 @@ def _invisible(**meta: object) -> dict:
 
 
 def build_scene() -> Scene:
-    scene = Scene("Collect and Escape", background="#1c2438")
+    scene = Scene("Collect and Escape", background="#120e18")
     scene.set_presentation(
         grid=False,
         helpers=False,
         shadows=True,
-        exposure=1.28,
-        environmentPreset="sunset",
-        fog={"color": "#243044", "near": 32, "far": 64},
-        camera={"position": [0, 10, 18], "target": [0, 1, 0], "fov": 46},
+        exposure=1.15,
+        environmentPreset="night",
+        fog={"color": "#120e18", "near": 22, "far": 48},
+        camera={"position": [0, 9, 16], "target": [0, 1, 2], "fov": 48},
         title="Collect & Escape",
         subtitle="A third-person browser game authored entirely from Python",
+        ambientIntensity=0.35,
+        keyLightIntensity=1.15,
     )
 
-    # Invisible physics ground; visuals come from floor_tile_large GLBs.
-    scene.create_primitive(
-        "ground",
-        "plane",
-        size=(24, 0.2, 36),
-        position=(0, 0, -2),
-        material=Material("#3d4658", roughness=1.0),
-        physics=Physics(body="fixed", collider="cuboid"),
-        tags=["ground"],
-        **_invisible(),
-    )
-
-    # Floor tiles form a readable dungeon corridor (4x4 KayKit tiles).
+    # Floor tiles + matching physics slabs. Skip the pit cells so bodies can fall in.
     # Leave a center-right pit so the hazard reads as a shortcut, not a wall.
     hazard_tiles = {(0, 0), (1, 0)}
     for x_index in range(-2, 3):
         for z_index in range(-4, 4):
             if (x_index, z_index) in hazard_tiles:
                 continue
+            tile_x = x_index * FLOOR_TILE
+            tile_z = z_index * FLOOR_TILE
+            scene.create_primitive(
+                f"ground_{x_index}_{z_index}",
+                "box",
+                size=(FLOOR_TILE, FLOOR_TOP, FLOOR_TILE),
+                position=(tile_x, FLOOR_TOP / 2, tile_z),
+                material=Material("#2b3344", roughness=1.0),
+                physics=Physics(body="fixed", collider="cuboid"),
+                tags=["ground"],
+                **_invisible(),
+            )
             scene.add_glb(
                 f"floor_{x_index}_{z_index}",
                 f"{KAYKIT}/floor_tile_large.glb",
-                position=(x_index * FLOOR_TILE, 0, z_index * FLOOR_TILE),
+                position=(tile_x, 0, tile_z),
                 scale=(1, 1, 1),
                 tags=["architecture", "ground"],
             )
 
-    # Player: invisible capsule collider + skinned knight visual.
-    # KayKit Adventure knight is ~2m at scale 1; 0.78 keeps props readable.
-    player_y = 0.78
+    # Player capsule stands on FLOOR_TOP; visual feet share that contact plane.
+    player_y = FLOOR_TOP + CAPSULE_HALF + CAPSULE_RADIUS
     knight_scale = 0.78
     scene.create_primitive(
         "player",
         "capsule",
         position=(0, player_y, 10),
-        radius=0.38,
-        height=0.9,
+        radius=CAPSULE_RADIUS,
+        height=CAPSULE_HALF * 2,
         material=Material("#53b1fd"),
         physics=Physics(body="dynamic", collider="capsule", mass=1),
         tags=["player"],
@@ -79,7 +85,7 @@ def build_scene() -> Scene:
         "player_visual",
         f"{KAYKIT}/knight.glb",
         parent_id="player",
-        position=(0, -player_y, 0),
+        position=(0, -(CAPSULE_HALF + CAPSULE_RADIUS), 0),
         scale=(knight_scale, knight_scale, knight_scale),
         apply_environment=False,
         visualFor="player",
@@ -90,8 +96,9 @@ def build_scene() -> Scene:
                 "move": "Walking_A",
                 "run": "Running_A",
                 "jump": "Jump_Full_Short",
+                "attack": "1H_Melee_Attack_Chop",
             },
-            "fadeSeconds": 0.16,
+            "fadeSeconds": 0.12,
         },
     )
 
@@ -149,6 +156,16 @@ def build_scene() -> Scene:
             position=(x, 0, -13.2),
             scale=(0.85, 0.85, 0.85),
             tags=["architecture"],
+        )
+        scene.create_primitive(
+            f"{node_id}_col",
+            "box",
+            position=(x, 1.2, -13.2),
+            size=(1.1, 2.4, 1.1),
+            material=Material("#667085"),
+            physics=Physics(body="fixed", collider="cuboid"),
+            tags=["obstacle", "collider"],
+            **_invisible(),
         )
 
     # Path blockers: collider first, matching GLB visual second.
@@ -229,11 +246,12 @@ def build_scene() -> Scene:
         )
 
     # Hazard pit on the center/right shortcut; safe lane stays on the left (-X).
+    # Kill volume sits in the hole (no floor slab under these tiles).
     scene.create_primitive(
         "hazard",
         "box",
-        position=(2.0, 0.45, 0.0),
-        size=(7.2, 1.0, 3.6),
+        position=(2.0, -0.6, 0.0),
+        size=(7.6, 1.6, 3.8),
         material=Material("#3b1218"),
         physics=Physics(body="fixed", collider="cuboid", sensor=True),
         tags=["hazard"],
@@ -242,12 +260,28 @@ def build_scene() -> Scene:
     scene.create_primitive(
         "hazard_pit_visual",
         "box",
-        position=(2.0, -0.18, 0.0),
+        position=(2.0, -0.35, 0.0),
         size=(8.0, 0.08, 4.0),
         material=Material("#1a0c10", roughness=1.0),
         tags=["hazard", "decoration"],
         renderPrimitive=True,
     )
+    # Thin rim markers so the hole edge reads without becoming a climbable ledge.
+    for node_id, position, size in (
+        ("pit_rim_n", (2.0, 0.04, -2.05), (8.0, 0.08, 0.2)),
+        ("pit_rim_s", (2.0, 0.04, 2.05), (8.0, 0.08, 0.2)),
+        ("pit_rim_w", (-1.85, 0.04, 0.0), (0.2, 0.08, 4.0)),
+        ("pit_rim_e", (5.85, 0.04, 0.0), (0.2, 0.08, 4.0)),
+    ):
+        scene.create_primitive(
+            node_id,
+            "box",
+            position=position,
+            size=size,
+            material=Material("#4a1d24", roughness=1.0),
+            tags=["hazard", "decoration"],
+            renderPrimitive=True,
+        )
     scene.add_glb(
         "hazard_torch_l",
         f"{KAYKIT}/torch_lit.glb",
@@ -264,18 +298,36 @@ def build_scene() -> Scene:
         tags=["prop", "light"],
     )
 
-    # Checkpoint: torch gate + invisible sensor (no colored debug slab).
+    # Checkpoint: classic translucent pad (not a see-through pillar) + invisible sensor.
     scene.create_primitive(
         "checkpoint",
         "box",
-        position=(0.0, 0.5, -4.0),
-        size=(4.0, 1.6, 1.2),
-        material=Material("#d6a65f"),
+        position=(0.0, 0.55, -4.0),
+        size=(3.6, 1.4, 3.6),
+        material=Material("#5eead4"),
         physics=Physics(body="fixed", collider="cuboid", sensor=True),
         tags=["checkpoint"],
         **_invisible(),
     )
-    for node_id, x in (("checkpoint_torch_l", -2.6), ("checkpoint_torch_r", 2.6)):
+    scene.create_primitive(
+        "checkpoint_pad",
+        "box",
+        position=(0.0, 0.05, -4.0),
+        size=(3.4, 0.1, 3.4),
+        material=Material("#2dd4bf", roughness=0.25, opacity=0.45),
+        tags=["checkpoint", "decoration"],
+        renderPrimitive=True,
+    )
+    scene.create_primitive(
+        "checkpoint_ring",
+        "box",
+        position=(0.0, 0.12, -4.0),
+        size=(3.8, 0.04, 3.8),
+        material=Material("#99f6e4", roughness=0.2, opacity=0.28),
+        tags=["checkpoint", "decoration"],
+        renderPrimitive=True,
+    )
+    for node_id, x in (("checkpoint_torch_l", -2.8), ("checkpoint_torch_r", 2.8)):
         scene.add_glb(
             node_id,
             f"{KAYKIT}/torch_lit.glb",
@@ -283,20 +335,6 @@ def build_scene() -> Scene:
             scale=(0.8, 0.8, 0.8),
             tags=["prop", "light"],
         )
-    scene.add_glb(
-        "checkpoint_pillar_l",
-        f"{KAYKIT}/pillar.glb",
-        position=(-2.6, 0.0, -4.0),
-        scale=(0.55, 0.55, 0.55),
-        tags=["architecture"],
-    )
-    scene.add_glb(
-        "checkpoint_pillar_r",
-        f"{KAYKIT}/pillar.glb",
-        position=(2.6, 0.0, -4.0),
-        scale=(0.55, 0.55, 0.55),
-        tags=["architecture"],
-    )
 
     # Goal sensor (invisible) + treasure chest visual beyond the gate.
     scene.create_primitive(
@@ -316,6 +354,16 @@ def build_scene() -> Scene:
         rotation=(0, 3.1416, 0),
         scale=(1.0, 1.0, 1.0),
         tags=["prop", "goal"],
+    )
+    scene.create_primitive(
+        "goal_chest_col",
+        "box",
+        position=(0.0, 0.6, -15.2),
+        size=(CHEST[0], CHEST[1], CHEST[2]),
+        material=Material("#667085"),
+        physics=Physics(body="fixed", collider="cuboid"),
+        tags=["obstacle", "collider"],
+        **_invisible(),
     )
 
     # Corridor lighting props.
@@ -358,6 +406,7 @@ def build_scene() -> Scene:
         moveLeft=["KeyA", "ArrowLeft"],
         moveRight=["KeyD", "ArrowRight"],
         jump=["Space"],
+        attack=["KeyJ", "Mouse0"],
     )
     game.add_controller("player", move_speed=5.5, jump_speed=7.0)
     game.follow_camera("player", distance=9.5, height=4.8)
@@ -366,11 +415,55 @@ def build_scene() -> Scene:
     game.add_hazard("hazard")
     game.add_checkpoint("checkpoint")
     game.add_goal("goal", required_score=3)
-    game.set_hud(title="Collect & Escape")
+    enemy_y = FLOOR_TOP + CAPSULE_HALF + CAPSULE_RADIUS
+    game.set_enemies(
+        spawn_points=[
+            (-8.0, enemy_y, -8.0),
+            (8.0, enemy_y, -8.0),
+            (-8.0, enemy_y, 6.0),
+            (8.0, enemy_y, 6.0),
+            (0.0, enemy_y, -12.0),
+        ],
+        types=[
+            {
+                "kind": "knight",
+                "source": f"{KAYKIT}/knight.glb",
+                "max_alive": 2,
+                "interval_seconds": 5.0,
+                "speed": 2.9,
+                "scale": 0.75,
+                "health": 3,
+                "contact_damage": 1,
+                "animation": {
+                    "idle": "Idle",
+                    "run": "Running_A",
+                    "hit": "Hit_A",
+                    "death": "Death_A",
+                },
+            },
+            {
+                "kind": "mage",
+                "source": f"{KAYKIT}/mage.glb",
+                "max_alive": 2,
+                "interval_seconds": 6.5,
+                "speed": 2.3,
+                "scale": 0.75,
+                "health": 2,
+                "contact_damage": 1,
+                "animation": {
+                    "idle": "Idle",
+                    "run": "Running_A",
+                    "hit": "Hit_A",
+                    "death": "Death_A",
+                },
+            },
+        ],
+    )
+    game.set_hud(title="Collect & Escape", show_health=True)
     game.set_timer(90)
     game.outcomes(
         win_message="You gathered the relics and escaped the dungeon.",
-        lose_message="A hazard ended the run. Try a safer route.",
+        lose_message="You fell in the pit or ran out of health. Fight smarter next time.",
     )
     scene.set_game(game)
     return scene

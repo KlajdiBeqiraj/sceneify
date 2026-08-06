@@ -17,8 +17,7 @@ export function Annotations({
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const focused = !editing ? items.find((item) => item.id === focusedId) ?? null : null;
-  const activeCardId = editing ? selected : focusedId;
+  const activeCardId = editing ? selected : null;
 
   useEffect(() => {
     if (editing) return;
@@ -53,7 +52,7 @@ export function Annotations({
                   emissiveIntensity={isFocused ? 0.7 : 0.35}
                 />
               </mesh>
-              <Html center distanceFactor={8} style={{ pointerEvents: "auto" }}>
+              <Html center distanceFactor={8} style={{ pointerEvents: "auto" }} zIndexRange={[20, 0]}>
                 <div className={`poi-anchor ${isFocused ? "focused" : ""}`}>
                   <button
                     className="poi-hit"
@@ -97,22 +96,6 @@ export function Annotations({
             </group>
           );
         })}
-      {focused && (
-        <Html fullscreen style={{ pointerEvents: "none" }}>
-          <aside
-            className="poi-focus-panel"
-            data-poi-focus-panel={focused.id}
-            style={{ pointerEvents: "auto" }}
-          >
-            {focused.meta?.category && <small>{focused.meta.category}</small>}
-            {focused.label && <strong>{focused.label}</strong>}
-            {focused.description && <span>{focused.description}</span>}
-            <button type="button" className="poi-focus-close" onClick={() => onFocusChange(null)}>
-              Close · Esc
-            </button>
-          </aside>
-        </Html>
-      )}
     </>
   );
 }

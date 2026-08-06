@@ -21,7 +21,7 @@ export type Physics = {
 
 export type AnimationConfig = {
   autoplay?: string;
-  states?: Partial<Record<"idle" | "move" | "run" | "jump", string>>;
+  states?: Partial<Record<"idle" | "move" | "run" | "jump" | "attack" | "hit" | "death", string>>;
   loop?: boolean;
   fadeSeconds?: number;
 };
@@ -194,10 +194,29 @@ export type ScenePayload = {
     helpers?: boolean;
     shadows?: boolean;
     exposure?: number;
+    ambientIntensity?: number;
+    keyLightIntensity?: number;
     title?: string;
     subtitle?: string;
     fog?: { color?: string; near?: number; far?: number } | null;
     camera?: { position?: Vec3; fov?: number; target?: Vec3 } | null;
+    cameraTour?: {
+      autoplay?: boolean;
+      loop?: boolean;
+      stops?: Array<{
+        id: string;
+        position: number[];
+        target: number[];
+        travel?: number;
+        hold?: number;
+        exposure?: number;
+        lightScale?: number;
+        spotlight?: boolean;
+        fov?: number;
+        annotationId?: string;
+        cue?: string;
+      }>;
+    } | null;
   };
 };
 
@@ -221,6 +240,21 @@ export type GameManifest = {
   hazards?: Array<{ nodeId: string; [key: string]: unknown }>;
   checkpoints?: Array<{ nodeId: string; [key: string]: unknown }>;
   goals?: Array<{ nodeId: string; requiredScore?: number; [key: string]: unknown }>;
+  enemies?: {
+    spawnPoints?: number[][];
+    types?: Array<{
+      kind: string;
+      source: string;
+      maxAlive?: number;
+      intervalSeconds?: number;
+      speed?: number;
+      scale?: number;
+      health?: number;
+      contactDamage?: number;
+      hitEvent?: string;
+      animation?: { idle?: string; run?: string; hit?: string; death?: string; attack?: string };
+    }>;
+  } | null;
   hud?: { title?: string; [key: string]: unknown };
   timer?: { seconds?: number; [key: string]: unknown };
   win?: Record<string, unknown>;
