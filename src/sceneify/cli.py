@@ -4,10 +4,18 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
-from sceneify.agent_tools import tool_definition
+from sceneify.agent_tools import WorldTools, tool_definition, tool_definitions
 from sceneify.catalog import AssetCatalog
 from sceneify.demo_assets import download_public_asset, list_public_assets
+from sceneify.remote_assets import (
+    fetch_remote_asset,
+    get_remote_asset_info,
+    list_remote_assets,
+    search_remote_assets,
+)
+from sceneify.scene import Scene
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -21,10 +29,55 @@ def main(argv: list[str] | None = None) -> None:
     listed = sub.add_parser("list-demos", help="List public demo asset keys")
     listed.set_defaults(command="list-demos")
 
-    sub.add_parser("tool-spec", help="Print the provider independent world action descriptor")
+    tool_spec = sub.add_parser(
+        "tool-spec", help="Print the provider independent world action descriptor"
+    )
+    tool_spec.add_argument(
+        "--all",
+        action="store_true",
+        help="Print the full multi-tool descriptor list used by MCP adapters",
+    )
 
     validate_catalog = sub.add_parser("validate-catalog", help="Validate an asset catalog")
     validate_catalog.add_argument("path")
+
+    list_remote = sub.add_parser("list-remote", help="List remote assets with pagination")
+    list_remote.add_argument("--query")
+    list_remote.add_argument("--provider", default="polyhaven")
+    list_remote.add_argument("--type", default="models")
+    list_remote.add_argument("--offset", type=int, default=0)
+    list_remote.add_argument("--limit", type=int, default=25)
+
+    search_remote = sub.add_parser("search-remote", help="Search Poly Haven for CC0 assets")
+    search_remote.add_argument("query")
+    search_remote.add_argument("--provider", default="polyhaven")
+    search_remote.add_argument("--type", default="models")
+    search_remote.add_argument("--offset", type=int, default=0)
+    search_remote.add_argument("--limit", type=int, default=12)
+
+    info_remote = sub.add_parser("info-remote", help="Show metadata/files for one remote asset")
+    info_remote.add_argument("remote_id")
+    info_remote.add_argument("--provider", default="polyhaven")
+    info_remote.add_argument("--no-files", action="store_true")
+
+    fetch_remote = sub.add_parser(
+        "fetch-remote", help="Download a remote asset into .sceneify_cache"
+    )
+    fetch_remote.add_argument("remote_id")
+    fetch_remote.add_argument("--provider", default="polyhaven")
+    fetch_remote.add_argument("--id", dest="catalog_id")
+    fetch_remote.add_argument("--resolution", default="1k")
+    fetch_remote.add_argument("--type", default="models")
+    fetch_remote.add_argument("--cache-dir")
+    fetch_remote.add_argument("--catalog", help="Optional catalog path to upsert into")
+    fetch_remote.add_argument("--force", action="store_true")
+
+    apply_cmd = sub.add_parser("apply", help="Apply one JSON action or a JSON array of actions")
+    apply_cmd.add_argument("actions_path", help="Path to a JSON object or array of actions")
+    apply_cmd.add_argument("--scene", help="Optional scene path to load first")
+    apply_cmd.add_argument("--catalog", help="Optional catalog path to load")
+    apply_cmd.add_argument("--save", help="Optional path to save the resulting scene")
+    apply_cmd.add_argument("--name", default="cli-world")
 
     args = parser.parse_args(argv)
 
@@ -39,12 +92,80 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     if args.command == "tool-spec":
-        print(json.dumps(tool_definition(), indent=2))
+        payload = tool_definitions() if args.all else tool_definition()
+        print(json.dumps(payload, indent=2))
         return
 
     if args.command == "validate-catalog":
         catalog = AssetCatalog.load(args.path)
         print(f"Valid catalog with {len(catalog.assets)} assets")
+        return
+
+    if args.command == "list-remote":
+        page = list_remote_assets(
+            provider=args.provider,
+            asset_type=args.type,
+            query=args.query,
+            offset=args.offset,
+            limit=args.limit,
+        )
+        print(json.dumps(page, indent=2))
+        return
+
+    if args.command == "search-remote":
+        page = search_remote_assets(
+            args.query,
+            provider=args.provider,
+            asset_type=args.type,
+            offset=args.offset,
+            limit=args.limit,
+        )
+        print(json.dumps(page, indent=2))
+        return
+
+    if args.command == "info-remote":
+        info = get_remote_asset_info(
+            args.remote_id,
+            provider=args.provider,
+            include_files=not args.no_files,
+        )
+        print(json.dumps(info, indent=2))
+        return
+
+    if args.command == "fetch-remote":
+        catalog = AssetCatalog.load(args.catalog) if args.catalog else AssetCatalog()
+        asset = fetch_remote_asset(
+            args.remote_id,
+            provider=args.provider,
+            catalog=catalog,
+            catalog_id=args.catalog_id,
+            cache_dir=args.cache_dir,
+            resolution=args.resolution,
+            asset_type=args.type,
+            force=args.force,
+        )
+        if args.catalog:
+            catalog.save(args.catalog)
+        print(json.dumps(asset.to_document(), indent=2))
+        return
+
+    if args.command == "apply":
+        scene = Scene.load(args.scene) if args.scene else Scene(args.name)
+        catalog = AssetCatalog.load(args.catalog) if args.catalog else AssetCatalog()
+        tools = WorldTools(scene, catalog)
+        payload = json.loads(Path(args.actions_path).read_text(encoding="utf-8"))
+        if isinstance(payload, dict):
+            result = tools.apply(payload)
+            print(json.dumps(result, indent=2))
+        elif isinstance(payload, list):
+            result = tools.apply_many(payload)
+            print(json.dumps(result, indent=2))
+        else:
+            raise SystemExit("actions JSON must be an object or an array")
+        if args.save:
+            tools.scene.save(args.save)
+            if args.catalog:
+                catalog.save(args.catalog)
         return
 
 
