@@ -169,6 +169,35 @@ def test_project_root_save_asset_upload_and_catalog(tmp_path: Path) -> None:
         assert invalid.status_code == 400
 
 
+def test_controller_preset_ecctrl_roundtrip() -> None:
+    scene = Scene()
+    scene.create_primitive("player", "capsule")
+    game = Game()
+    game.add_controller(
+        "player",
+        preset="ecctrl",
+        move_speed=4.5,
+        jump_speed=6.5,
+        sprint_mult=1.8,
+    )
+    game.follow_camera("player", distance=7.0, height=2.5)
+    scene.set_game(game)
+    controller = scene.to_dict()["game"]["controllers"][0]
+    assert controller == {
+        "nodeId": "player",
+        "moveSpeed": 4.5,
+        "jumpSpeed": 6.5,
+        "actionMap": "default",
+        "preset": "ecctrl",
+        "sprintMult": 1.8,
+    }
+    loaded = Game.from_dict(scene.to_dict()["game"])
+    assert loaded.controllers[0].preset == "ecctrl"
+    assert loaded.controllers[0].sprint_mult == 1.8
+    with pytest.raises(ValueError, match="preset"):
+        game.add_controller("other", preset="fly")
+
+
 def test_game_manifest_and_protocol_v2_semantic_event() -> None:
     scene = Scene()
     scene.create_primitive("player", "capsule")
@@ -180,7 +209,11 @@ def test_game_manifest_and_protocol_v2_semantic_event() -> None:
     game.add_hazard("player")
     game.add_checkpoint("player")
     game.add_goal("player")
-    game.set_hud(title="Test")
+    game.set_hud(
+        title="Test",
+        description="A short game explanation.",
+        controls_hint="Move: W",
+    )
     game.set_timer(10)
     scene.set_game(game)
     events: list[SemanticEvent] = []
@@ -193,6 +226,11 @@ def test_game_manifest_and_protocol_v2_semantic_event() -> None:
     manifest = scene.to_dict()["game"]
     assert manifest["actionMaps"]["default"]["moveForward"] == ["KeyW"]
     assert manifest["controllers"][0]["nodeId"] == "player"
+    assert manifest["controllers"][0]["preset"] == "simple"
+    assert manifest["hud"]["description"] == "A short game explanation."
+    assert manifest["hud"]["controlsHint"] == "Move: W"
+    assert Game.from_dict(manifest).hud is not None
+    assert Game.from_dict(manifest).hud.controls_hint == "Move: W"
 
     with (
         TestClient(create_app(scene, realtime=False)) as client,

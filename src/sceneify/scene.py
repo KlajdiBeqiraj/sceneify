@@ -9,6 +9,7 @@ from typing import Any
 
 from sceneify.annotations import Annotation, build_annotation
 from sceneify.environment import Environment, RuleViolation, build_default_environment
+from sceneify.game import GameManifest
 from sceneify.objects import (
     Material,
     MeshAsset,
@@ -18,6 +19,14 @@ from sceneify.objects import (
     SceneObject,
     build_mesh,
     build_object,
+)
+from sceneify.prefabs import (
+    Prefab,
+    apply_node_overrides,
+    build_instance_id_map,
+    capture_prefab,
+    graph_node_from_dict,
+    split_instance_overrides,
 )
 from sceneify.realtime import EventCallback, InputCallback, TickCallback
 from sceneify.trajectories import Trajectory, build_trajectory
@@ -41,6 +50,7 @@ class Scene:
         self._event_callbacks: list[EventCallback] = []
         self._game_manifest: dict[str, Any] | None = None
         self._presentation: dict[str, Any] = {}
+        self._prefabs: dict[str, Prefab] = {}
 
     def on_tick(self, callback: TickCallback | None = None) -> TickCallback | Callable:
         """Register ``callback(scene, delta_seconds)`` for realtime ticks."""
@@ -85,6 +95,118 @@ class Scene:
     def set_presentation(self, **options: Any) -> None:
         """Configure browser lighting, camera, helpers, and environment presentation."""
         self._presentation = copy.deepcopy(options)
+
+    def define_prefab(
+        self,
+        prefab_id: str,
+        *,
+        from_node: str,
+        label: str | None = None,
+        root_id: str | None = None,
+        game_roles: Mapping[str, str] | None = None,
+    ) -> Prefab:
+        """Capture an existing scene subtree as a reusable prefab template."""
+        nodes = self._graph_nodes()
+        if from_node not in nodes:
+            raise KeyError(f"Unknown graph node id {from_node!r}")
+        if prefab_id in self._prefabs:
+            raise ValueError(f"Prefab {prefab_id!r} already exists")
+        descendant_ids = self.descendants(from_node)
+        prefab = capture_prefab(
+            prefab_id=prefab_id,
+            root=nodes[from_node],
+            descendants=[nodes[node_id] for node_id in descendant_ids],
+            label=label,
+            root_id=root_id,
+            game_roles=game_roles,
+        )
+        self._prefabs[prefab_id] = prefab
+        return prefab
+
+    def instantiate(
+        self,
+        prefab_id: str,
+        *,
+        id: str | None = None,
+        position: Sequence[float] | None = None,
+        rotation: Sequence[float] | None = None,
+        scale: Sequence[float] | None = None,
+        parent_id: str | None = None,
+        overrides: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Expand a prefab into scene nodes, applying optional per-instance overrides."""
+        prefab = self.get_prefab(prefab_id)
+        root_overrides, child_overrides, root_game_role = split_instance_overrides(overrides)
+        instance_root_id = id or self._available_id(prefab_id)
+        self._ensure_unique(instance_root_id)
+        if parent_id is not None and parent_id not in self._graph_nodes():
+            raise KeyError(f"Unknown parent id {parent_id!r}")
+        for relative_id in child_overrides:
+            if relative_id not in prefab.nodes():
+                raise KeyError(
+                    f"Prefab {prefab_id!r} has no node {relative_id!r} for overrides.nodes"
+                )
+
+        id_map = build_instance_id_map(
+            prefab,
+            instance_root_id=instance_root_id,
+            reserved=set(self._graph_nodes())
+            | set(self._annotations)
+            | set(self._trajectories),
+        )
+        created: list[str] = []
+        try:
+            for relative_id, payload in prefab.nodes().items():
+                node = graph_node_from_dict(payload)
+                node.id = id_map[relative_id]
+                if relative_id == prefab.root_id:
+                    node.parent_id = parent_id
+                elif node.parent_id is not None:
+                    node.parent_id = id_map[str(node.parent_id)]
+                node.meta = dict(node.meta)
+                node.meta["prefab"] = prefab_id
+                node.meta["prefabRoot"] = instance_root_id
+                if relative_id == prefab.root_id:
+                    if position is not None:
+                        node.position = as_vec3(position)
+                    if rotation is not None:
+                        node.rotation = as_vec3(rotation)
+                    if scale is not None:
+                        node.scale = as_vec3(scale, (1.0, 1.0, 1.0))
+                    apply_node_overrides(node, root_overrides)
+                elif relative_id in child_overrides:
+                    apply_node_overrides(node, child_overrides[relative_id])
+                self._ensure_unique(node.id)
+                self._store_graph_node(node)
+                created.append(node.id)
+            self.validate_graph()
+        except Exception:
+            for node_id in created:
+                self._meshes.pop(node_id, None)
+                self._objects.pop(node_id, None)
+                self._primitives.pop(node_id, None)
+            raise
+
+        roles = dict(prefab.game_roles)
+        if root_game_role is not None:
+            roles[prefab.root_id] = root_game_role
+        if roles:
+            manifest = GameManifest.from_dict(self._game_manifest)
+            for relative_id, role in roles.items():
+                manifest.set_gameplay_role(id_map[relative_id], role)
+            self.set_game(manifest)
+        return self._graph_nodes()[instance_root_id].to_dict()
+
+    def list_prefabs(self) -> list[str]:
+        """Return defined prefab ids in insertion order."""
+        return list(self._prefabs)
+
+    def get_prefab(self, prefab_id: str) -> Prefab:
+        """Return a prefab by id or raise KeyError."""
+        try:
+            return self._prefabs[prefab_id]
+        except KeyError as exc:
+            raise KeyError(f"Unknown prefab id {prefab_id!r}") from exc
 
     def set_environment(
         self, environment: Environment | None = None, **defaults: Any
@@ -714,6 +836,13 @@ class Scene:
             if not isinstance(presentation, dict):
                 raise ValueError("presentation must be an object")
             scene._presentation = copy.deepcopy(presentation)
+        for prefab_data in data.get("prefabs") or []:
+            if not isinstance(prefab_data, dict):
+                raise ValueError("prefabs entries must be objects")
+            prefab = Prefab.from_dict(prefab_data)
+            if prefab.id in scene._prefabs:
+                raise ValueError(f"Duplicate prefab id {prefab.id!r}")
+            scene._prefabs[prefab.id] = prefab
         scene.validate_graph()
         return scene
 
@@ -758,7 +887,65 @@ class Scene:
             "trajectories": [t.to_dict() for t in self._trajectories.values()],
             "game": copy.deepcopy(self._game_manifest),
             "presentation": copy.deepcopy(self._presentation),
+            "prefabs": [prefab.to_dict() for prefab in self._prefabs.values()],
         }
+
+    def collect_transforms(self) -> dict[str, tuple[tuple[float, float, float], ...]]:
+        """Return graph/annotation poses keyed by id for realtime dirty tracking."""
+        poses: dict[str, tuple[tuple[float, float, float], ...]] = {}
+        for node in (*self._meshes.values(), *self._objects.values(), *self._primitives.values()):
+            poses[node.id] = (tuple(node.position), tuple(node.rotation), tuple(node.scale))
+        for annotation in self._annotations.values():
+            poses[annotation.id] = (
+                tuple(annotation.position),
+                (0.0, 0.0, 0.0),
+                (1.0, 1.0, 1.0),
+            )
+        return poses
+
+    def transforms_delta(
+        self,
+        *,
+        previous: dict[str, tuple[tuple[float, float, float], ...]] | None = None,
+        force_full: bool = False,
+    ) -> tuple[list[dict[str, Any]], dict[str, tuple[tuple[float, float, float], ...]], bool]:
+        """Build a compact pose payload for realtime frames.
+
+        Returns ``(transforms, current_poses, full)``. When ``full`` is true the client
+        should replace its pose map; otherwise it merges the changed rows only.
+        """
+        current = self.collect_transforms()
+        if force_full or previous is None:
+            return _poses_to_payload(current), current, True
+        changed = {
+            node_id: pose for node_id, pose in current.items() if previous.get(node_id) != pose
+        }
+        removed = [node_id for node_id in previous if node_id not in current]
+        # Graph removals are rare mid-play; force a full replace so stale poses disappear.
+        if removed:
+            return _poses_to_payload(current), current, True
+        return _poses_to_payload(changed), current, False
+
+    def export_web(
+        self,
+        out_dir: str | Path,
+        *,
+        api_base: str = "http://127.0.0.1:8765",
+        copy_assets: bool = True,
+        project_root: str | Path | None = None,
+        optimize_assets: bool = False,
+    ) -> Path:
+        """Export a hostable static viewer that connects to a sceneify backend."""
+        from sceneify.export_web import export_web
+
+        return export_web(
+            self,
+            out_dir,
+            api_base=api_base,
+            copy_assets=copy_assets,
+            project_root=project_root,
+            optimize_assets=optimize_assets,
+        )
 
     def run(
         self,
@@ -885,3 +1072,17 @@ def _physics(value: Physics | Mapping[str, Any] | None) -> Physics | None:
     if value is None or isinstance(value, Physics):
         return value
     return Physics.from_dict(dict(value))
+
+
+def _poses_to_payload(
+    poses: dict[str, tuple[tuple[float, float, float], ...]],
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "id": node_id,
+            "position": list(pose[0]),
+            "rotation": list(pose[1]),
+            "scale": list(pose[2]),
+        }
+        for node_id, pose in poses.items()
+    ]

@@ -6,8 +6,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from examples.collect_escape import build_scene as build_game  # noqa: E402
-from examples.roman_environment import build_scene as build_roman  # noqa: E402
+from examples.game.collect_escape import build_scene as build_game  # noqa: E402
+from examples.showcase.roman_environment import build_scene as build_roman  # noqa: E402
 
 
 def test_collect_escape_uses_animated_glb_visuals() -> None:
@@ -59,18 +59,21 @@ def test_collect_escape_uses_animated_glb_visuals() -> None:
         "coin_2",
         "coin_3",
     }
-    assert next(node for node in scene["meshes"] if node["id"] == "player_visual")[
-        "scale"
-    ][1] == 0.78
+    assert (
+        next(node for node in scene["meshes"] if node["id"] == "player_visual")["scale"][1] == 0.78
+    )
     enemy_kinds = {item["kind"] for item in scene["game"]["enemies"]["types"]}
     assert enemy_kinds == {"knight", "mage"}
     assert len(scene["game"]["enemies"]["spawnPoints"]) >= 4
     for enemy in scene["game"]["enemies"]["types"]:
         assert (ROOT / enemy["source"]).is_file()
         assert int(enemy.get("health", 0)) >= 1
-    assert "attack" in next(
-        node for node in scene["meshes"] if node["id"] == "player_visual"
-    )["meta"]["animation"]["states"]
+    assert (
+        "attack"
+        in next(node for node in scene["meshes"] if node["id"] == "player_visual")["meta"][
+            "animation"
+        ]["states"]
+    )
 
 
 def test_roman_showcase_has_local_presentation_and_interactive_pois() -> None:

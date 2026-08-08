@@ -160,6 +160,28 @@ class CommandStack:
                     {"id": node_id, "role": role},
                 )
             return result or self.scene._graph_nodes()[node_id].to_dict()
+        if action == "define_prefab":
+            prefab_id = _required(command, "id")
+            from_node = command.get("fromNode", command.get("from_node"))
+            if not isinstance(from_node, str) or not from_node:
+                raise ValueError("define_prefab requires fromNode")
+            game_roles = command.get("gameRoles", command.get("game_roles"))
+            return self.scene.define_prefab(
+                prefab_id,
+                from_node=from_node,
+                label=command.get("label"),
+                root_id=command.get("rootId", command.get("root_id")),
+                game_roles=game_roles if isinstance(game_roles, dict) else None,
+            ).to_dict()
+        if action == "instantiate_prefab":
+            prefab_id = command.get("prefabId", command.get("prefab_id"))
+            if not isinstance(prefab_id, str) or not prefab_id:
+                raise ValueError("instantiate_prefab requires prefabId")
+            instance_id = _optional_id(command)
+            options = _snake_options(_without_transport(command))
+            options.pop("prefabId", None)
+            options.pop("prefab_id", None)
+            return self.scene.instantiate(prefab_id, id=instance_id, **options)
         raise ValueError(f"Unsupported command action: {action!r}")
 
     def _ack(self, action: str, result: Any) -> dict[str, Any]:
@@ -190,6 +212,7 @@ class CommandStack:
         self.scene._trajectories = restored._trajectories
         self.scene._environment = restored._environment
         self.scene._game_manifest = restored._game_manifest
+        self.scene._prefabs = restored._prefabs
 
 
 def _required(command: Mapping[str, Any], key: str) -> str:
@@ -232,9 +255,13 @@ def _normalize_action(action: str) -> str:
         "create_primitive": "create_primitive",
         "create_asset": "create_asset",
         "set_gameplay_role": "set_gameplay_role",
+        "define_prefab": "define_prefab",
+        "instantiate_prefab": "instantiate_prefab",
         "createPrimitive": "create_primitive",
         "createAsset": "create_asset",
         "setGameplayRole": "set_gameplay_role",
+        "definePrefab": "define_prefab",
+        "instantiatePrefab": "instantiate_prefab",
         "duplicateNode": "duplicate",
         "deleteNode": "delete",
         "reparentNode": "reparent",

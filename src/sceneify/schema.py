@@ -7,7 +7,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any, Literal
 
-SchemaName = Literal["scene", "catalog"]
+SchemaName = Literal["scene", "catalog", "episode"]
 
 
 def load_schema(name: SchemaName) -> dict[str, Any]:

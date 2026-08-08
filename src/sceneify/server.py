@@ -6,9 +6,12 @@ import asyncio
 import contextlib
 import inspect
 import mimetypes
+import os
 import re
+import shutil
 import signal
 import struct
+import subprocess
 import threading
 import time
 import uuid
@@ -35,6 +38,7 @@ from pydantic import BaseModel, Field
 
 from sceneify.catalog import CATALOG_FORMAT, CATALOG_VERSION, AssetCatalog
 from sceneify.commands import CommandStack, RevisionConflict
+from sceneify.episode import Episode, EpisodeRecorder
 from sceneify.realtime import InputEvent, SemanticEvent
 
 if TYPE_CHECKING:
@@ -53,10 +57,18 @@ SUPPORTED_ASSET_SUFFIXES = {".glb", ".gltf", ".ply", ".obj", ".stl"}
 class ServerHandle:
     """Handle for a running sceneify viewer server."""
 
-    def __init__(self, server: object, thread: threading.Thread | None, url: str) -> None:
+    def __init__(
+        self,
+        server: object,
+        thread: threading.Thread | None,
+        url: str,
+        *,
+        app: FastAPI | None = None,
+    ) -> None:
         self._server = server
         self._thread = thread
         self.url = url
+        self._app = app
 
     @property
     def running(self) -> bool:
@@ -64,6 +76,32 @@ class ServerHandle:
         started = getattr(server, "started", False)
         should_exit = getattr(server, "should_exit", True)
         return bool(started) and not bool(should_exit)
+
+    def _runtime(self) -> RealtimeRuntime:
+        if self._app is None:
+            raise RuntimeError("ServerHandle has no app reference for recording/replay")
+        runtime = getattr(self._app.state, "realtime", None)
+        if not isinstance(runtime, RealtimeRuntime):
+            raise RuntimeError("Realtime runtime is not available")
+        return runtime
+
+    def start_recording(
+        self, *, episode_id: str | None = None, meta: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Start capturing browser input and semantic events into an episode."""
+        return self._runtime().start_recording(episode_id=episode_id, meta=meta)
+
+    def stop_recording(self) -> Episode:
+        """Stop recording and return the finished episode."""
+        return self._runtime().stop_recording()
+
+    def replay(self, episode: Episode | dict[str, Any] | str | Path) -> dict[str, Any]:
+        """Replay a recorded episode into connected browsers."""
+        return self._runtime().start_replay(episode)
+
+    def stop_replay(self) -> None:
+        """Cancel an in-progress episode replay."""
+        self._runtime().stop_replay()
 
     def stop(self, timeout: float = 5.0) -> None:
         """Request shutdown and wait for the server thread to exit."""
@@ -107,6 +145,25 @@ class SceneSaveRequest(BaseModel):
     revision: int | None = None
 
 
+class SceneSavePythonRequest(BaseModel):
+    path: str = Field(..., description="Project-root-relative path for the Python authoring script")
+    mode: str = Field(default="auto", description="markers | ast | auto")
+    expected_revision: int | None = Field(default=None, alias="expectedRevision")
+    revision: int | None = None
+
+
+class EpisodeRecordStartRequest(BaseModel):
+    episode_id: str | None = Field(default=None, alias="episodeId")
+    meta: dict[str, Any] = Field(default_factory=dict)
+
+
+class EpisodeReplayRequest(BaseModel):
+    model_config = {"extra": "allow"}
+
+    episode: dict[str, Any] | None = None
+    path: str | None = None
+
+
 class EditorCommand(BaseModel):
     model_config = {"extra": "allow"}
 
@@ -136,14 +193,22 @@ class RealtimeRuntime:
         self._clients: dict[str, WebSocket] = {}
         self._task: asyncio.Task[None] | None = None
         self._started_at = 0.0
+        self._recorder: EpisodeRecorder | None = None
+        self._replay_task: asyncio.Task[None] | None = None
+        self._last_episode: Episode | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._last_transforms: dict[str, tuple[tuple[float, float, float], ...]] | None = None
+        self._last_frame_revision: int | None = None
 
     async def start(self) -> None:
+        self._loop = asyncio.get_running_loop()
         if not self.enabled or self._task is not None:
             return
         self._started_at = time.perf_counter()
         self._task = asyncio.create_task(self._tick_loop(), name="sceneify-realtime-tick")
 
     async def stop(self) -> None:
+        self.stop_replay()
         task, self._task = self._task, None
         if task is not None:
             task.cancel()
@@ -158,6 +223,8 @@ class RealtimeRuntime:
         await websocket.accept()
         client_id = uuid.uuid4().hex
         self._clients[client_id] = websocket
+        # New subscribers need a full pose overlay on the next tick.
+        self.invalidate_frame_cache()
         await websocket.send_json(
             {
                 "type": "hello",
@@ -170,11 +237,17 @@ class RealtimeRuntime:
                     "semanticEvents",
                     "inputV1",
                     "frameV1",
+                    "frameDelta",
+                    "recording",
+                    "replay",
+                    "sourceSync",
                 ],
                 "clientId": client_id,
                 "tickRate": self.tick_rate,
                 "mode": "play" if self.enabled else "edit",
                 "revision": self.commands.revision,
+                "recording": self._recorder is not None,
+                "replaying": self._replay_task is not None and not self._replay_task.done(),
                 "scene": self.scene.to_dict(),
             }
         )
@@ -182,6 +255,79 @@ class RealtimeRuntime:
 
     def disconnect(self, client_id: str) -> None:
         self._clients.pop(client_id, None)
+
+    def start_recording(
+        self, *, episode_id: str | None = None, meta: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        if self._recorder is not None:
+            raise ValueError("Recording is already active")
+        if self._replay_task is not None and not self._replay_task.done():
+            raise ValueError("Cannot record while replay is active")
+        self._recorder = EpisodeRecorder(
+            scene_name=self.scene.name,
+            tick_rate=self.tick_rate,
+            episode_id=episode_id,
+            meta=meta,
+        )
+        self._recorder.start_clock(time.perf_counter())
+        status = {
+            "recording": True,
+            "episodeId": self._recorder.episode.id,
+            "sceneName": self.scene.name,
+        }
+        self._schedule(self._broadcast({"type": "record_state", **status}))
+        return status
+
+    def stop_recording(self) -> Episode:
+        if self._recorder is None:
+            raise ValueError("Recording is not active")
+        episode = self._recorder.finish(time.perf_counter())
+        self._recorder = None
+        self._last_episode = episode
+        self._schedule(
+            self._broadcast(
+                {
+                    "type": "record_state",
+                    "recording": False,
+                    "episodeId": episode.id,
+                    "duration": episode.duration,
+                }
+            )
+        )
+        return episode
+
+    def start_replay(self, episode: Episode | dict[str, Any] | str | Path) -> dict[str, Any]:
+        resolved = _coerce_episode(episode)
+        if self._recorder is not None:
+            raise ValueError("Cannot replay while recording is active")
+        self.stop_replay()
+        if self._loop is None:
+            raise RuntimeError("Realtime runtime is not started")
+        self._replay_task = self._loop.create_task(
+            self._run_replay(resolved), name="sceneify-episode-replay"
+        )
+        return {
+            "replaying": True,
+            "episodeId": resolved.id,
+            "duration": resolved.duration,
+            "eventCount": len(resolved.events),
+        }
+
+    def stop_replay(self) -> None:
+        task, self._replay_task = self._replay_task, None
+        if task is not None and not task.done():
+            task.cancel()
+            self._schedule(self._broadcast({"type": "replay_control", "action": "stop"}))
+
+    def recording_status(self) -> dict[str, Any]:
+        recorder = self._recorder
+        replaying = self._replay_task is not None and not self._replay_task.done()
+        return {
+            "recording": recorder is not None,
+            "replaying": replaying,
+            "episodeId": recorder.episode.id if recorder else None,
+            "lastEpisodeId": self._last_episode.id if self._last_episode else None,
+        }
 
     async def receive(self, client_id: str, message: Any) -> None:
         websocket = self._clients[client_id]
@@ -207,9 +353,13 @@ class RealtimeRuntime:
         if message_type in {"event", "semantic_event"}:
             await self._receive_semantic_event(client_id, websocket, message)
             return
+        if message_type == "record_control":
+            await self._receive_record_control(websocket, message)
+            return
         if message_type != "input":
             await self._send_error(
-                websocket, "Expected input, semantic_event, command, resync, or ping"
+                websocket,
+                "Expected input, semantic_event, command, resync, record_control, or ping",
             )
             return
         action = message.get("action")
@@ -220,6 +370,15 @@ class RealtimeRuntime:
         if not isinstance(metadata, dict):
             await self._send_error(websocket, "Input metadata must be an object")
             return
+        if metadata.get("replay"):
+            return
+        if self._recorder is not None:
+            self._recorder.record_input(
+                time.perf_counter(),
+                action,
+                value=message.get("value"),
+                metadata=metadata,
+            )
         event = InputEvent(
             action=action,
             value=message.get("value"),
@@ -238,6 +397,80 @@ class RealtimeRuntime:
             return
         if callbacks:
             await self._broadcast_frame()
+
+    async def _receive_record_control(self, websocket: WebSocket, message: dict[str, Any]) -> None:
+        action = message.get("action")
+        try:
+            if action == "start":
+                status = self.start_recording(
+                    episode_id=message.get("episodeId"),
+                    meta=message.get("meta") if isinstance(message.get("meta"), dict) else None,
+                )
+                await websocket.send_json({"type": "record_ack", **status})
+                return
+            if action == "stop":
+                episode = self.stop_recording()
+                await websocket.send_json(
+                    {
+                        "type": "record_ack",
+                        "recording": False,
+                        "episode": episode.to_document(),
+                    }
+                )
+                return
+        except ValueError as exc:
+            await self._send_error(websocket, str(exc))
+            return
+        await self._send_error(websocket, "record_control action must be start or stop")
+
+    async def _run_replay(self, episode: Episode) -> None:
+        await self._broadcast(
+            {
+                "type": "replay_control",
+                "action": "start",
+                "episodeId": episode.id,
+                "duration": episode.duration,
+                "eventCount": len(episode.events),
+            }
+        )
+        started = time.perf_counter()
+        try:
+            for event in episode.events:
+                delay = event.t - (time.perf_counter() - started)
+                if delay > 0:
+                    await asyncio.sleep(delay)
+                if event.kind == "input":
+                    await self._broadcast(
+                        {
+                            "type": "replay_input",
+                            "t": event.t,
+                            "action": event.action,
+                            "value": event.value,
+                            "metadata": {**event.metadata, "replay": True},
+                        }
+                    )
+                elif event.kind == "marker" and event.name == "end":
+                    break
+            await self._broadcast(
+                {
+                    "type": "replay_control",
+                    "action": "complete",
+                    "episodeId": episode.id,
+                    "duration": episode.duration,
+                }
+            )
+        except asyncio.CancelledError:
+            await self._broadcast(
+                {"type": "replay_control", "action": "stop", "episodeId": episode.id}
+            )
+            raise
+        finally:
+            self._replay_task = None
+
+    def _schedule(self, awaitable: Any) -> None:
+        if self._loop is None or not self._loop.is_running():
+            return
+        self._loop.create_task(awaitable)
 
     async def _receive_command(self, websocket: WebSocket, message: dict[str, Any]) -> None:
         command = message.get("command")
@@ -281,6 +514,14 @@ class RealtimeRuntime:
         if not isinstance(data, dict):
             await self._send_error(websocket, "Semantic event data must be an object")
             return
+        if self._recorder is not None:
+            self._recorder.record_semantic(
+                time.perf_counter(),
+                name,
+                node_id=message.get("nodeId"),
+                value=message.get("value"),
+                data=data,
+            )
         event = SemanticEvent(
             name=name,
             node_id=message.get("nodeId"),
@@ -323,19 +564,46 @@ class RealtimeRuntime:
 
     async def _broadcast_frame(self, *, now: float | None = None, delta: float = 0.0) -> None:
         timestamp = time.perf_counter() if now is None else now
+        revision = self.commands.revision
+        force_full = (
+            self._last_transforms is None
+            or self._last_frame_revision is None
+            or revision != self._last_frame_revision
+        )
+        transforms, current, full = self.scene.transforms_delta(
+            previous=self._last_transforms,
+            force_full=force_full,
+        )
+        # Quiet ticks with no pose changes do not need a network payload.
+        if not full and not transforms:
+            self.sequence += 1
+            return
         self.sequence += 1
+        if not self._clients:
+            return
+        # Only advance the dirty cache after a frame is actually delivered.
+        self._last_transforms = current
+        self._last_frame_revision = revision
         await self._broadcast(
             {
                 "type": "frame",
                 "sequence": self.sequence,
                 "time": timestamp - self._started_at,
                 "delta": delta,
-                "revision": self.commands.revision,
-                "scene": self.scene.to_dict(),
+                "revision": revision,
+                "full": full,
+                "transforms": transforms,
             }
         )
 
+    def invalidate_frame_cache(self) -> None:
+        """Force the next frame to send a full transform snapshot."""
+        self._last_transforms = None
+        self._last_frame_revision = None
+
     async def _broadcast(self, message: dict[str, Any]) -> None:
+        if message.get("type") in {"command_ack", "snapshot", "resync"}:
+            self.invalidate_frame_cache()
         if not self._clients:
             return
         clients = tuple(self._clients.items())
@@ -522,6 +790,49 @@ def create_app(
         await runtime._broadcast(ack)
         return JSONResponse(ack)
 
+    @app.get("/api/episode/status")
+    def episode_status() -> JSONResponse:
+        return JSONResponse(runtime.recording_status())
+
+    @app.post("/api/episode/record/start")
+    def episode_record_start(body: EpisodeRecordStartRequest | None = None) -> JSONResponse:
+        payload = body or EpisodeRecordStartRequest()
+        try:
+            return JSONResponse(
+                runtime.start_recording(episode_id=payload.episode_id, meta=payload.meta)
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/episode/record/stop")
+    def episode_record_stop() -> JSONResponse:
+        try:
+            episode = runtime.stop_recording()
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return JSONResponse(episode.to_document())
+
+    @app.post("/api/episode/replay")
+    def episode_replay(body: EpisodeReplayRequest) -> JSONResponse:
+        try:
+            if body.path:
+                target = _confined_path(root, body.path)
+                if not target.is_file():
+                    raise ValueError(f"Episode file not found: {body.path}")
+                status = runtime.start_replay(target)
+            elif body.episode is not None:
+                status = runtime.start_replay(body.episode)
+            else:
+                raise ValueError("replay requires episode or path")
+        except (OSError, ValueError, RuntimeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return JSONResponse(status)
+
+    @app.post("/api/episode/replay/stop")
+    def episode_replay_stop() -> JSONResponse:
+        runtime.stop_replay()
+        return JSONResponse({"replaying": False})
+
     @app.post("/api/scene/save")
     def save_scene_endpoint(body: SceneSaveRequest) -> JSONResponse:
         expected = body.expected_revision if body.expected_revision is not None else body.revision
@@ -535,6 +846,36 @@ def create_app(
         target = _confined_path(root, body.path)
         path = scene.save(target)
         return JSONResponse({"saved": str(path), "revision": commands.revision})
+
+    @app.get("/api/scene/source-sync")
+    def get_source_sync(path: str = "world.py") -> JSONResponse:
+        from sceneify.source_sync import source_sync_report
+
+        target = _confined_path(root, path)
+        report = source_sync_report(path=target)
+        return JSONResponse(report.to_dict())
+
+    @app.post("/api/scene/save-python")
+    def save_python_endpoint(body: SceneSavePythonRequest) -> JSONResponse:
+        from sceneify.source_sync import save_python
+
+        expected = body.expected_revision if body.expected_revision is not None else body.revision
+        try:
+            commands.check_revision(expected)
+        except RevisionConflict as exc:
+            raise HTTPException(
+                status_code=409,
+                detail={"message": str(exc), **commands.snapshot()},
+            ) from exc
+        if body.mode not in {"auto", "markers", "ast"}:
+            raise HTTPException(status_code=400, detail="mode must be auto, markers, or ast")
+        target = _confined_path(root, body.path)
+        if target.suffix.lower() != ".py":
+            raise HTTPException(status_code=400, detail="Python save path must end with .py")
+        path, report = save_python(scene, target, mode=body.mode)  # type: ignore[arg-type]
+        return JSONResponse(
+            {"saved": str(path), "revision": commands.revision, "sync": report.to_dict()}
+        )
 
     @app.get("/api/asset")
     def get_asset(path: str) -> FileResponse:
@@ -615,16 +956,17 @@ def create_app(
             _validate_glb(data)
         target = _unique_upload_path(root, filename)
         target.write_bytes(data)
+        compressed = _maybe_draco_compress(target) if require_glb else False
         return {
             "id": target.stem,
             "name": target.stem,
             "path": target.relative_to(root).as_posix(),
             "source": target.relative_to(root).as_posix(),
             "format": target.suffix.lower().lstrip("."),
-            "byteSize": len(data),
+            "byteSize": target.stat().st_size,
             "animations": [],
             "tags": [],
-            "metadata": {},
+            "metadata": {"draco": compressed} if compressed else {},
         }
 
     if WEB_DIST.is_dir():
@@ -698,7 +1040,7 @@ def serve_scene(
             break
         time.sleep(0.05)
 
-    handle = ServerHandle(server=server, thread=thread, url=url)
+    handle = ServerHandle(server=server, thread=thread, url=url, app=app)
     print(f"sceneify serving {scene.name!r} at {url}")
 
     if not block:
@@ -906,6 +1248,54 @@ def _validate_glb(data: bytes) -> None:
     magic, version, declared_length = struct.unpack_from("<4sII", data)
     if magic != b"glTF" or version != 2 or declared_length != len(data):
         raise HTTPException(status_code=400, detail="Invalid GLB binary header")
+
+
+def _maybe_draco_compress(path: Path) -> bool:
+    """Optionally recompress a GLB with Draco when SCENEIFY_DRACO=1 and npx is available."""
+    if os.environ.get("SCENEIFY_DRACO", "").strip() not in {"1", "true", "yes"}:
+        return False
+    if path.suffix.lower() != ".glb":
+        return False
+    if shutil.which("npx") is None:
+        return False
+    output = path.with_suffix(".draco.glb")
+    try:
+        subprocess.run(
+            [
+                "npx",
+                "--yes",
+                "@gltf-transform/cli",
+                "optimize",
+                str(path),
+                str(output),
+                "--compress",
+                "draco",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+    except (OSError, subprocess.SubprocessError):
+        with contextlib.suppress(OSError):
+            output.unlink(missing_ok=True)
+        return False
+    if not output.is_file() or output.stat().st_size <= 0:
+        return False
+    output.replace(path)
+    return True
+
+
+def _coerce_episode(value: Episode | dict[str, Any] | str | Path) -> Episode:
+    if isinstance(value, Episode):
+        return value
+    if isinstance(value, (str, Path)):
+        return Episode.load(value)
+    if not isinstance(value, dict):
+        raise ValueError("Episode must be an Episode, mapping, or file path")
+    if value.get("format") == "sceneify-episode" or "episode" in value:
+        return Episode.from_document(value)
+    return Episode.from_dict(value)
 
 
 def _confined_path(project_root: Path, value: str | Path) -> Path:

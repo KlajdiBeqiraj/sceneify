@@ -15,12 +15,14 @@ from sceneify.environment import (
     Zone,
     build_default_environment,
 )
+from sceneify.episode import Episode, EpisodeEvent
 from sceneify.game import (
     HUD,
     ActionMap,
     CameraFollow,
     Checkpoint,
     Collectible,
+    ControllerPreset,
     Game,
     GameManifest,
     Goal,
@@ -29,10 +31,12 @@ from sceneify.game import (
     Timer,
 )
 from sceneify.objects import Material, MeshAsset, Physics, PrimitiveNode, SceneObject
+from sceneify.prefabs import Prefab
 from sceneify.realtime import InputEvent, SemanticEvent
 from sceneify.scene import Scene
 from sceneify.schema import load_schema
 from sceneify.server import ServerHandle
+from sceneify.source_sync import save_python, source_sync_report
 from sceneify.trajectories import Trajectory
 
 __all__ = [
@@ -45,7 +49,10 @@ __all__ = [
     "CameraFollow",
     "Checkpoint",
     "Collectible",
+    "ControllerPreset",
     "Environment",
+    "Episode",
+    "EpisodeEvent",
     "Game",
     "GameManifest",
     "GeometricRule",
@@ -56,6 +63,7 @@ __all__ = [
     "Material",
     "MeshAsset",
     "Physics",
+    "Prefab",
     "PrimitiveNode",
     "RuleKind",
     "RuleViolation",
@@ -72,6 +80,8 @@ __all__ = [
     "Zone",
     "build_default_environment",
     "load_schema",
+    "save_python",
+    "source_sync_report",
     "tool_definition",
 ]
 

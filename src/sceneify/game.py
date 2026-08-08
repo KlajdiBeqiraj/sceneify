@@ -22,12 +22,33 @@ class ActionMap:
         return {name: list(inputs) for name, inputs in self.actions.items()}
 
 
+ControllerPreset = Literal["simple", "ecctrl"]
+
+
 @dataclass
 class ThirdPersonController:
+    """Third-person player controller declared for the browser runtime.
+
+    ``preset="simple"`` keeps the built-in kinematic WASD controller.
+    ``preset="ecctrl"`` uses the bundled ecctrl character controller (camera-relative
+    movement, sprint, follow cam). ``move_speed`` / ``jump_speed`` map to ecctrl
+    ``maxVelLimit`` / ``jumpVel``.
+    """
+
     node_id: str
     move_speed: float = 5.0
     jump_speed: float = 7.0
     action_map: str = "default"
+    preset: ControllerPreset = "simple"
+    sprint_mult: float = 2.0
+
+    def __post_init__(self) -> None:
+        if self.preset not in {"simple", "ecctrl"}:
+            raise ValueError(f"Unsupported controller preset: {self.preset!r}")
+        if self.move_speed <= 0 or self.jump_speed <= 0:
+            raise ValueError("Controller move_speed and jump_speed must be greater than zero")
+        if self.sprint_mult <= 0:
+            raise ValueError("Controller sprint_mult must be greater than zero")
 
 
 @dataclass
@@ -73,6 +94,8 @@ class HUD:
     show_health: bool = True
     show_timer: bool = True
     title: str | None = None
+    description: str | None = None
+    controls_hint: str | None = None
 
 
 @dataclass
@@ -180,9 +203,7 @@ class GameManifest:
                     speed=float(item.get("speed", 2.6)),
                     scale=float(item.get("scale", 0.75)),
                     health=int(item.get("health", 3)),
-                    contact_damage=int(
-                        item.get("contact_damage", item.get("contactDamage", 1))
-                    ),
+                    contact_damage=int(item.get("contact_damage", item.get("contactDamage", 1))),
                     hit_event=str(item.get("hit_event", item.get("hitEvent", "hazard"))),
                     animation=dict(
                         item.get("animation")
@@ -284,6 +305,8 @@ class GameManifest:
                     move_speed=float(item.get("moveSpeed", 5.0)),
                     jump_speed=float(item.get("jumpSpeed", 7.0)),
                     action_map=str(item.get("actionMap", "default")),
+                    preset=str(item.get("preset", "simple")),  # type: ignore[arg-type]
+                    sprint_mult=float(item.get("sprintMult", item.get("sprint_mult", 2.0))),
                 )
                 for item in values.get("controllers") or []
             ],
@@ -337,6 +360,8 @@ class GameManifest:
                 show_health=bool(hud.get("showHealth", True)),
                 show_timer=bool(hud.get("showTimer", True)),
                 title=hud.get("title"),
+                description=hud.get("description"),
+                controls_hint=hud.get("controlsHint"),
             )
         timer = values.get("timer")
         if timer:

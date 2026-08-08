@@ -64,6 +64,7 @@ def migrate_scene_payload(
     data.setdefault("annotations", [])
     data.setdefault("trajectories", [])
     data.setdefault("game", None)
+    data.setdefault("prefabs", [])
 
     ids = [
         str(node["id"])
