@@ -19,12 +19,15 @@ import type {
   SnapSettings,
   TransformMode,
 } from "../types/scene";
+import { EcctrlPlayer } from "../game/EcctrlPlayer";
 import { gameplayRoles, primitiveById, runtimeConfig } from "../game/runtime";
 import { assetUrl } from "../hooks/useScene";
 import { EnvironmentViz } from "./EnvironmentViz";
-import { GlbVisual, MeshAssets, PrimitiveContent, WorldMeshView } from "./MeshAssets";
+import type { RuntimePose } from "../store/editorStore";
+import { GlbVisual, MeshAssets, PrimitiveContent, preloadSceneAssets, WorldMeshView } from "./MeshAssets";
 import { Annotations } from "./Annotations";
 import { Trajectories } from "./Trajectories";
+import { PerfHud, PerfOverlay } from "./PerfHud";
 
 function resolveAnnotations(scene: ScenePayload): AnnotationNode[] {
   const nodes = new Map(
@@ -332,8 +335,22 @@ function GameWorld({
   useEffect(() => {
     triggered.current.clear();
   }, [runId]);
-  return (
-    <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60} paused={!active}>
+  const playerVisual = config.playerNodeId ? visualByTarget.get(config.playerNodeId) : undefined;
+  const player =
+    config.controllerPreset === "ecctrl" ? (
+      <EcctrlPlayer
+        key={runId}
+        spawn={spawn}
+        speed={config.moveSpeed}
+        jump={config.jumpSpeed}
+        sprintMult={config.sprintMult}
+        cameraDistance={config.cameraDistance}
+        cameraHeight={config.cameraHeight}
+        active={active}
+        visual={playerVisual}
+        onEvent={() => undefined}
+      />
+    ) : (
       <Player
         key={runId}
         spawn={spawn}
@@ -342,9 +359,13 @@ function GameWorld({
         cameraDistance={config.cameraDistance}
         cameraHeight={config.cameraHeight}
         active={active}
-        visual={config.playerNodeId ? visualByTarget.get(config.playerNodeId) : undefined}
+        visual={playerVisual}
         onEvent={() => undefined}
       />
+    );
+  return (
+    <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60} paused={!active}>
+      {player}
       <EnemyWave
         scene={scene}
         active={active}
@@ -882,23 +903,26 @@ function SceneLights({
   lightScale,
   spotlightTarget,
   spotlightActive,
+  editing = false,
 }: {
   presentation: NonNullable<ScenePayload["presentation"]>;
   lightScale: number;
   spotlightTarget: [number, number, number] | null;
   spotlightActive: boolean;
+  editing?: boolean;
 }) {
   const ambient = (presentation.ambientIntensity ?? (presentation.environmentMap ? 0.42 : 0.78)) * lightScale;
   const key = (presentation.keyLightIntensity ?? 1.45) * lightScale;
+  const shadowSize = editing ? 1024 : 2048;
   return (
     <>
       <ambientLight intensity={ambient} />
       <hemisphereLight args={["#f0e6d8", "#3a4558", 0.55 * lightScale]} />
       <directionalLight
-        castShadow
+        castShadow={!editing}
         position={[6, 10, 4]}
         intensity={key}
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[shadowSize, shadowSize]}
       />
       <directionalLight position={[-5, 6, -3]} intensity={0.35 * lightScale} />
       {spotlightActive && spotlightTarget && (
@@ -908,7 +932,7 @@ function SceneLights({
           penumbra={0.65}
           intensity={3.2}
           distance={16}
-          castShadow
+          castShadow={!editing}
         >
           <object3D attach="target" position={spotlightTarget} />
         </spotLight>
@@ -919,6 +943,7 @@ function SceneLights({
 
 export function Viewport({
   scene,
+  runtimePoses = {},
   selectedId,
   editing,
   playing,
@@ -933,6 +958,7 @@ export function Viewport({
   onAnnotationEvent,
 }: {
   scene: ScenePayload;
+  runtimePoses?: Record<string, RuntimePose>;
   selectedId: string | null;
   editing: boolean;
   playing: boolean;
@@ -968,10 +994,22 @@ export function Viewport({
     }
   }, [tourEnabled]);
 
+  useEffect(() => {
+    preloadSceneAssets(scene.meshes, scene.environment?.worldMesh?.source);
+  }, [scene.environment?.worldMesh?.source, scene.meshes]);
+
+  const showPerf =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("perf");
+  // Demand mode saves CPU in edit; force always-on when measuring (?perf=1).
+  const demandFrames = editing && !gamePlaying && !tourEnabled && !showPerf;
+
   return (
     <>
       <Canvas
-        shadows={presentation.shadows ?? true}
+        shadows={(presentation.shadows ?? true) && !editing}
+        frameloop={demandFrames ? "demand" : "always"}
+        dpr={showPerf ? [1, 1] : [1, 1.75]}
         camera={{ position: camera?.position ?? [5, 4, 7], fov: camera?.fov ?? 48 }}
         onCreated={({ gl }) => {
           gl.toneMappingExposure = presentation.exposure ?? 1;
@@ -996,7 +1034,9 @@ export function Viewport({
           lightScale={lightScale}
           spotlightTarget={spotlightTarget}
           spotlightActive={Boolean(tourStop?.spotlight)}
+          editing={editing}
         />
+        {showPerf ? <PerfHud /> : null}
         <Suspense fallback={null}>
           {presentation.environmentMap ? (
             <Environment files={assetUrl(presentation.environmentMap)} />
@@ -1014,6 +1054,7 @@ export function Viewport({
             meshes={scene.meshes}
             objects={scene.objects}
             primitives={primitives}
+            runtimePoses={runtimePoses}
             editMode={editing}
             selectedId={selectedId}
             transformMode={transformMode}
@@ -1057,6 +1098,7 @@ export function Viewport({
           <MeshAssets
             meshes={scene.meshes.filter((mesh) => !mesh.meta?.visualFor)}
             objects={scene.objects}
+            runtimePoses={runtimePoses}
             editMode={false}
             selectedId={null}
             transformMode={transformMode}
@@ -1069,6 +1111,7 @@ export function Viewport({
           <OrbitControls makeDefault target={camera?.target} />
         )}
       </Canvas>
+      {showPerf ? <PerfOverlay /> : null}
       {tourEnabled && tourAnnotation && (
         <aside className="poi-focus-panel" data-poi-focus-panel={tourAnnotation.id}>
           {tourAnnotation.meta?.category && <small>{tourAnnotation.meta.category}</small>}

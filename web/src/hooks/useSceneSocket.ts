@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { wsUrl } from "../config";
+import type { RuntimePose } from "../store/editorStore";
 import type {
   ConnectionState,
   RuntimeMode,
@@ -11,11 +13,20 @@ type SocketEnvelope = {
   scene?: unknown;
   snapshot?: unknown;
   frame?: unknown;
+  transforms?: unknown;
+  full?: unknown;
   protocol?: unknown;
   version?: unknown;
   capabilities?: unknown;
   revision?: unknown;
   event?: unknown;
+};
+
+export type TransformDelta = {
+  id: string;
+  position: number[];
+  rotation: number[];
+  scale: number[];
 };
 
 function isScenePayload(value: unknown): value is ScenePayload {
@@ -33,6 +44,25 @@ function isScenePayload(value: unknown): value is ScenePayload {
   );
 }
 
+function parseTransforms(value: unknown): Record<string, RuntimePose> | null {
+  if (!Array.isArray(value)) return null;
+  const poses: Record<string, RuntimePose> = {};
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Partial<TransformDelta>;
+    if (typeof row.id !== "string") continue;
+    if (!Array.isArray(row.position) || !Array.isArray(row.rotation) || !Array.isArray(row.scale)) {
+      continue;
+    }
+    poses[row.id] = {
+      position: row.position as number[],
+      rotation: row.rotation as number[],
+      scale: row.scale as number[],
+    };
+  }
+  return poses;
+}
+
 function isTextEntry(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false;
@@ -45,27 +75,41 @@ function isTextEntry(target: EventTarget | null): boolean {
   );
 }
 
-function socketUrl(path: string): string {
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}${path}`;
-}
+export type ReplayControlAction = "start" | "stop" | "complete";
 
 export function useSceneSocket(
   onScene: (scene: ScenePayload) => void,
   onResync?: () => void,
+  onReplayControl?: (action: ReplayControlAction, payload: Record<string, unknown>) => void,
+  onTransforms?: (poses: Record<string, RuntimePose>, replace: boolean) => void,
 ) {
   const socketRef = useRef<WebSocket | null>(null);
   const sceneHandlerRef = useRef(onScene);
+  const transformsHandlerRef = useRef(onTransforms);
+  const replayHandlerRef = useRef(onReplayControl);
   const modeRef = useRef<RuntimeMode>("edit");
+  const revisionRef = useRef<number | null>(null);
+  const replayingRef = useRef(false);
+  const injectingReplayRef = useRef(false);
   const [connection, setConnection] =
     useState<ConnectionState>("connecting");
   const [mode, setMode] = useState<RuntimeMode>("edit");
   const [protocol, setProtocol] = useState({ version: 1, compatible: true, capabilities: [] as string[] });
   const [lastAck, setLastAck] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [replaying, setReplaying] = useState(false);
 
   useEffect(() => {
     sceneHandlerRef.current = onScene;
   }, [onScene]);
+
+  useEffect(() => {
+    transformsHandlerRef.current = onTransforms;
+  }, [onTransforms]);
+
+  useEffect(() => {
+    replayHandlerRef.current = onReplayControl;
+  }, [onReplayControl]);
 
   const send = useCallback((payload: object) => {
     const socket = socketRef.current;
@@ -83,7 +127,7 @@ export function useSceneSocket(
         return;
       }
       setConnection("connecting");
-      const socket = new WebSocket(socketUrl(path));
+      const socket = new WebSocket(wsUrl(path));
       let opened = false;
       socketRef.current = socket;
 
@@ -108,6 +152,10 @@ export function useSceneSocket(
             const version = typeof envelope.version === "number" ? envelope.version : 1;
             const namedProtocol = typeof envelope.protocol === "string" ? envelope.protocol : null;
             const legacy = namedProtocol === null && version === 1;
+            const hello = data as { recording?: unknown; replaying?: unknown };
+            setRecording(hello.recording === true);
+            setReplaying(hello.replaying === true);
+            replayingRef.current = hello.replaying === true;
             setProtocol({
               version,
               compatible: legacy || (namedProtocol === "sceneify-realtime" && version === 2),
@@ -121,6 +169,49 @@ export function useSceneSocket(
               ? (data as { commandId: string }).commandId
               : null);
           }
+          if (envelope.type === "record_state" || envelope.type === "record_ack") {
+            const state = data as { recording?: unknown };
+            setRecording(state.recording === true);
+          }
+          if (envelope.type === "replay_control") {
+            const control = data as { action?: unknown };
+            const action = control.action;
+            if (action === "start" || action === "stop" || action === "complete") {
+              const active = action === "start";
+              replayingRef.current = active;
+              setReplaying(active);
+              replayHandlerRef.current?.(action, data as Record<string, unknown>);
+            }
+          }
+          if (envelope.type === "replay_input") {
+            const input = data as {
+              action?: unknown;
+              value?: unknown;
+              metadata?: { code?: unknown; repeat?: unknown };
+            };
+            if (input.action === "keydown" || input.action === "keyup") {
+              const code =
+                typeof input.metadata?.code === "string"
+                  ? input.metadata.code
+                  : typeof input.value === "string"
+                    ? input.value
+                    : "";
+              const key = typeof input.value === "string" ? input.value : code;
+              if (code || key) {
+                injectingReplayRef.current = true;
+                window.dispatchEvent(
+                  new KeyboardEvent(input.action === "keydown" ? "keydown" : "keyup", {
+                    key,
+                    code: code || key,
+                    bubbles: true,
+                    cancelable: true,
+                    repeat: input.metadata?.repeat === true,
+                  }),
+                );
+                injectingReplayRef.current = false;
+              }
+            }
+          }
           if (envelope.type === "resync") onResync?.();
           if (envelope.mode === "play" || envelope.mode === "edit") {
             modeRef.current = envelope.mode;
@@ -132,16 +223,41 @@ export function useSceneSocket(
             modeRef.current = "edit";
             setMode("edit");
           }
+
+          if (envelope.type === "frame") {
+            const poses = parseTransforms(envelope.transforms);
+            if (poses) {
+              const full = (data as { full?: unknown }).full === true;
+              transformsHandlerRef.current?.(poses, full);
+              return;
+            }
+            // Legacy full-scene frames: ignore in edit mode; apply only in play.
+            if (modeRef.current !== "play") {
+              return;
+            }
+          }
+
           const nextScene = isScenePayload(envelope.scene)
             ? envelope.scene
             : isScenePayload(envelope.snapshot)
               ? envelope.snapshot
-            : isScenePayload(envelope.frame)
+            : envelope.type !== "frame" && isScenePayload(envelope.frame)
               ? envelope.frame
-              : isScenePayload(data)
+              : envelope.type !== "frame" && isScenePayload(data)
                 ? data
                 : null;
           if (nextScene) {
+            const revision = typeof nextScene.revision === "number" ? nextScene.revision : null;
+            if (
+              revision !== null &&
+              revisionRef.current !== null &&
+              revision === revisionRef.current &&
+              envelope.type !== "hello" &&
+              envelope.type !== "snapshot"
+            ) {
+              return;
+            }
+            if (revision !== null) revisionRef.current = revision;
             sceneHandlerRef.current(nextScene);
           }
         } catch {
@@ -173,11 +289,16 @@ export function useSceneSocket(
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, []);
+  }, [onResync]);
 
   useEffect(() => {
     const sendKey = (action: "down" | "up", event: KeyboardEvent) => {
-      if (modeRef.current !== "play" || isTextEntry(event.target)) {
+      if (
+        modeRef.current !== "play" ||
+        isTextEntry(event.target) ||
+        injectingReplayRef.current ||
+        replayingRef.current
+      ) {
         return;
       }
       send({
@@ -232,5 +353,31 @@ export function useSceneSocket(
     [send],
   );
 
-  return { connection, mode, protocol, lastAck, sendPointer, sendSemanticEvent };
+  const startRecording = useCallback(
+    (episodeId?: string) =>
+      send({
+        type: "record_control",
+        action: "start",
+        ...(episodeId ? { episodeId } : {}),
+      }),
+    [send],
+  );
+
+  const stopRecording = useCallback(
+    () => send({ type: "record_control", action: "stop" }),
+    [send],
+  );
+
+  return {
+    connection,
+    mode,
+    protocol,
+    lastAck,
+    recording,
+    replaying,
+    sendPointer,
+    sendSemanticEvent,
+    startRecording,
+    stopRecording,
+  };
 }

@@ -54,6 +54,43 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .status-bar span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .status-spacer, .toolbar-spacer, .rail-spacer { flex: 1; }
 
+.perf-hud {
+  position: fixed;
+  top: 56px;
+  right: 12px;
+  z-index: 40;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #0b0f18cc;
+  border: 1px solid #2a354d;
+  color: #c5d0e8;
+  font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+  pointer-events: none;
+}
+.perf-hud strong { color: #9ef0c5; }
+
+.save-path-input {
+  width: min(220px, 28vw);
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #121826;
+  color: var(--text);
+  padding: 0 8px;
+  font-size: 11px;
+}
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .icon-button { position: relative; width: 34px; height: 34px; display: inline-grid; place-items: center; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; }
 .icon-button svg { width: 17px; height: 17px; }
 .icon-button:hover { color: var(--text); background: var(--surface-2); }

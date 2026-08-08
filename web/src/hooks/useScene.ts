@@ -1,3 +1,4 @@
+import { apiUrl, resolveAssetUrl } from "../config";
 import type { Material, Physics, ScenePayload } from "../types/scene";
 
 export class RevisionConflict extends Error {
@@ -7,7 +8,7 @@ export class RevisionConflict extends Error {
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, init);
+  const response = await fetch(apiUrl(url), init);
   if (response.status === 409) {
     throw new RevisionConflict();
   }
@@ -23,10 +24,7 @@ export async function fetchScene(): Promise<ScenePayload> {
 }
 
 export function assetUrl(source: string): string {
-  if (/^https?:\/\//i.test(source)) {
-    return source;
-  }
-  return `/api/asset?path=${encodeURIComponent(source)}`;
+  return resolveAssetUrl(source);
 }
 
 export type CatalogAsset = {
@@ -101,4 +99,32 @@ export async function saveScene(path: string, revision?: number): Promise<string
     body: JSON.stringify({ path, revision }),
   });
   return data.saved;
+}
+
+export type SourceSyncReport = {
+  mode: string;
+  patchable: boolean;
+  patchableIds?: string[];
+  patchable_ids?: string[];
+  blockers: string[];
+  hasMarkers?: boolean;
+  has_markers?: boolean;
+  scriptPath?: string | null;
+  script_path?: string | null;
+};
+
+export async function fetchSourceSync(path: string): Promise<SourceSyncReport> {
+  return request<SourceSyncReport>(`/api/scene/source-sync?path=${encodeURIComponent(path)}`);
+}
+
+export async function savePythonScene(
+  path: string,
+  revision?: number,
+  mode: "auto" | "markers" | "ast" = "auto",
+): Promise<{ saved: string; sync: SourceSyncReport }> {
+  return request("/api/scene/save-python", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, revision, mode }),
+  });
 }

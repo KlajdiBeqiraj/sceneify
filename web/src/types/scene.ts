@@ -226,6 +226,9 @@ export type GameManifest = {
     nodeId: string;
     moveSpeed?: number;
     jumpSpeed?: number;
+    preset?: "simple" | "ecctrl";
+    sprintMult?: number;
+    actionMap?: string;
     [key: string]: unknown;
   }>;
   cameras?: Array<{
@@ -255,7 +258,15 @@ export type GameManifest = {
       animation?: { idle?: string; run?: string; hit?: string; death?: string; attack?: string };
     }>;
   } | null;
-  hud?: { title?: string; [key: string]: unknown };
+  hud?: {
+    title?: string;
+    showScore?: boolean;
+    showHealth?: boolean;
+    showTimer?: boolean;
+    description?: string;
+    controlsHint?: string;
+    [key: string]: unknown;
+  };
   timer?: { seconds?: number; [key: string]: unknown };
   win?: Record<string, unknown>;
   lose?: Record<string, unknown>;

@@ -1,7 +1,15 @@
 import type { GamePhase, ScenePayload, SnapSettings, TransformMode } from "../types/scene";
 
+export type RuntimePose = {
+  position: number[];
+  rotation: number[];
+  scale: number[];
+};
+
 export type EditorState = {
   scene: ScenePayload | null;
+  /** High-frequency pose overrides from WS frame deltas (play mode). */
+  runtimePoses: Record<string, RuntimePose>;
   selectedId: string | null;
   transformMode: TransformMode;
   snap: SnapSettings;
@@ -20,6 +28,7 @@ export type EditorState = {
 
 export type EditorAction =
   | { type: "scene"; scene: ScenePayload }
+  | { type: "runtimePoses"; poses: Record<string, RuntimePose>; replace?: boolean }
   | { type: "select"; id: string | null }
   | { type: "transformMode"; mode: TransformMode }
   | { type: "snap"; snap: SnapSettings }
@@ -37,6 +46,7 @@ export type EditorAction =
 
 export const initialEditorState: EditorState = {
   scene: null,
+  runtimePoses: {},
   selectedId: null,
   transformMode: "translate",
   snap: { translation: 0.25, rotationDegrees: 15, scale: 0.1 },
@@ -59,10 +69,18 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       return {
         ...state,
         scene: action.scene,
+        runtimePoses: {},
         selectedId:
           state.selectedId && allNodeIds(action.scene).has(state.selectedId)
             ? state.selectedId
             : null,
+      };
+    case "runtimePoses":
+      return {
+        ...state,
+        runtimePoses: action.replace
+          ? action.poses
+          : { ...state.runtimePoses, ...action.poses },
       };
     case "select":
       return { ...state, selectedId: action.id };

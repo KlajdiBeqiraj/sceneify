@@ -1,7 +1,26 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { TransformControls, useAnimations, useGLTF, useTexture } from "@react-three/drei";
-import { Box3, LoopOnce, LoopRepeat, RepeatWrapping, Vector3, type Group, type Mesh, type Object3D, type Texture } from "three";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  Detailed,
+  TransformControls,
+  useAnimations,
+  useGLTF,
+  useTexture,
+} from "@react-three/drei";
+import {
+  Box3,
+  LoopOnce,
+  LoopRepeat,
+  Object3D,
+  RepeatWrapping,
+  Vector3,
+  type Group,
+  type InstancedMesh,
+  type Mesh,
+  type Object3D as ThreeObject3D,
+  type Texture,
+} from "three";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
+import type { RuntimePose } from "../store/editorStore";
 import type {
   MeshNode,
   ObjectNode,
@@ -21,6 +40,7 @@ type TransformCallback = (
 
 function TransformableGroup({
   node,
+  pose,
   selected,
   editMode,
   transformMode,
@@ -30,6 +50,7 @@ function TransformableGroup({
   children,
 }: {
   node: MeshNode | ObjectNode | PrimitiveNode;
+  pose?: RuntimePose;
   selected: boolean;
   editMode: boolean;
   transformMode: TransformMode;
@@ -40,6 +61,9 @@ function TransformableGroup({
 }) {
   const group = useRef<Group>(null);
   const [ready, setReady] = useState(false);
+  const position = (pose?.position ?? node.position) as [number, number, number];
+  const rotation = (pose?.rotation ?? node.rotation) as [number, number, number];
+  const scale = (pose?.scale ?? node.scale) as [number, number, number];
 
   useEffect(() => {
     setReady(Boolean(group.current));
@@ -49,9 +73,9 @@ function TransformableGroup({
     <>
       <group
         ref={group}
-        position={node.position as [number, number, number]}
-        rotation={node.rotation as [number, number, number]}
-        scale={node.scale as [number, number, number]}
+        position={position}
+        rotation={rotation}
+        scale={scale}
         visible={node.visible}
         onClick={(event) => {
           if (!editMode) {
@@ -95,9 +119,11 @@ function TransformableGroup({
 export function GlbVisual({
   node,
   animationState = "idle",
+  castShadow = true,
 }: {
   node: MeshNode;
   animationState?: "idle" | "move" | "run" | "jump" | "attack" | "hit" | "death";
+  castShadow?: boolean;
 }) {
   const gltf = useGLTF(assetUrl(node.source));
   const cloned = useMemo(() => {
@@ -137,7 +163,7 @@ export function GlbVisual({
       }
       const mesh = child as Mesh;
       if (!mesh.isMesh) return;
-      mesh.castShadow = true;
+      mesh.castShadow = castShadow;
       mesh.receiveShadow = true;
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       materials.forEach((material) => {
@@ -151,7 +177,7 @@ export function GlbVisual({
         }
       });
     });
-  }, [cloned]);
+  }, [castShadow, cloned]);
 
   useEffect(() => {
     if (!clipName) return;
@@ -175,8 +201,8 @@ export function GlbVisual({
   return <primitive object={cloned} />;
 }
 
-function hasIncludedAncestor(node: Object3D, includeNodes: string[]): boolean {
-  let cursor: Object3D | null = node;
+function hasIncludedAncestor(node: ThreeObject3D, includeNodes: string[]): boolean {
+  let cursor: ThreeObject3D | null = node;
   while (cursor) {
     if (includeNodes.some((name) => cursor?.name === name || cursor?.name.includes(name))) {
       return true;
@@ -268,10 +294,129 @@ function TexturedPrimitiveContent({
   );
 }
 
+export function preloadSceneAssets(meshes: MeshNode[], worldSource?: string | null) {
+  const urls = new Set<string>();
+  meshes.forEach((mesh) => {
+    if (/\.gl(b|tf)(\?|$)/i.test(mesh.source) || mesh.format === "glb" || mesh.format === "gltf") {
+      urls.add(assetUrl(mesh.source));
+    }
+  });
+  if (worldSource && /\.gl(b|tf)(\?|$)/i.test(worldSource)) {
+    urls.add(assetUrl(worldSource));
+  }
+  urls.forEach((url) => useGLTF.preload(url));
+}
+
+function isStaticInstanceCandidate(mesh: MeshNode): boolean {
+  if (!mesh.visible) return false;
+  if (mesh.meta?.animation || mesh.meta?.visualFor) return false;
+  if (mesh.parentId) return false;
+  const format = (mesh.format || "").toLowerCase();
+  return (
+    format === "glb" ||
+    format === "gltf" ||
+    /\.gl(b|tf)(\?|$)/i.test(mesh.source)
+  );
+}
+
+function LodGlbVisual({
+  node,
+  castShadow,
+}: {
+  node: MeshNode;
+  castShadow: boolean;
+}) {
+  const lod = node.meta?.lod;
+  if (!Array.isArray(lod) || lod.length < 2) {
+    return <GlbVisual node={node} castShadow={castShadow} />;
+  }
+  const levels = lod.filter((item): item is string => typeof item === "string");
+  const distances = levels.map((_, index) => index * 12);
+  return (
+    <Detailed distances={distances}>
+      {levels.map((source, index) => (
+        <GlbVisual
+          key={`${node.id}-lod-${index}`}
+          node={{ ...node, source }}
+          castShadow={castShadow && index === 0}
+        />
+      ))}
+    </Detailed>
+  );
+}
+
+function InstancedSourceGroup({
+  source,
+  meshes,
+  runtimePoses,
+}: {
+  source: string;
+  meshes: MeshNode[];
+  runtimePoses: Record<string, RuntimePose>;
+}) {
+  const gltf = useGLTF(assetUrl(source));
+  const meshRef = useRef<InstancedMesh>(null);
+  const dummy = useMemo(() => new Object3D(), []);
+  const prototypeMesh = useMemo((): Mesh | null => {
+    const found: Mesh[] = [];
+    gltf.scene.traverse((child) => {
+      const candidate = child as Mesh;
+      if (candidate.isMesh) found.push(candidate);
+    });
+    return found[0] ?? null;
+  }, [gltf.scene]);
+
+  useLayoutEffect(() => {
+    const target = meshRef.current;
+    if (!target || !prototypeMesh) return;
+    meshes.forEach((mesh, index) => {
+      const pose = runtimePoses[mesh.id];
+      const position = pose?.position ?? mesh.position;
+      const rotation = pose?.rotation ?? mesh.rotation;
+      const scale = pose?.scale ?? mesh.scale;
+      dummy.position.set(position[0], position[1], position[2]);
+      dummy.rotation.set(rotation[0], rotation[1], rotation[2]);
+      dummy.scale.set(scale[0], scale[1], scale[2]);
+      dummy.updateMatrix();
+      target.setMatrixAt(index, dummy.matrix);
+    });
+    target.instanceMatrix.needsUpdate = true;
+    target.count = meshes.length;
+  }, [dummy, meshes, prototypeMesh, runtimePoses]);
+
+  if (!prototypeMesh) {
+    return (
+      <>
+        {meshes.map((mesh) => (
+          <group
+            key={mesh.id}
+            position={(runtimePoses[mesh.id]?.position ?? mesh.position) as [number, number, number]}
+            rotation={(runtimePoses[mesh.id]?.rotation ?? mesh.rotation) as [number, number, number]}
+            scale={(runtimePoses[mesh.id]?.scale ?? mesh.scale) as [number, number, number]}
+          >
+            <GlbVisual node={mesh} castShadow={false} />
+          </group>
+        ))}
+      </>
+    );
+  }
+
+  return (
+    <instancedMesh
+      ref={meshRef}
+      args={[prototypeMesh.geometry, prototypeMesh.material, meshes.length]}
+      castShadow={false}
+      receiveShadow
+      frustumCulled={false}
+    />
+  );
+}
+
 export function MeshAssets({
   meshes,
   objects,
   primitives = [],
+  runtimePoses = {},
   editMode,
   selectedId,
   transformMode,
@@ -282,6 +427,7 @@ export function MeshAssets({
   meshes: MeshNode[];
   objects: ObjectNode[];
   primitives?: PrimitiveNode[];
+  runtimePoses?: Record<string, RuntimePose>;
   editMode: boolean;
   selectedId: string | null;
   transformMode: TransformMode;
@@ -289,25 +435,47 @@ export function MeshAssets({
   onSelect: (id: string) => void;
   onTransform: TransformCallback;
 }) {
-  const meshById = new Map(meshes.map((mesh) => [mesh.id, mesh]));
-  const objectById = new Map(objects.map((object) => [object.id, object]));
-  const primitiveById = new Map(primitives.map((primitive) => [primitive.id, primitive]));
-  const graphNodes = [...objects, ...meshes, ...primitives];
-  const childrenByParent = new Map<string, string[]>();
-  const addChild = (parentId: string, childId: string) => {
-    const children = childrenByParent.get(parentId) ?? [];
-    if (!children.includes(childId)) childrenByParent.set(parentId, [...children, childId]);
-  };
-  objects.forEach((object) => object.children?.forEach((childId) => addChild(object.id, childId)));
-  graphNodes.forEach((node) => {
-    if (node.parentId) addChild(node.parentId, node.id);
-  });
-  const childIds = new Set([...childrenByParent.values()].flat());
-  const rootIds = graphNodes
-    .filter((node) => !childIds.has(node.id))
-    .map((node) => node.id);
+  const meshById = useMemo(() => new Map(meshes.map((mesh) => [mesh.id, mesh])), [meshes]);
+  const objectById = useMemo(() => new Map(objects.map((object) => [object.id, object])), [objects]);
+  const primitiveById = useMemo(
+    () => new Map(primitives.map((primitive) => [primitive.id, primitive])),
+    [primitives],
+  );
+  const { childrenByParent, rootIds, graphNodes } = useMemo(() => {
+    const graphNodes = [...objects, ...meshes, ...primitives];
+    const childrenByParent = new Map<string, string[]>();
+    const addChild = (parentId: string, childId: string) => {
+      const children = childrenByParent.get(parentId) ?? [];
+      if (!children.includes(childId)) childrenByParent.set(parentId, [...children, childId]);
+    };
+    objects.forEach((object) => object.children?.forEach((childId) => addChild(object.id, childId)));
+    graphNodes.forEach((node) => {
+      if (node.parentId) addChild(node.parentId, node.id);
+    });
+    const childIds = new Set([...childrenByParent.values()].flat());
+    const rootIds = graphNodes.filter((node) => !childIds.has(node.id)).map((node) => node.id);
+    return { childrenByParent, rootIds, graphNodes };
+  }, [meshes, objects, primitives]);
+  const { instancedBySource, instancedIds } = useMemo(() => {
+    const groups = new Map<string, MeshNode[]>();
+    meshes.forEach((mesh) => {
+      if (!isStaticInstanceCandidate(mesh)) return;
+      const list = groups.get(mesh.source) ?? [];
+      list.push(mesh);
+      groups.set(mesh.source, list);
+    });
+    const instancedBySource = new Map<string, MeshNode[]>();
+    const instancedIds = new Set<string>();
+    groups.forEach((list, source) => {
+      if (list.length < 3) return;
+      instancedBySource.set(source, list);
+      list.forEach((mesh) => instancedIds.add(mesh.id));
+    });
+    return { instancedBySource, instancedIds };
+  }, [meshes]);
+
   const renderNode = (id: string, ancestors: ReadonlySet<string>): React.ReactNode => {
-    if (ancestors.has(id)) {
+    if (ancestors.has(id) || instancedIds.has(id)) {
       return null;
     }
     const nextAncestors = new Set(ancestors).add(id);
@@ -317,6 +485,7 @@ export function MeshAssets({
         <TransformableGroup
           key={object.id}
           node={object}
+          pose={runtimePoses[object.id]}
           selected={selectedId === object.id}
           editMode={editMode}
           transformMode={transformMode}
@@ -339,6 +508,7 @@ export function MeshAssets({
         <TransformableGroup
           key={primitive.id}
           node={primitive}
+          pose={runtimePoses[primitive.id]}
           selected={selectedId === primitive.id}
           editMode={editMode}
           transformMode={transformMode}
@@ -371,6 +541,7 @@ export function MeshAssets({
       <Suspense key={mesh.id} fallback={null}>
         <TransformableGroup
           node={mesh}
+          pose={runtimePoses[mesh.id]}
           selected={selectedId === mesh.id}
           editMode={editMode}
           transformMode={transformMode}
@@ -378,7 +549,7 @@ export function MeshAssets({
           onSelect={onSelect}
           onTransform={onTransform}
         >
-          <GlbVisual node={mesh} />
+          <LodGlbVisual node={mesh} castShadow={!editMode} />
         </TransformableGroup>
       </Suspense>
     );
@@ -389,6 +560,11 @@ export function MeshAssets({
   return (
     <>
       {renderIds.map((id) => renderNode(id, new Set()))}
+      {[...instancedBySource.entries()].map(([source, group]) => (
+        <Suspense key={`instances:${source}`} fallback={null}>
+          <InstancedSourceGroup source={source} meshes={group} runtimePoses={runtimePoses} />
+        </Suspense>
+      ))}
     </>
   );
 }
@@ -412,9 +588,10 @@ export function WorldMeshView({ world }: { world: WorldMeshNode }) {
 
 function WorldGlb({ world }: { world: WorldMeshNode }) {
   const gltf = useGLTF(assetUrl(world.source));
+  const cloned = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
   return (
     <primitive
-      object={gltf.scene.clone()}
+      object={cloned}
       position={world.position as [number, number, number]}
       rotation={world.rotation as [number, number, number]}
       scale={world.scale as [number, number, number]}

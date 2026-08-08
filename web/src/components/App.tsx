@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { fetchScene, importGlb, patchNode, RevisionConflict, saveScene, sceneCommand, type NodePatch } from "../hooks/useScene";
+import {
+  fetchScene,
+  fetchSourceSync,
+  importGlb,
+  patchNode,
+  RevisionConflict,
+  savePythonScene,
+  saveScene,
+  sceneCommand,
+  type NodePatch,
+} from "../hooks/useScene";
 import { useSceneSocket } from "../hooks/useSceneSocket";
 import type { GameplayRole, ScenePayload } from "../types/scene";
 import { gameplayRoles, primitiveById, runtimeConfig } from "../game/runtime";
-import { editorReducer, initialEditorState } from "../store/editorStore";
+import { editorReducer, initialEditorState, type RuntimePose } from "../store/editorStore";
 import { AppShell } from "./AppShell";
 import { IconRail } from "./IconRail";
 import { TopToolbar } from "./TopToolbar";
@@ -28,37 +38,90 @@ function isTextEntry(target: EventTarget | null): boolean {
 export function App() {
   const [state, dispatch] = useReducer(editorReducer, initialEditorState);
   const sceneRef = useRef<ScenePayload | null>(null);
+  const revisionRef = useRef<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savePath, setSavePath] = useState("world.sceneify.json");
+  const [pythonPath, setPythonPath] = useState("world.py");
+  const [syncMode, setSyncMode] = useState<string>("json");
   const [status, setStatus] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [playing, setPlaying] = useState(false);
 
   const updateScene = useCallback((nextScene: ScenePayload) => {
+    const revision = typeof nextScene.revision === "number" ? nextScene.revision : null;
+    if (
+      revision !== null &&
+      revisionRef.current !== null &&
+      revision === revisionRef.current &&
+      sceneRef.current?.name === nextScene.name
+    ) {
+      return;
+    }
+    revisionRef.current = revision;
     sceneRef.current = nextScene;
     dispatch({ type: "scene", scene: nextScene });
     setError(null);
   }, []);
 
+  const onTransforms = useCallback((poses: Record<string, RuntimePose>, replace: boolean) => {
+    dispatch({ type: "runtimePoses", poses, replace });
+  }, []);
+
   const reload = useCallback(async () => {
     try {
+      revisionRef.current = null;
       updateScene(await fetchScene());
       setStatus("Scene synchronized");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load scene");
     }
   }, [updateScene]);
-  const { connection, mode: runtimeMode, protocol, sendSemanticEvent } = useSceneSocket(updateScene, reload);
-  const running = playing || runtimeMode === "play";
+
+  const refreshSync = useCallback(async (path = pythonPath) => {
+    try {
+      const report = await fetchSourceSync(path);
+      setSyncMode(report.mode);
+    } catch {
+      setSyncMode("json");
+    }
+  }, [pythonPath]);
+
+  const onReplayControl = useCallback((action: "start" | "stop" | "complete") => {
+    if (action === "start") {
+      setPlaying(true);
+      setStatus("Replaying episode");
+      return;
+    }
+    if (action === "complete") {
+      setStatus("Replay complete");
+      return;
+    }
+    setStatus("Replay stopped");
+  }, []);
+
+  const {
+    connection,
+    mode: runtimeMode,
+    protocol,
+    sendSemanticEvent,
+    recording,
+    replaying,
+  } = useSceneSocket(updateScene, reload, onReplayControl, onTransforms);
+  const running = playing || runtimeMode === "play" || replaying;
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
+  useEffect(() => {
+    void refreshSync();
+  }, [refreshSync]);
+
   const run = useCallback(async (operation: () => Promise<{ scene: ScenePayload }>, message: string) => {
     setBusy(true);
     try {
       const result = await operation();
+      revisionRef.current = null;
       updateScene(result.scene);
       setStatus(message);
     } catch (err) {
@@ -131,12 +194,30 @@ export function App() {
     return () => window.clearInterval(timer);
   }, [running, state.gamePhase]);
 
+  useEffect(() => {
+    if (!replaying || !state.scene?.game || state.gamePhase === "playing") return;
+    const spawn = primitiveById(state.scene, runtimeConfig(state.scene).playerNodeId)?.position as
+      | [number, number, number]
+      | undefined;
+    dispatch({ type: "gameStart", timeLimit: runtimeConfig(state.scene).seconds, spawn });
+  }, [replaying, state.gamePhase, state.scene]);
+
   async function onSave() {
     try {
       const saved = await saveScene(savePath, state.scene?.revision);
       setStatus(`Saved ${saved}`);
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "Save failed");
+    }
+  }
+
+  async function onSavePython() {
+    try {
+      const result = await savePythonScene(pythonPath, state.scene?.revision, "auto");
+      setSyncMode(result.sync.mode);
+      setStatus(`Saved Python ${result.saved} (${result.sync.mode})`);
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Python save failed");
     }
   }
 
@@ -191,15 +272,96 @@ export function App() {
       playing={running}
       leftOpen={state.leftOpen && !running}
       inspectorOpen={state.inspectorOpen && !running}
-      toolbar={<TopToolbar sceneName={scene.name} revision={scene.revision} connection={connection} transformMode={state.transformMode} busy={busy} onTransformMode={(mode) => dispatch({ type: "transformMode", mode })} onUndo={() => command("undo", {}, "Undid command")} onRedo={() => command("redo", {}, "Redid command")} onSave={() => void onSave()} onReload={() => void reload()} onToggleLeft={() => dispatch({ type: "toggleLeft" })} onPlay={togglePlay} />}
+      toolbar={
+        <TopToolbar
+          sceneName={scene.name}
+          revision={scene.revision}
+          connection={connection}
+          transformMode={state.transformMode}
+          busy={busy}
+          savePath={savePath}
+          pythonPath={pythonPath}
+          onSavePath={setSavePath}
+          onPythonPath={(path) => {
+            setPythonPath(path);
+            void refreshSync(path);
+          }}
+          onTransformMode={(mode) => dispatch({ type: "transformMode", mode })}
+          onUndo={() => command("undo", {}, "Undid command")}
+          onRedo={() => command("redo", {}, "Redid command")}
+          onSave={() => void onSave()}
+          onSavePython={() => void onSavePython()}
+          onReload={() => void reload()}
+          onToggleLeft={() => dispatch({ type: "toggleLeft" })}
+          onPlay={togglePlay}
+        />
+      }
       rail={<IconRail panel={state.leftPanel} playing={playing} onPanel={(panel) => dispatch({ type: "panel", panel })} onToggleInspector={() => dispatch({ type: "toggleInspector" })} onPlay={togglePlay} />}
       left={left}
-      viewport={<><Viewport key={connection} scene={scene} selectedId={state.selectedId} editing={editorConnected && !running} playing={running} gameActive={state.gamePhase === "playing"} collectedIds={state.collectedIds} gameRun={state.gameRun} transformMode={state.transformMode} snap={state.snap} onSelect={(id) => dispatch({ type: "select", id })} onTransform={(id, position, rotation, scale) => applyPatch(id, { position, rotation, scale })} onGameEvent={gameEvent} onAnnotationEvent={(name, nodeId) => sendSemanticEvent(name, nodeId)} />{running && scene.game && <GameOverlay phase={state.gamePhase} score={state.score} targetScore={gameConfig.requiredScore} health={state.health} maxHealth={state.maxHealth} timeLeft={state.timeLeft} title={gameConfig.title} onStart={() => {
-        dispatch({ type: "gameStart", timeLimit: gameConfig.seconds, spawn: playerSpawn });
-        sendSemanticEvent("game_started");
-      }} onExit={runtimeMode === "edit" ? () => setPlaying(false) : undefined} />}{running && !scene.game && scene.presentation?.title && <div className="showcase-title"><span>Sceneify environment study</span><h1>{scene.presentation.title}</h1>{scene.presentation.subtitle && <p>{scene.presentation.subtitle}</p>}<small>{scene.presentation.cameraTour?.autoplay ? "Automatic camera tour · close framing · selective light dimming" : "Drag to orbit · Scroll to explore"}</small></div>}</>}
+      viewport={
+        <>
+          <Viewport
+            scene={scene}
+            runtimePoses={state.runtimePoses}
+            selectedId={state.selectedId}
+            editing={editorConnected && !running}
+            playing={running}
+            gameActive={state.gamePhase === "playing"}
+            collectedIds={state.collectedIds}
+            gameRun={state.gameRun}
+            transformMode={state.transformMode}
+            snap={state.snap}
+            onSelect={(id) => dispatch({ type: "select", id })}
+            onTransform={(id, position, rotation, scale) => applyPatch(id, { position, rotation, scale })}
+            onGameEvent={gameEvent}
+            onAnnotationEvent={(name, nodeId) => sendSemanticEvent(name, nodeId)}
+          />
+          {running && scene.game && (
+            <GameOverlay
+              phase={state.gamePhase}
+              score={state.score}
+              targetScore={gameConfig.requiredScore}
+              health={state.health}
+              maxHealth={state.maxHealth}
+              timeLeft={state.timeLeft}
+              title={gameConfig.title}
+              showScore={scene.game.hud?.showScore !== false}
+              showHealth={scene.game.hud?.showHealth !== false}
+              showTimer={scene.game.hud?.showTimer !== false}
+              showAttackHint={Boolean(scene.game.enemies?.types?.length)}
+              description={scene.game.hud?.description}
+              controlsHint={scene.game.hud?.controlsHint}
+              onStart={() => {
+                dispatch({ type: "gameStart", timeLimit: gameConfig.seconds, spawn: playerSpawn });
+                sendSemanticEvent("game_started");
+              }}
+              onExit={runtimeMode === "edit" ? () => setPlaying(false) : undefined}
+            />
+          )}
+          {running && !scene.game && scene.presentation?.title && (
+            <div className="showcase-title">
+              <span>Sceneify environment study</span>
+              <h1>{scene.presentation.title}</h1>
+              {scene.presentation.subtitle && <p>{scene.presentation.subtitle}</p>}
+              <small>
+                {scene.presentation.cameraTour?.autoplay
+                  ? "Automatic camera tour · close framing · selective light dimming"
+                  : "Drag to orbit · Scroll to explore"}
+              </small>
+            </div>
+          )}
+        </>
+      }
       inspector={<Inspector scene={scene} selectedId={state.selectedId} gameplayRole={state.selectedId ? roles.get(state.selectedId) ?? "none" : "none"} onGameplayRole={(id, role) => command("set_gameplay_role", { id, role }, `Set ${id} role to ${role}`)} onClose={() => dispatch({ type: "toggleInspector" })} onPatch={applyPatch} onDuplicate={(id) => command("duplicate", { id }, `Duplicated ${id}`)} onDelete={(id) => command("delete", { id }, `Deleted ${id}`)} />}
-      status={<StatusBar status={`${status}${savePath ? "" : ""}`} protocol={protocol} revision={scene.revision} selectedId={state.selectedId} />}
+      status={
+        <StatusBar
+          status={`${recording ? "Recording · " : ""}${replaying ? "Replaying · " : ""}${status}`}
+          protocol={protocol}
+          revision={scene.revision}
+          selectedId={state.selectedId}
+          syncMode={syncMode}
+        />
+      }
     />
   );
 }

@@ -1,5 +1,7 @@
 import type { GameplayRole, PrimitiveNode, ScenePayload } from "../types/scene";
 
+export type ControllerPreset = "simple" | "ecctrl";
+
 export type RuntimeConfig = {
   title: string;
   seconds: number;
@@ -9,6 +11,8 @@ export type RuntimeConfig = {
   jumpSpeed: number;
   cameraDistance: number;
   cameraHeight: number;
+  controllerPreset: ControllerPreset;
+  sprintMult: number;
 };
 
 export function gameplayRoles(scene: ScenePayload): Map<string, GameplayRole> {
@@ -28,6 +32,7 @@ export function runtimeConfig(scene: ScenePayload): RuntimeConfig {
   const requiredByGoal = scene.game?.goals
     ?.map((goal) => goal.requiredScore)
     .find((value): value is number => typeof value === "number");
+  const preset = controller?.preset === "ecctrl" ? "ecctrl" : "simple";
   return {
     title: scene.game?.hud?.title ?? "Collect & Escape",
     seconds: scene.game?.timer?.seconds ?? 90,
@@ -37,6 +42,8 @@ export function runtimeConfig(scene: ScenePayload): RuntimeConfig {
     jumpSpeed: controller?.jumpSpeed ?? 6,
     cameraDistance: camera?.distance ?? 6,
     cameraHeight: camera?.height ?? 3,
+    controllerPreset: preset,
+    sprintMult: controller?.sprintMult ?? 2,
   };
 }
 

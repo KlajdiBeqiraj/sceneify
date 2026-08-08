@@ -12,12 +12,15 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:stress": "playwright test e2e/stress-perf.spec.ts",
+    "test:stress:strict": "SCENEIFY_PERF_STRICT=1 playwright test e2e/stress-perf.spec.ts"
   },
   "dependencies": {
     "@react-three/drei": "^9.117.3",
     "@react-three/fiber": "^8.17.10",
     "@react-three/rapier": "^1.5.0",
+    "ecctrl": "1.0.92",
     "lucide-react": "^1.29.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

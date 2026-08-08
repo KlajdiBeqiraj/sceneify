@@ -24,5 +24,11 @@ export default defineConfig({
       url: "http://127.0.0.1:4176",
       reuseExistingServer: true,
     },
+    {
+      command: "uv run python ../tests/e2e_server.py --stress --port 4177",
+      url: "http://127.0.0.1:4177",
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
   ],
 });

@@ -60,6 +60,47 @@ describe("editor reducer", () => {
       requiredScore: 2,
       moveSpeed: 7,
       jumpSpeed: 8,
+      controllerPreset: "simple",
+      sprintMult: 2,
+    });
+
+    const ecctrlScene = {
+      ...scene,
+      game: {
+        ...scene.game!,
+        controllers: [{ nodeId: "parent", moveSpeed: 5, jumpSpeed: 6, preset: "ecctrl" as const, sprintMult: 1.5 }],
+      },
+    };
+    expect(runtimeConfig(ecctrlScene)).toMatchObject({
+      controllerPreset: "ecctrl",
+      sprintMult: 1.5,
+      moveSpeed: 5,
+    });
+  });
+
+  it("merges runtime pose deltas unless replace is set", () => {
+    let state = editorReducer(initialEditorState, { type: "scene", scene });
+    state = editorReducer(state, {
+      type: "runtimePoses",
+      replace: true,
+      poses: {
+        parent: { position: [1, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
+        child: { position: [0, 1, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
+      },
+    });
+    state = editorReducer(state, {
+      type: "runtimePoses",
+      poses: { child: { position: [0, 2, 0], rotation: [0, 0.5, 0], scale: [1, 1, 1] } },
+    });
+    expect(state.runtimePoses.parent.position).toEqual([1, 0, 0]);
+    expect(state.runtimePoses.child.position).toEqual([0, 2, 0]);
+    state = editorReducer(state, {
+      type: "runtimePoses",
+      replace: true,
+      poses: { parent: { position: [9, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] } },
+    });
+    expect(state.runtimePoses).toEqual({
+      parent: { position: [9, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
     });
   });
 
