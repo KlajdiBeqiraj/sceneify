@@ -1,10 +1,21 @@
-"""A tiny input driven collect the target game."""
+"""Move a Python-owned marker with browser input and collect the green target.
+
+Run from the repository root:
+  uv run python examples/realtime/realtime_minigame.py
+
+Use WASD or arrow keys. The callback updates the player annotation in Python;
+when it reaches the target, its label changes to ``Collected``.
+"""
 
 from __future__ import annotations
 
 from sceneify import InputEvent, Scene
 
 scene = Scene("collect-the-target")
+scene.set_presentation(
+    title="Realtime input callback",
+    subtitle="Move the cyan marker onto the green target with WASD or arrow keys",
+)
 player = scene.add_annotation("player", (0, 0, 0), label="Player", color="#56ccf2")
 target = scene.add_annotation("target", (2, 0, 2), label="Target", color="#6fcf97")
 

@@ -1,4 +1,11 @@
-"""Build a self-contained collect-and-escape game scene."""
+"""Playable dungeon run: collect three relics, fight enemies, then reach the chest.
+
+Run from the repository root:
+  uv run python examples/game/collect_escape.py
+
+Controls: WASD / arrows to move, Space to jump, J or left click to attack.
+Use ``--edit`` to open the same world in the authoring editor.
+"""
 
 from __future__ import annotations
 
@@ -459,7 +466,12 @@ def build_scene() -> Scene:
             },
         ],
     )
-    game.set_hud(title="Collect & Escape", show_health=True)
+    game.set_hud(
+        title="Collect & Escape",
+        description="Collect the three relics, avoid the pit, then reach the chest.",
+        controls_hint="Move: WASD or arrows · Jump: Space · Attack: J or click",
+        show_health=True,
+    )
     game.set_timer(90)
     game.outcomes(
         win_message="You gathered the relics and escaped the dungeon.",
@@ -482,4 +494,4 @@ if __name__ == "__main__":
     build_scene().save(output)
     scene = Scene.load(output)
     serve = scene.run if args.edit else scene.play
-    serve(project_root=Path(__file__).parents[1])
+    serve(project_root=Path(__file__).parents[2])

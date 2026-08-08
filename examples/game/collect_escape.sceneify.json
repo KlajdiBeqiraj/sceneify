@@ -5726,7 +5726,9 @@
           "nodeId": "player",
           "moveSpeed": 5.5,
           "jumpSpeed": 7.0,
-          "actionMap": "default"
+          "actionMap": "default",
+          "preset": "simple",
+          "sprintMult": 2.0
         }
       ],
       "cameras": [
@@ -5847,7 +5849,9 @@
         "showScore": true,
         "showHealth": true,
         "showTimer": true,
-        "title": "Collect & Escape"
+        "title": "Collect & Escape",
+        "description": "Collect the three relics, avoid the pit, then reach the chest.",
+        "controlsHint": "Move: WASD or arrows \u00b7 Jump: Space \u00b7 Attack: J or click"
       },
       "timer": {
         "seconds": 90,
@@ -5892,6 +5896,7 @@
       "subtitle": "A third-person browser game authored entirely from Python",
       "ambientIntensity": 0.35,
       "keyLightIntensity": 1.15
-    }
+    },
+    "prefabs": []
   }
 }

@@ -87,7 +87,7 @@ game.action_map(
     moveRight=["KeyD", "ArrowRight"],
     jump=["Space"],
 )
-game.add_controller("player")
+game.add_controller("player")  # preset="simple" by default; use preset="ecctrl" for camera-relative controls
 game.follow_camera("player")
 game.set_hud(title="Collect and Escape")
 game.set_timer(90)
@@ -99,26 +99,26 @@ Run the complete third-person vertical slice with a skinned KayKit character,
 animation blending, GLB dungeon props, physics, collectibles, and HUD:
 
 ```bash
-uv run python examples/collect_escape.py
+uv run python examples/game/collect_escape.py
 ```
 
 Open the same world in authoring mode:
 
 ```bash
-uv run python examples/collect_escape.py --edit
+uv run python examples/game/collect_escape.py --edit
 ```
 
 Run the Roman-inspired environment showcase with local HDR lighting, CC0 sculptures,
 curated ruins, and mouse-driven points of interest:
 
 ```bash
-uv run python examples/roman_environment.py
+uv run python examples/showcase/roman_environment.py
 ```
 
 Open the same environment in the authoring editor:
 
 ```bash
-uv run python examples/roman_environment.py --edit
+uv run python examples/showcase/roman_environment.py --edit
 ```
 
 The Roman showcase runs an automatic camera tour along a predefined path: wide
@@ -154,7 +154,6 @@ Baselines3 is not a sceneify dependency. Add it to the application that needs it
 
 ```bash
 uv add stable-baselines3 "sceneify[rl]"
-uv run python examples/rl_sb3_stub.py
 ```
 
 ## Build worlds with a coding agent
@@ -183,8 +182,8 @@ tools.apply({"action": "save", "path": "warehouse.sceneify.json"})
 ```
 
 Run `sceneify tool-spec` to print the neutral action descriptor. See
-[docs/agent-tools.md](docs/agent-tools.md), [docs/catalog.md](docs/catalog.md), and
-[docs/schema.md](docs/schema.md).
+[docs/agent-tools.md](docs/agent-tools.md), [docs/catalog.md](docs/catalog.md),
+[docs/schema.md](docs/schema.md), and [docs/export.md](docs/export.md).
 
 The `sceneify[llm]` extra is a dependency-free compatibility marker. Agent tools ship in the core
 package and remain independent from model SDKs.
@@ -204,11 +203,25 @@ uv add "sceneify[llm]"
 ## Examples and checks
 
 ```bash
-uv run python examples/basic_scene.py
-uv run python examples/world_edit_save.py
-uv run python examples/collect_escape.py
 uv run pytest
 ```
+
+Run every example from the repository root. Each group has one narrow purpose:
+
+| Group | Example | What to observe |
+| --- | --- | --- |
+| Basics | `uv run python examples/basics/basic_scene.py` | GLB assets, hierarchy, annotations, and trajectories |
+| Basics | `uv run python examples/basics/environment_rules.py` | Bounds, zones, snapping, and placement rules |
+| Realtime | `uv run python examples/realtime/realtime_minigame.py` | Browser input handled by Python callbacks |
+| Realtime | `uv run python examples/realtime/tick_delta_demo.py` | Python tick updates sent as compact pose deltas |
+| Realtime | `uv run python examples/realtime/stress_many_assets.py` | GLB instancing and a browser performance stress scene |
+| Game | `uv run python examples/game/prefab_demo.py` | One crate template, three overridden physics instances |
+| Game | `uv run python examples/game/episode_demo.py --record` | Capture a short run, then replay the JSON episode |
+| Game | `uv run python examples/game/collect_escape.py` | Complete third-person game: relics, enemies, hazards, and goal |
+| Workflows | `uv run python examples/workflows/world_edit_save.py` | Create a world, edit it, and save a scene JSON |
+| Workflows | `uv run python examples/workflows/sync_roundtrip.py` | Save JSON and write scene changes back to Python markers |
+| Workflows | `uv run python examples/workflows/export_web_demo.py --serve` | Export a static viewer connected to the live Python backend |
+| Showcase | `uv run python examples/showcase/roman_environment.py` | Automatic camera tour and interactive exhibit annotations |
 
 Development uses uv, Python 3.13, and the committed lockfile. See
 [docs/development.md](docs/development.md).

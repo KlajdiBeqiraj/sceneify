@@ -1,4 +1,11 @@
-"""Example: geometric environment with bounds, zones, and rules."""
+"""Show environment bounds, allowed zones, snapping, and placement rules.
+
+Run from the repository root:
+  uv run python examples/basics/environment_rules.py
+
+The helmet is deliberately placed off-grid and below ground. Inspect its final
+position to see the environment clamp and snap the placement.
+"""
 
 from pathlib import Path
 
@@ -50,7 +57,7 @@ def main() -> None:
     print("Environment:", scene.to_dict()["environment"]["bounds"])
     print("Helmet position after rules:", scene.to_dict()["meshes"][0]["position"])
     print("Cached assets under:", Path(".sceneify_cache").resolve())
-    # Press Enter (or Ctrl+C) to stop and return to the shell.
+    print("Toggle Edit to inspect the allowed work cell and forbidden no-go volume.")
     scene.run()
 
 

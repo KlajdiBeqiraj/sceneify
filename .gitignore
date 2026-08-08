@@ -29,9 +29,10 @@ web/test-results/
 !examples/assets/**/*.glb
 !examples/assets/**/*.hdr
 examples/out_*.json
+examples/game/episode_*.json
 *.sceneify.json
-!examples/collect_escape.sceneify.json
-!examples/roman_environment.sceneify.json
+!examples/game/collect_escape.sceneify.json
+!examples/showcase/roman_environment.sceneify.json
 
 # OS / IDE
 .DS_Store

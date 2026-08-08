@@ -1,4 +1,11 @@
-"""Example: multi-asset scene with annotation and trajectory."""
+"""Build the smallest useful 3D scene: two GLBs, a hierarchy, a label, and a path.
+
+Run from the repository root:
+  uv run python examples/basics/basic_scene.py
+
+Orbit the scene and inspect the outliner: ``props`` groups the helmet and avocado,
+the annotation labels the helmet, and the cyan trajectory is independent geometry.
+"""
 
 from pathlib import Path
 
@@ -27,7 +34,7 @@ def main() -> None:
     )
     print("Scene nodes:", scene.to_dict()["name"])
     print("Cached assets under:", Path(".sceneify_cache").resolve())
-    # Press Enter (or Ctrl+C) to stop and return to the shell.
+    print("Inspect the Props group, Helmet annotation, and cyan trajectory in the viewer.")
     scene.run()
 
 

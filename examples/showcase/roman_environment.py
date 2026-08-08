@@ -1,4 +1,11 @@
-"""Present a curated Roman-inspired environment with an automatic camera tour."""
+"""Present a Roman-inspired environment with an automatic camera tour.
+
+Run from the repository root:
+  uv run python examples/showcase/roman_environment.py
+
+Let the tour run to see the presentation system; use ``--edit`` to inspect
+assets, annotations, and camera stops in the authoring editor.
+"""
 
 import argparse
 from pathlib import Path
@@ -299,4 +306,4 @@ if __name__ == "__main__":
             print(f"Camera tour stop: {event.node_id}")
 
     serve = scene.run if args.edit else scene.play
-    serve(project_root=Path(__file__).parents[1])
+    serve(project_root=Path(__file__).parents[2])

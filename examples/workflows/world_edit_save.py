@@ -1,4 +1,11 @@
-"""Example: world GLB environment, place-on-world, edit/save loop."""
+"""Create a GLB-backed world, place an object on it, then save and edit the result.
+
+Run from the repository root:
+  uv run python examples/workflows/world_edit_save.py
+
+The avocado is placed at an X/Z coordinate on the helmet world surface. Toggle
+Edit in the viewer, move it, and save the resulting scene JSON.
+"""
 
 from pathlib import Path
 
@@ -27,7 +34,7 @@ def main() -> None:
     scene.place_on_world("avocado", prop, x=1.2, z=0.4, offset_y=0.05, scale=(10, 10, 10))
     scene.add_annotation("anchor", position=(1.2, 1.0, 0.4), label="Placed on world")
 
-    out = Path("examples/out_world.sceneify.json")
+    out = Path(__file__).with_name("out_world.sceneify.json")
     scene.save(out)
     print("Saved", out.resolve())
     print("Reload check:", sf.Scene.load(out).to_dict()["meshes"][0]["id"])

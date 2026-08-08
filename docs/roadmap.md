@@ -16,13 +16,16 @@ with a Streamlit-like API (`pip install sceneify`, then `scene.run()` /
 - Provider-neutral coding agent actions
 - Optional Gymnasium environment interface
 - Declarative game manifests, browser physics, third-person controls, and HUD
+- Reusable prefabs with overrides
+- Additional player controller presets (`simple` / `ecctrl`)
+- Episode recording and replay (versioned JSON + WebSocket protocol)
+- Dirty pose frame deltas for the play WebSocket loop
+- Static web export (hostable viewer frontend + live backend)
 
 ## Next
 
-1. Reusable prefabs with overrides
-2. Additional player controller presets
-3. Episode recording and replay
-4. Static web export
+1. Rendering polish (WebGPURenderer on the existing Three.js viewer)
+2. Optional RL/headless extras when there is a concrete need
 
 ## Stack decisions (do / don't)
 

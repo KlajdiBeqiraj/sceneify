@@ -30,7 +30,7 @@ uv add --optional mesh trimesh
 uv run pytest
 uv run ruff check .
 uv run ruff format .
-uv run python examples/world_edit_save.py
+uv run python examples/workflows/world_edit_save.py
 uv run sceneify list-demos
 ```
 
@@ -58,7 +58,7 @@ During viewer development:
 
 ```bash
 # terminal 1
-uv run python examples/basic_scene.py
+uv run python examples/basics/basic_scene.py
 
 # terminal 2
 cd web && npm run dev
