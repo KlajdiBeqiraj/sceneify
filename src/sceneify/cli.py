@@ -17,6 +17,7 @@ from sceneify.remote_assets import (
     search_remote_assets,
 )
 from sceneify.scene import Scene
+from sceneify.skills import TARGET_DIRS, bundled_skill_dir, install_skill, open_bundled_skill_dir
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -80,10 +81,16 @@ def main(argv: list[str] | None = None) -> None:
     list_remote.add_argument("--offset", type=int, default=0)
     list_remote.add_argument("--limit", type=int, default=25)
 
-    search_remote = sub.add_parser("search-remote", help="Search Poly Haven for CC0 assets")
+    search_remote = sub.add_parser(
+        "search-remote", help="Search remote CC0 assets (polyhaven or os3a)"
+    )
     search_remote.add_argument("query")
     search_remote.add_argument("--provider", default="polyhaven")
-    search_remote.add_argument("--type", default="models")
+    search_remote.add_argument(
+        "--type",
+        default="models",
+        help="polyhaven: models|hdris; os3a: environments|models",
+    )
     search_remote.add_argument("--offset", type=int, default=0)
     search_remote.add_argument("--limit", type=int, default=12)
 
@@ -99,7 +106,11 @@ def main(argv: list[str] | None = None) -> None:
     fetch_remote.add_argument("--provider", default="polyhaven")
     fetch_remote.add_argument("--id", dest="catalog_id")
     fetch_remote.add_argument("--resolution", default="1k")
-    fetch_remote.add_argument("--type", default="models")
+    fetch_remote.add_argument(
+        "--type",
+        default="models",
+        help="polyhaven: models|hdris; os3a: environments|models",
+    )
     fetch_remote.add_argument("--cache-dir")
     fetch_remote.add_argument("--catalog", help="Optional catalog path to upsert into")
     fetch_remote.add_argument("--force", action="store_true")
@@ -110,6 +121,38 @@ def main(argv: list[str] | None = None) -> None:
     apply_cmd.add_argument("--catalog", help="Optional catalog path to load")
     apply_cmd.add_argument("--save", help="Optional path to save the resulting scene")
     apply_cmd.add_argument("--name", default="cli-world")
+
+    install_skill_cmd = sub.add_parser(
+        "install-skill",
+        help="Install the bundled sceneify MCP Agent Skill for coding agents",
+    )
+    install_skill_cmd.add_argument(
+        "--target",
+        default="agents",
+        choices=[*sorted(TARGET_DIRS), "all"],
+        help="Skill directory target (default: agents → .agents/skills)",
+    )
+    install_skill_cmd.add_argument(
+        "--user",
+        action="store_true",
+        help="Install under the home directory instead of the current project",
+    )
+    install_skill_cmd.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace an existing installed skill directory",
+    )
+    install_skill_cmd.add_argument(
+        "--dir",
+        default=".",
+        help="Project root used for non --user installs (default: current directory)",
+    )
+
+    skill_path = sub.add_parser(
+        "skill-path",
+        help="Print the path to the bundled sceneify MCP Agent Skill",
+    )
+    skill_path.set_defaults(command="skill-path")
 
     args = parser.parse_args(argv)
 
@@ -217,6 +260,28 @@ def main(argv: list[str] | None = None) -> None:
             tools.scene.save(args.save)
             if args.catalog:
                 catalog.save(args.catalog)
+        return
+
+    if args.command == "skill-path":
+        try:
+            print(bundled_skill_dir())
+        except FileNotFoundError:
+            with open_bundled_skill_dir() as path:
+                print(path)
+        return
+
+    if args.command == "install-skill":
+        try:
+            paths = install_skill(
+                target=args.target,
+                user=args.user,
+                force=args.force,
+                base_dir=Path(args.dir),
+            )
+        except (FileExistsError, FileNotFoundError, ValueError) as exc:
+            raise SystemExit(str(exc)) from exc
+        for path in paths:
+            print(path)
         return
 
 

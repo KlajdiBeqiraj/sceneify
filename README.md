@@ -162,7 +162,8 @@ uv add stable-baselines3 "sceneify[rl]"
 
 sceneify does not run a language model and does not install a model provider. It exposes a
 versioned scene schema, an asset catalog, and deterministic actions. A developer's coding agent
-can translate text into those actions using local catalog assets or Poly Haven CC0 downloads.
+can translate text into those actions using local catalog assets or remote CC0 downloads
+(Poly Haven models/HDRIs, OS3A environment GLBs).
 
 ```python
 import sceneify as sf
@@ -181,6 +182,15 @@ tools.apply(
         "position": [2, 0, -1],
     }
 )
+tools.apply(
+    {
+        "action": "fetch_remote",
+        "remoteId": "kloppenheim_06",
+        "type": "hdris",
+        "id": "sky",
+    }
+)
+tools.apply({"action": "set_presentation", "asset": "sky", "shadows": True})
 tools.apply({"action": "save", "path": "warehouse.sceneify.json"})
 ```
 
@@ -189,7 +199,10 @@ Useful CLI entry points:
 ```bash
 sceneify tool-spec
 sceneify search-remote barrel
+sceneify search-remote outdoor --type hdris
+sceneify search-remote floor --provider os3a
 sceneify fetch-remote Barrel_01 --id barrel
+sceneify fetch-remote kloppenheim_06 --type hdris --id sky
 sceneify apply plan.json --save world.sceneify.json
 ```
 
@@ -197,13 +210,20 @@ Optional MCP stdio server for Cursor/Claude-compatible hosts:
 
 ```bash
 uv add "sceneify[mcp]"
+sceneify install-skill
 uv run python examples/workflows/sync_roundtrip.py
 sceneify-mcp --server http://127.0.0.1:8765 --source examples/workflows/sync_roundtrip.py
 ```
 
+`sceneify install-skill` copies the bundled Agent Skill into `.agents/skills/sceneify-mcp`
+(portable across Cursor, Codex, Claude Code, and similar hosts). Use
+`sceneify install-skill --target all` for host-specific copies, or `--user` for a home-directory
+install. Point the host MCP config at `sceneify-mcp` (see [docs/agent-tools.md](docs/agent-tools.md)).
+
 See [docs/agent-tools.md](docs/agent-tools.md), [docs/catalog.md](docs/catalog.md), and
 [docs/schema.md](docs/schema.md), and [docs/export.md](docs/export.md). Using the live Poly Haven
-API requires crediting Poly Haven; the assets themselves remain CC0.
+API requires crediting Poly Haven; the assets themselves remain CC0. OS3A / Polygonal Mind
+environment packs are CC0.
 
 The `sceneify[llm]` extra is a dependency-free compatibility marker. Agent tools ship in the core
 package and remain independent from model SDKs. The `sceneify[mcp]` extra only adds the MCP SDK.

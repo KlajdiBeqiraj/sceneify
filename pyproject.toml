@@ -86,6 +86,7 @@ include = [
   "/examples",
   "/docs",
   "/schemas",
+  "/skills",
   "/tests",
   "/README.md",
   "/THIRD_PARTY_ASSETS.md",
@@ -100,6 +101,7 @@ packages = ["src/sceneify"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "schemas" = "sceneify/schemas"
+"skills" = "sceneify/skills"
 
 [tool.ruff]
 line-length = 100

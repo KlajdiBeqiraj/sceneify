@@ -8,7 +8,9 @@ The public contract has four parts:
 * `schemas/scene.schema.json` defines the saved world document
 * `schemas/catalog.schema.json` defines the available asset catalog
 * `sceneify.agent_tools` applies deterministic catalog-grounded actions
-* `sceneify.remote_assets` can search/download Poly Haven CC0 models into the local catalog
+* `sceneify.remote_assets` can search/download remote CC0 assets into the local catalog:
+  * `polyhaven` — models (glTF) and HDRIs (`.hdr`)
+  * `os3a` — Open Source 3D Assets / Polygonal Mind environment GLB packs
 
 ```python
 from sceneify import Scene
@@ -35,6 +37,27 @@ tools.apply(
         "position": [2, 0, -1],
     }
 )
+
+# HDRI lighting from Poly Haven
+tools.apply(
+    {
+        "action": "fetch_remote",
+        "remoteId": "kloppenheim_06",
+        "type": "hdris",
+        "id": "sky",
+    }
+)
+tools.apply({"action": "set_presentation", "asset": "sky", "shadows": True})
+
+# Place / architecture pieces from OS3A environment packs
+tools.apply(
+    {
+        "action": "search_remote",
+        "query": "floor",
+        "provider": "os3a",
+        "type": "environments",
+    }
+)
 tools.apply({"action": "save", "path": "warehouse.sceneify.json"})
 ```
 
@@ -44,7 +67,9 @@ sceneify performs filtering itself: local/remote search prefer **id/name**, then
 Supported actions include:
 
 * local catalog: `list_assets`, `search_assets`
-* remote Poly Haven: `list_remote`, `search_remote`, `info_remote`, `fetch_remote`
+* remote providers: `list_remote`, `search_remote`, `info_remote`, `fetch_remote`
+  (`provider=polyhaven|os3a`; Poly Haven `type=models|hdris`)
+* presentation: `set_presentation` (merges fields; pass `asset=` for a fetched HDRI)
 * world authoring: `set_world`, `add_asset`, `add_primitive`, `add_object`, `add_annotation`,
   `update_node`, `patch_node`, `reparent`, `delete_node`, `place_on_world`, `set_gameplay_role`
 * document ops: `validate_scene`, `get_scene`, `load`, `save`
@@ -59,8 +84,11 @@ sceneify tool-spec
 sceneify tool-spec --all
 sceneify list-remote --limit 25 --offset 0
 sceneify search-remote bust --limit 10
+sceneify search-remote outdoor --type hdris --limit 10
+sceneify search-remote floor --provider os3a --type environments
 sceneify info-remote marble_bust_01
 sceneify fetch-remote marble_bust_01 --id bust --catalog assets.catalog.json
+sceneify fetch-remote kloppenheim_06 --type hdris --id sky --catalog assets.catalog.json
 sceneify apply plan.json --catalog assets.catalog.json --save world.sceneify.json
 ```
 
@@ -72,6 +100,21 @@ Install the optional extra and run a stdio server. Standalone mode owns an in-me
 uv add "sceneify[mcp]"
 sceneify-mcp --catalog assets.catalog.json
 ```
+
+### Agent Skill (Cursor / Claude / Codex)
+
+sceneify ships a portable Agent Skill that teaches coding agents how to use the MCP tools.
+After installing the package, copy it into the project (or user) skills directory:
+
+```bash
+sceneify install-skill                 # .agents/skills/sceneify-mcp (portable default)
+sceneify install-skill --target all    # also .cursor / .claude / .codex
+sceneify install-skill --user          # ~/.agents/skills/sceneify-mcp
+sceneify skill-path                    # print the bundled skill directory
+```
+
+The skill format is standard `SKILL.md`. Hosts that understand Agent Skills (Cursor, Claude Code,
+Codex, and others) discover it from `.agents/skills/` or the host-specific path.
 
 For incremental editing alongside the browser, run the world script first, then configure the
 coding-agent host to run MCP separately against that server:
@@ -86,10 +129,10 @@ that server, immediately broadcast to connected browsers, then written back to `
 source-sync. Keep scene construction in a marked region or in simple patchable literals: source
 sync only rewrites the sceneify-managed portion of the Python file.
 
-The server exposes catalog/scene resources plus tools for list/search/fetch/apply. MCP stdio is
-intended for a local trusted client; paths passed by that client are not sandboxed. Using the live
-Poly Haven API requires crediting Poly Haven to end users (API terms); the assets themselves remain
-CC0.
+The server exposes catalog/scene resources plus tools for list/search/fetch/set_presentation/apply.
+MCP stdio is intended for a local trusted client; paths passed by that client are not sandboxed.
+Using the live Poly Haven API requires crediting Poly Haven to end users (API terms); the assets
+themselves remain CC0. OS3A / Polygonal Mind environment packs are CC0.
 
 The descriptor uses a neutral `inputSchema` field and can be adapted to a coding agent, MCP server,
 or model API without adding provider packages to sceneify core.

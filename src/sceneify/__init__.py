@@ -42,6 +42,7 @@ from sceneify.remote_assets import (
 from sceneify.scene import Scene
 from sceneify.schema import load_schema
 from sceneify.server import ServerHandle
+from sceneify.skills import install_skill
 from sceneify.source_sync import save_python, source_sync_report
 from sceneify.trajectories import Trajectory
 
@@ -87,6 +88,7 @@ __all__ = [
     "build_default_environment",
     "fetch_remote_asset",
     "get_remote_asset_info",
+    "install_skill",
     "list_remote_assets",
     "load_schema",
     "save_python",
