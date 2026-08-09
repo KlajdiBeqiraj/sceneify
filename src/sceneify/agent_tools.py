@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -9,12 +10,32 @@ from typing import Any
 from sceneify.catalog import AssetCatalog
 from sceneify.game import GameManifest
 from sceneify.remote_assets import (
+    HDRI_FORMATS,
     fetch_remote_asset,
     get_remote_asset_info,
     list_remote_assets,
     search_remote_assets,
 )
 from sceneify.scene import Scene
+
+_PRESENTATION_KEYS = frozenset(
+    {
+        "environmentMap",
+        "environmentPreset",
+        "ambientIntensity",
+        "background",
+        "fog",
+        "camera",
+        "shadows",
+        "title",
+        "subtitle",
+        "grid",
+        "helpers",
+        "exposure",
+        "keyLightIntensity",
+        "cameraTour",
+    }
+)
 
 ACTION_SCHEMA: dict[str, Any] = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -30,6 +51,7 @@ ACTION_SCHEMA: dict[str, Any] = {
                 "search_remote",
                 "info_remote",
                 "fetch_remote",
+                "set_presentation",
                 "set_world",
                 "add_asset",
                 "add_primitive",
@@ -83,6 +105,15 @@ ACTION_SCHEMA: dict[str, Any] = {
         "material": {"type": "object"},
         "physics": {"type": "object"},
         "patch": {"type": "object"},
+        "presentation": {"type": "object"},
+        "environmentMap": {"type": "string"},
+        "environmentPreset": {"type": "string"},
+        "ambientIntensity": {"type": "number"},
+        "background": {"type": "string"},
+        "fog": {"type": "object"},
+        "camera": {"type": "object"},
+        "shadows": {"type": "boolean"},
+        "title": {"type": "string"},
         "cacheDir": {"type": "string", "minLength": 1},
     },
     "$defs": {
@@ -102,7 +133,9 @@ def tool_definition() -> dict[str, Any]:
         "description": (
             "Apply one validated action to a sceneify world. "
             "Prefer dedicated list/search/info tools for asset discovery. "
-            "Use fetch_remote before add_asset for Poly Haven CC0 models."
+            "Use fetch_remote before add_asset/set_world for remote CC0 meshes, "
+            "and fetch_remote type=hdris then set_presentation for HDRI lighting. "
+            "Providers: polyhaven (models/hdris), os3a (environment GLBs)."
         ),
         "inputSchema": ACTION_SCHEMA,
     }
@@ -151,16 +184,21 @@ def tool_definitions() -> list[dict[str, Any]]:
         {
             "name": "sceneify_list_remote",
             "description": (
-                "List remote Poly Haven assets with pagination. "
+                "List remote CC0 assets with pagination. "
+                "provider=polyhaven (models/hdris) or provider=os3a (environment GLBs). "
                 "sceneify fetches the catalog and pages/filters locally. "
-                "Credit Poly Haven when using the live API."
+                "Credit Poly Haven when using its live API."
             ),
             "inputSchema": {
                 "type": "object",
                 "properties": {
                     "query": {"type": "string"},
                     "provider": {"type": "string", "default": "polyhaven"},
-                    "type": {"type": "string", "default": "models"},
+                    "type": {
+                        "type": "string",
+                        "default": "models",
+                        "description": "polyhaven: models|hdris; os3a: environments|models",
+                    },
                     **page_props,
                 },
             },
@@ -169,7 +207,8 @@ def tool_definitions() -> list[dict[str, Any]]:
             "name": "sceneify_search_remote",
             "description": (
                 "Search remote assets by text. sceneify filters primarily on id/name, "
-                "then tags. Returns a paginated page."
+                "then tags. Use type=hdris for Poly Haven environments, "
+                "provider=os3a for place/architecture GLBs."
             ),
             "inputSchema": {
                 "type": "object",
@@ -200,7 +239,8 @@ def tool_definitions() -> list[dict[str, Any]]:
         {
             "name": "sceneify_fetch_remote",
             "description": (
-                "Download one remote asset into .sceneify_cache and register it in the catalog."
+                "Download one remote asset into .sceneify_cache and register it in the catalog. "
+                "For HDRIs use type=hdris then set_presentation with asset=catalogId."
             ),
             "inputSchema": {
                 "type": "object",
@@ -213,6 +253,31 @@ def tool_definitions() -> list[dict[str, Any]]:
                     "type": {"type": "string", "default": "models"},
                     "force": {"type": "boolean"},
                     "cacheDir": {"type": "string"},
+                },
+            },
+        },
+        {
+            "name": "sceneify_set_presentation",
+            "description": (
+                "Merge presentation settings (lighting, camera, fog, HDRI). "
+                "Pass environmentMap path or asset=catalogId for a fetched HDRI."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "asset": {
+                        "type": "string",
+                        "description": "Catalog id of a fetched HDRI (hdr/exr).",
+                    },
+                    "environmentMap": {"type": "string"},
+                    "environmentPreset": {"type": "string"},
+                    "ambientIntensity": {"type": "number"},
+                    "background": {"type": "string"},
+                    "fog": {"type": "object"},
+                    "camera": {"type": "object"},
+                    "shadows": {"type": "boolean"},
+                    "title": {"type": "string"},
+                    "presentation": {"type": "object"},
                 },
             },
         },
@@ -247,6 +312,7 @@ class WorldTools:
             "search_remote": self._search_remote,
             "info_remote": self._info_remote,
             "fetch_remote": self._fetch_remote,
+            "set_presentation": self._set_presentation,
             "set_world": self._set_world,
             "add_asset": self._add_asset,
             "add_primitive": self._add_primitive,
@@ -362,6 +428,28 @@ class WorldTools:
             force=bool(command.get("force", False)),
         )
         return {"asset": asset.to_document()}
+
+    def _set_presentation(self, command: Mapping[str, Any]) -> dict[str, Any]:
+        updates = _presentation_updates(command)
+        asset_id = _optional_string(command, "asset")
+        if asset_id:
+            asset = self.catalog.get(asset_id)
+            fmt = (asset.format or "").lower()
+            if fmt not in HDRI_FORMATS:
+                raise ValueError(
+                    f"Catalog asset {asset.id!r} format {fmt!r} is not an HDRI "
+                    f"(expected one of {sorted(HDRI_FORMATS)})"
+                )
+            if not asset.path:
+                raise ValueError(f"Catalog asset {asset.id!r} has no local path")
+            updates["environmentMap"] = asset.path
+        if not updates:
+            raise ValueError(
+                "set_presentation requires presentation fields and/or an HDRI catalog asset"
+            )
+        merged = {**copy.deepcopy(self.scene._presentation), **updates}
+        self.scene.set_presentation(**merged)
+        return copy.deepcopy(self.scene._presentation)
 
     def _set_world(self, command: Mapping[str, Any]) -> dict[str, Any]:
         asset = self.catalog.get(_required_string(command, "asset"))
@@ -569,12 +657,31 @@ def _page_offset(command: Mapping[str, Any]) -> int:
     return value
 
 
+def _presentation_updates(command: Mapping[str, Any]) -> dict[str, Any]:
+    updates: dict[str, Any] = {}
+    nested = command.get("presentation")
+    if nested is not None:
+        if not isinstance(nested, Mapping):
+            raise ValueError("presentation must be an object")
+        for key, value in nested.items():
+            if key in _PRESENTATION_KEYS:
+                updates[key] = copy.deepcopy(value)
+    for key in _PRESENTATION_KEYS:
+        if key in command:
+            updates[key] = copy.deepcopy(command[key])
+    return updates
+
+
 def _hint_for(action: str, exc: Exception) -> str:
     message = str(exc)
-    if action in {"add_asset", "set_world", "place_on_world"} and isinstance(exc, KeyError):
+    if action in {"add_asset", "set_world", "place_on_world", "set_presentation"} and isinstance(
+        exc, KeyError
+    ):
         return "Call list_assets or fetch_remote before referencing a catalog id."
     if action == "fetch_remote" and "Resolution" in message:
         return "Try resolution '1k' or inspect search_remote results."
+    if action == "set_presentation" and "HDRI" in message:
+        return "Fetch a Poly Haven HDRI with type=hdris before set_presentation."
     if action == "place_on_world":
         return "Ensure an environment/world mesh exists, or call set_world first."
     if "Unsupported world action" in message:

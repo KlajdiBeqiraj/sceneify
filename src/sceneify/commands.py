@@ -134,6 +134,29 @@ class CommandStack:
                 visible=bool(command.get("visible", True)),
                 catalog_asset=command.get("assetId"),
             ).to_dict()
+        if action == "set_presentation":
+            nested = command.get("presentation")
+            updates: dict[str, Any] = {}
+            if isinstance(nested, Mapping):
+                updates.update(copy.deepcopy(dict(nested)))
+            for key, value in command.items():
+                if key in {
+                    "action",
+                    "command",
+                    "type",
+                    "revision",
+                    "expectedRevision",
+                    "presentation",
+                    "asset",
+                    "assetId",
+                }:
+                    continue
+                updates[key] = copy.deepcopy(value)
+            if not updates:
+                raise ValueError("set_presentation requires presentation fields")
+            merged = {**copy.deepcopy(self.scene._presentation), **updates}
+            self.scene.set_presentation(**merged)
+            return copy.deepcopy(self.scene._presentation)
         if action == "create":
             payload = dict(command.get("node") or command)
             node_id = _required(payload, "id")
@@ -236,6 +259,7 @@ class CommandStack:
         self.scene._annotations = restored._annotations
         self.scene._trajectories = restored._trajectories
         self.scene._environment = restored._environment
+        self.scene._presentation = restored._presentation
         self.scene._game_manifest = restored._game_manifest
         self.scene._prefabs = restored._prefabs
 
@@ -280,11 +304,13 @@ def _normalize_action(action: str) -> str:
         "create_primitive": "create_primitive",
         "create_asset": "create_asset",
         "set_gameplay_role": "set_gameplay_role",
+        "set_presentation": "set_presentation",
         "define_prefab": "define_prefab",
         "instantiate_prefab": "instantiate_prefab",
         "createPrimitive": "create_primitive",
         "createAsset": "create_asset",
         "setGameplayRole": "set_gameplay_role",
+        "setPresentation": "set_presentation",
         "definePrefab": "define_prefab",
         "instantiatePrefab": "instantiate_prefab",
         "duplicateNode": "duplicate",

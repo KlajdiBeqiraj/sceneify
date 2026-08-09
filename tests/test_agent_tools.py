@@ -45,10 +45,42 @@ def test_tool_definition_is_provider_neutral() -> None:
     assert "inputSchema" in descriptor
     assert "provider" not in descriptor
     assert "fetch_remote" in descriptor["inputSchema"]["properties"]["action"]["enum"]
+    assert "set_presentation" in descriptor["inputSchema"]["properties"]["action"]["enum"]
     assert load_schema("scene")["properties"]["format"]["const"] == "sceneify-scene"
     names = {item["name"] for item in tool_definitions()}
     assert "sceneify_search_remote" in names
+    assert "sceneify_set_presentation" in names
     assert "sceneify_apply" in names
+
+
+def test_world_tools_set_presentation_merges_hdri_asset(tmp_path: Path) -> None:
+    hdr = tmp_path / "sky.hdr"
+    hdr.write_bytes(b"hdr")
+    scene = Scene("lit")
+    scene.set_presentation(title="Before", shadows=False, ambientIntensity=0.2)
+    catalog = AssetCatalog(
+        assets=[
+            Asset(id="sky", path=str(hdr), format="hdr", tags=["hdri"]),
+            Asset(id="prop", path="assets/prop.glb"),
+        ]
+    )
+    tools = WorldTools(scene, catalog)
+    result = tools.apply(
+        {
+            "action": "set_presentation",
+            "asset": "sky",
+            "shadows": True,
+            "fog": {"color": "#112233", "near": 10, "far": 40},
+        }
+    )["result"]
+    assert result["title"] == "Before"
+    assert result["shadows"] is True
+    assert result["environmentMap"] == str(hdr)
+    assert result["ambientIntensity"] == 0.2
+    assert scene.to_dict()["presentation"]["fog"]["near"] == 10
+
+    with pytest.raises(ValueError, match="not an HDRI"):
+        tools.apply({"action": "set_presentation", "asset": "prop"})
 
 
 def test_world_tools_reject_unknown_action() -> None:

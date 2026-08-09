@@ -353,9 +353,14 @@ def build_mcp_server(
         return _safe_apply(session, {"action": "validate_scene"})
 
     @server.tool()
-    def sceneify_apply(action: str, **fields: Any) -> dict[str, Any]:
+    def sceneify_apply(action: str, fields: dict[str, Any] | None = None, **extra: Any) -> dict[str, Any]:
         """Apply one validated sceneify world action."""
-        command = {"action": action, **fields}
+        payload = {**(fields or {}), **extra}
+        # FastMCP exposes **kwargs as a nested "fields" object; accept both shapes.
+        nested = payload.pop("fields", None)
+        if isinstance(nested, Mapping):
+            payload = {**nested, **payload}
+        command = {"action": action, **payload}
         return _safe_apply(session, command)
 
     @server.tool()
@@ -388,14 +393,24 @@ def build_mcp_server(
         return manager.stop(sessionId)
 
     @server.tool()
-    def sceneify_apply_session(sessionId: str, action: str, **fields: Any) -> dict[str, Any]:
+    def sceneify_apply_session(
+        sessionId: str,
+        action: str,
+        fields: dict[str, Any] | None = None,
+        **extra: Any,
+    ) -> dict[str, Any]:
         """Apply an action to the explicitly selected live example session."""
         if manager is None:
             raise ValueError("Example sessions require sceneify-mcp --session-manager")
+        payload = {**(fields or {}), **extra}
+        # FastMCP exposes **kwargs as a nested "fields" object; accept both shapes.
+        nested = payload.pop("fields", None)
+        if isinstance(nested, Mapping):
+            payload = {**nested, **payload}
         target = manager.get(sessionId)
         source = str(target.script.relative_to(manager.project_root))
         live = LiveWorldTools(target.url, source_path=source)
-        return _safe_apply(live, {"action": action, **fields})
+        return _safe_apply(live, {"action": action, **payload})
 
     return server
 
