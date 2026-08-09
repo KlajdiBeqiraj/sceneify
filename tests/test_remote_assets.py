@@ -248,3 +248,172 @@ def test_fetch_remote_rejects_include_outside_cache(
     with pytest.raises(ValueError, match="escapes its cache directory"):
         fetch_remote_asset("safe_model", cache_dir=tmp_path)
     assert not (tmp_path / "polyhaven" / "safe_model" / "outside.bin").exists()
+
+
+def test_fetch_remote_asset_polyhaven_hdri(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import sceneify.remote_assets as remote
+
+    remote._ASSETS_CACHE.clear()
+    content = b"hdr-bytes!!"
+    files = {
+        "hdri": {
+            "1k": {
+                "hdr": {
+                    "url": "https://dl.example.test/kloppenheim_06_1k.hdr",
+                    "size": len(content),
+                    "md5": hashlib.md5(content).hexdigest(),
+                },
+                "exr": {
+                    "url": "https://dl.example.test/kloppenheim_06_1k.exr",
+                    "size": 8,
+                    "md5": hashlib.md5(b"exr-data").hexdigest(),
+                },
+            }
+        }
+    }
+
+    def fake_client(*args: Any, **kwargs: Any) -> _FakeClient:
+        del args, kwargs
+        return _FakeClient({"https://api.polyhaven.com/files/kloppenheim_06": files})
+
+    def fake_stream(method: str, url: str, **kwargs: Any) -> _FakeResponse:
+        del method, kwargs
+        assert str(url).endswith(".hdr")
+        return _FakeResponse(content=content)
+
+    monkeypatch.setattr(remote.httpx, "Client", fake_client)
+    monkeypatch.setattr(remote.httpx, "stream", fake_stream)
+
+    catalog = AssetCatalog()
+    asset = fetch_remote_asset(
+        "kloppenheim_06",
+        catalog=catalog,
+        catalog_id="sky",
+        cache_dir=tmp_path,
+        resolution="1k",
+        asset_type="hdris",
+    )
+    assert asset.id == "sky"
+    assert asset.format == "hdr"
+    assert Path(asset.path or "").is_file()
+    assert "hdri" in asset.tags
+    assert catalog.get("sky").metadata["assetType"] == "hdris"
+
+
+def test_summarize_polyhaven_files_includes_hdri(monkeypatch: pytest.MonkeyPatch) -> None:
+    import sceneify.remote_assets as remote
+
+    def fake_client(*args: Any, **kwargs: Any) -> _FakeClient:
+        del args, kwargs
+        return _FakeClient(
+            {
+                "https://api.polyhaven.com/info/kloppenheim_06": {
+                    "name": "Kloppenheim 06",
+                    "tags": ["outdoor"],
+                    "categories": ["skies"],
+                    "authors": {"Greg": "All"},
+                    "download_count": 1,
+                },
+                "https://api.polyhaven.com/files/kloppenheim_06": {
+                    "hdri": {
+                        "1k": {
+                            "hdr": {
+                                "url": "https://dl.example.test/k.hdr",
+                                "size": 12,
+                                "md5": "abc",
+                            }
+                        }
+                    }
+                },
+            }
+        )
+
+    monkeypatch.setattr(remote.httpx, "Client", fake_client)
+    info = get_remote_asset_info("kloppenheim_06")
+    assert info["files"]["hdri"]["1k"]["format"] == "hdr"
+    assert info["files"]["hdri"]["1k"]["hasHdr"] is True
+
+
+def test_search_and_fetch_os3a(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import sceneify.remote_assets as remote
+
+    remote._ASSETS_CACHE.clear()
+    projects_url = f"{remote.OS3A_DATA_ROOT}/projects.json"
+    assets_url = f"{remote.OS3A_DATA_ROOT}/assets/pm-momuspark.json"
+    glb_url = "https://raw.githubusercontent.com/example/repo/main/Floor_01.glb"
+    glb_bytes = b"glb-bytes!"
+
+    projects = [
+        {
+            "id": "pm-momuspark",
+            "name": "MomusPark",
+            "license": "CC0",
+            "is_public": True,
+            "asset_data_file": "assets/pm-momuspark.json",
+        }
+    ]
+    assets = [
+        {
+            "id": "momuspark-floor",
+            "name": "Floor_Tiles_Medium",
+            "description": "Park floor",
+            "model_file_url": glb_url,
+            "is_public": True,
+            "is_draft": False,
+            "thumbnail_url": "https://example.test/floor.png",
+            "metadata": {
+                "file_size": len(glb_bytes),
+                "attributes": [
+                    {"trait_type": "Theme", "value": "Nature Park"},
+                    {"trait_type": "Category", "value": "Environment"},
+                    {"trait_type": "Type", "value": "Floor"},
+                ],
+            },
+        },
+        {
+            "id": "momuspark-bench",
+            "name": "Bench_01",
+            "model_file_url": "https://raw.githubusercontent.com/example/repo/main/Bench.glb",
+            "is_public": True,
+            "is_draft": False,
+            "metadata": {
+                "file_size": 100,
+                "attributes": [{"trait_type": "Type", "value": "Bench"}],
+            },
+        },
+    ]
+
+    def fake_client(*args: Any, **kwargs: Any) -> _FakeClient:
+        del args, kwargs
+        return _FakeClient({projects_url: projects, assets_url: assets})
+
+    def fake_stream(method: str, url: str, **kwargs: Any) -> _FakeResponse:
+        del method, kwargs
+        assert url == glb_url
+        return _FakeResponse(content=glb_bytes)
+
+    monkeypatch.setattr(remote.httpx, "Client", fake_client)
+    monkeypatch.setattr(remote.httpx, "stream", fake_stream)
+
+    page = search_remote_assets("floor", provider="os3a", asset_type="environments", limit=5)
+    assert page["provider"] == "os3a"
+    assert page["total"] == 1
+    assert page["assets"][0]["id"] == "momuspark-floor"
+
+    info = get_remote_asset_info("momuspark-floor", provider="os3a")
+    assert info["projectId"] == "pm-momuspark"
+    assert info["files"]["glb"]["url"] == glb_url
+
+    catalog = AssetCatalog()
+    asset = fetch_remote_asset(
+        "momuspark-floor",
+        provider="os3a",
+        catalog=catalog,
+        catalog_id="park-floor",
+        cache_dir=tmp_path,
+        asset_type="environments",
+    )
+    assert asset.format == "glb"
+    assert Path(asset.path or "").is_file()
+    assert (tmp_path / "os3a" / "pm-momuspark" / "momuspark-floor").is_dir()
+    assert catalog.get("park-floor").metadata["provider"] == "os3a"
