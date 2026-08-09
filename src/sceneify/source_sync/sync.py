@@ -32,7 +32,9 @@ class SourceSyncReport:
         return asdict(self)
 
 
-def source_sync_report(path: str | Path | None = None, source: str | None = None) -> SourceSyncReport:
+def source_sync_report(
+    path: str | Path | None = None, source: str | None = None
+) -> SourceSyncReport:
     text = source
     script_path = str(path) if path is not None else None
     if text is None and path is not None:

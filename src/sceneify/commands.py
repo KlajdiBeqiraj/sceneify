@@ -109,6 +109,31 @@ class CommandStack:
             manifest.set_gameplay_role(node_id, role)
             self.scene.set_game(manifest)
             return {"id": node_id, "role": role, "game": manifest.to_dict()}
+        if action == "add_annotation":
+            target_id = command.get("targetId", command.get("target_id"))
+            return self.scene.add_annotation(
+                _required(command, "id"),
+                None if target_id else command.get("position", (0.0, 0.0, 0.0)),
+                target_id=target_id if isinstance(target_id, str) else None,
+                offset=command.get("offset"),
+                label=command.get("label"),
+                description=command.get("description"),
+                visible=bool(command.get("visible", True)),
+            ).to_dict()
+        if action == "set_world":
+            source = command.get("source")
+            if not isinstance(source, str) or not source:
+                raise ValueError("set_world requires a source")
+            environment = self.scene.environment or self.scene.set_environment()
+            return environment.set_world_mesh(
+                source,
+                format=command.get("format"),
+                position=command.get("position"),
+                rotation=command.get("rotation"),
+                scale=command.get("scale"),
+                visible=bool(command.get("visible", True)),
+                catalog_asset=command.get("assetId"),
+            ).to_dict()
         if action == "create":
             payload = dict(command.get("node") or command)
             node_id = _required(payload, "id")

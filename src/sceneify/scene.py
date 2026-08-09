@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import os
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -150,9 +151,7 @@ class Scene:
         id_map = build_instance_id_map(
             prefab,
             instance_root_id=instance_root_id,
-            reserved=set(self._graph_nodes())
-            | set(self._annotations)
-            | set(self._trajectories),
+            reserved=set(self._graph_nodes()) | set(self._annotations) | set(self._trajectories),
         )
         created: list[str] = []
         try:
@@ -951,8 +950,8 @@ class Scene:
         self,
         *,
         host: str = "127.0.0.1",
-        port: int = 8765,
-        open_browser: bool = True,
+        port: int | None = None,
+        open_browser: bool | None = None,
         block: bool = True,
         stop_on: str = "enter",
         project_root: str | Path | None = None,
@@ -966,9 +965,14 @@ class Scene:
 
         return serve_scene(
             self,
-            host=host,
-            port=port,
-            open_browser=open_browser,
+            host=os.environ.get("SCENEIFY_HOST", host),
+            port=port if port is not None else int(os.environ.get("SCENEIFY_PORT", "8765")),
+            open_browser=(
+                open_browser
+                if open_browser is not None
+                else os.environ.get("SCENEIFY_OPEN_BROWSER", "1").lower()
+                not in {"0", "false", "no"}
+            ),
             block=block,
             stop_on=stop_on,  # type: ignore[arg-type]
             realtime=False,
@@ -979,8 +983,8 @@ class Scene:
         self,
         *,
         host: str = "127.0.0.1",
-        port: int = 8765,
-        open_browser: bool = True,
+        port: int | None = None,
+        open_browser: bool | None = None,
         block: bool = True,
         stop_on: str = "enter",
         tick_rate: float = 60.0,
@@ -991,9 +995,14 @@ class Scene:
 
         return serve_scene(
             self,
-            host=host,
-            port=port,
-            open_browser=open_browser,
+            host=os.environ.get("SCENEIFY_HOST", host),
+            port=port if port is not None else int(os.environ.get("SCENEIFY_PORT", "8765")),
+            open_browser=(
+                open_browser
+                if open_browser is not None
+                else os.environ.get("SCENEIFY_OPEN_BROWSER", "1").lower()
+                not in {"0", "false", "no"}
+            ),
             block=block,
             stop_on=stop_on,  # type: ignore[arg-type]
             realtime=True,

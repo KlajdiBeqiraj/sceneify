@@ -3,11 +3,12 @@
 sceneify does not run a language model and does not depend on a model provider. A coding agent
 owned by the application developer can translate a text request into small scene actions.
 
-The public contract has three parts:
+The public contract has four parts:
 
 * `schemas/scene.schema.json` defines the saved world document
-* `schemas/catalog.schema.json` defines the available GLB asset catalog
+* `schemas/catalog.schema.json` defines the available asset catalog
 * `sceneify.agent_tools` applies deterministic catalog-grounded actions
+* `sceneify.remote_assets` can search/download Poly Haven CC0 models into the local catalog
 
 ```python
 from sceneify import Scene
@@ -22,22 +23,76 @@ tools = WorldTools(scene, catalog)
 descriptor = tool_definition()
 
 # Apply the structured calls returned by that adapter.
-tools.apply({"action": "set_world", "asset": "warehouse_shell"})
+tools.apply({"action": "list_remote", "pageOffset": 0, "limit": 25})
+tools.apply({"action": "search_remote", "query": "bust", "pageOffset": 0, "limit": 10})
+tools.apply({"action": "info_remote", "remoteId": "marble_bust_01"})
+tools.apply({"action": "fetch_remote", "remoteId": "marble_bust_01", "id": "bust"})
 tools.apply(
     {
         "action": "add_asset",
-        "asset": "forklift",
-        "id": "forklift_1",
+        "asset": "bust",
+        "id": "bust_1",
         "position": [2, 0, -1],
     }
 )
 tools.apply({"action": "save", "path": "warehouse.sceneify.json"})
 ```
 
-Supported actions are `set_world`, `add_asset`, `add_object`, `add_annotation`, `update_node`, and
-`save`. Asset actions accept only ids present in the catalog, so an agent selects existing assets
-instead of inventing mesh files. The descriptor uses a neutral `inputSchema` field and can be
-adapted to a coding agent, MCP server, or model API without adding provider packages to sceneify.
+Discovery tools are paginated (`pageOffset`, `limit`, `total`, `hasMore`, `nextOffset`).
+sceneify performs filtering itself: local/remote search prefer **id/name**, then tags.
+
+Supported actions include:
+
+* local catalog: `list_assets`, `search_assets`
+* remote Poly Haven: `list_remote`, `search_remote`, `info_remote`, `fetch_remote`
+* world authoring: `set_world`, `add_asset`, `add_primitive`, `add_object`, `add_annotation`,
+  `update_node`, `patch_node`, `reparent`, `delete_node`, `place_on_world`, `set_gameplay_role`
+* document ops: `validate_scene`, `get_scene`, `load`, `save`
+
+Asset placement accepts only ids present in the catalog, so an agent selects existing or fetched
+assets instead of inventing mesh files.
+
+## CLI
+
+```bash
+sceneify tool-spec
+sceneify tool-spec --all
+sceneify list-remote --limit 25 --offset 0
+sceneify search-remote bust --limit 10
+sceneify info-remote marble_bust_01
+sceneify fetch-remote marble_bust_01 --id bust --catalog assets.catalog.json
+sceneify apply plan.json --catalog assets.catalog.json --save world.sceneify.json
+```
+
+## Optional MCP server
+
+Install the optional extra and run a stdio server. Standalone mode owns an in-memory scene:
+
+```bash
+uv add "sceneify[mcp]"
+sceneify-mcp --catalog assets.catalog.json
+```
+
+For incremental editing alongside the browser, run the world script first, then configure the
+coding-agent host to run MCP separately against that server:
+
+```bash
+uv run python examples/workflows/sync_roundtrip.py
+sceneify-mcp --server http://127.0.0.1:8765 --source examples/workflows/sync_roundtrip.py
+```
+
+The live server is the authoritative revisioned scene. Every successful MCP mutation is sent to
+that server, immediately broadcast to connected browsers, then written back to `--source` through
+source-sync. Keep scene construction in a marked region or in simple patchable literals: source
+sync only rewrites the sceneify-managed portion of the Python file.
+
+The server exposes catalog/scene resources plus tools for list/search/fetch/apply. MCP stdio is
+intended for a local trusted client; paths passed by that client are not sandboxed. Using the live
+Poly Haven API requires crediting Poly Haven to end users (API terms); the assets themselves remain
+CC0.
+
+The descriptor uses a neutral `inputSchema` field and can be adapted to a coding agent, MCP server,
+or model API without adding provider packages to sceneify core.
 
 The same descriptor is available as JSON from `sceneify tool-spec`. Installed applications can
 load the normative document schemas with `sceneify.load_schema("scene")` and

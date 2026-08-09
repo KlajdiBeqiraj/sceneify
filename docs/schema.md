@@ -91,8 +91,8 @@ Game controllers in the manifest accept an optional `preset`:
 game.add_controller(
     "player",
     preset="ecctrl",
-    move_speed=5.0,   # ecctrl maxVelLimit
-    jump_speed=7.0,   # ecctrl jumpVel
+    move_speed=5.0,  # ecctrl maxVelLimit
+    jump_speed=7.0,  # ecctrl jumpVel
     sprint_mult=2.0,  # hold Shift to sprint
 )
 game.follow_camera("player", distance=6.0, height=3.0)

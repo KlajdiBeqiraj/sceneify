@@ -87,7 +87,9 @@ game.action_map(
     moveRight=["KeyD", "ArrowRight"],
     jump=["Space"],
 )
-game.add_controller("player")  # preset="simple" by default; use preset="ecctrl" for camera-relative controls
+game.add_controller(
+    "player"
+)  # preset="simple" by default; use preset="ecctrl" for camera-relative controls
 game.follow_camera("player")
 game.set_hud(title="Collect and Escape")
 game.set_timer(90)
@@ -160,33 +162,51 @@ uv add stable-baselines3 "sceneify[rl]"
 
 sceneify does not run a language model and does not install a model provider. It exposes a
 versioned scene schema, an asset catalog, and deterministic actions. A developer's coding agent
-can translate text into those actions using existing GLB assets.
+can translate text into those actions using local catalog assets or Poly Haven CC0 downloads.
 
 ```python
 import sceneify as sf
 
 scene = sf.Scene("warehouse")
-catalog = sf.AssetCatalog.load("assets.catalog.json")
+catalog = sf.AssetCatalog()
 tools = sf.WorldTools(scene, catalog)
 
-tools.apply({"action": "set_world", "asset": "warehouse_shell"})
+tools.apply({"action": "search_remote", "query": "barrel", "provider": "polyhaven"})
+tools.apply({"action": "fetch_remote", "remoteId": "Barrel_01", "id": "barrel"})
 tools.apply(
     {
         "action": "add_asset",
-        "asset": "forklift",
-        "id": "forklift_1",
+        "asset": "barrel",
+        "id": "barrel_1",
         "position": [2, 0, -1],
     }
 )
 tools.apply({"action": "save", "path": "warehouse.sceneify.json"})
 ```
 
-Run `sceneify tool-spec` to print the neutral action descriptor. See
-[docs/agent-tools.md](docs/agent-tools.md), [docs/catalog.md](docs/catalog.md),
-[docs/schema.md](docs/schema.md), and [docs/export.md](docs/export.md).
+Useful CLI entry points:
+
+```bash
+sceneify tool-spec
+sceneify search-remote barrel
+sceneify fetch-remote Barrel_01 --id barrel
+sceneify apply plan.json --save world.sceneify.json
+```
+
+Optional MCP stdio server for Cursor/Claude-compatible hosts:
+
+```bash
+uv add "sceneify[mcp]"
+uv run python examples/workflows/sync_roundtrip.py
+sceneify-mcp --server http://127.0.0.1:8765 --source examples/workflows/sync_roundtrip.py
+```
+
+See [docs/agent-tools.md](docs/agent-tools.md), [docs/catalog.md](docs/catalog.md), and
+[docs/schema.md](docs/schema.md), and [docs/export.md](docs/export.md). Using the live Poly Haven
+API requires crediting Poly Haven; the assets themselves remain CC0.
 
 The `sceneify[llm]` extra is a dependency-free compatibility marker. Agent tools ship in the core
-package and remain independent from model SDKs.
+package and remain independent from model SDKs. The `sceneify[mcp]` extra only adds the MCP SDK.
 
 ## Optional extras
 
@@ -194,11 +214,13 @@ package and remain independent from model SDKs.
 uv add "sceneify[mesh]"
 uv add "sceneify[rl]"
 uv add "sceneify[llm]"
+uv add "sceneify[mcp]"
 ```
 
 * `mesh` adds local geometry processing with trimesh and NumPy
 * `rl` adds the Gymnasium environment interface
 * `llm` keeps a provider-neutral install target without installing model runtimes
+* `mcp` adds the optional MCP stdio server for coding agents
 
 ## Examples and checks
 

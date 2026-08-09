@@ -48,6 +48,9 @@ dependencies = [
 
 [project.optional-dependencies]
 llm = []
+mcp = [
+  "mcp>=2,<3",
+]
 mesh = [
   "trimesh>=4.6",
   "numpy>=2.2",
@@ -64,6 +67,7 @@ Documentation = "https://github.com/KlajdiBeqiraj/sceneify#readme"
 
 [project.scripts]
 sceneify = "sceneify.cli:main"
+sceneify-mcp = "sceneify.mcp_server:main"
 
 [dependency-groups]
 dev = [

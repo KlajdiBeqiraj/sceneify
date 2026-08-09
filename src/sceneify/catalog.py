@@ -75,6 +75,94 @@ class AssetCatalog(BaseModel):
                 return asset
         raise KeyError(asset_id)
 
+    def upsert(self, asset: Asset) -> Asset:
+        """Insert or replace an asset by id and keep uniqueness invariants."""
+        for index, existing in enumerate(self.assets):
+            if existing.id == asset.id:
+                self.assets[index] = asset
+                return asset
+        self.assets.append(asset)
+        return asset
+
+    def search(
+        self,
+        *,
+        query: str | None = None,
+        tag: str | None = None,
+        offset: int = 0,
+        limit: int | None = None,
+        names_only: bool = True,
+    ) -> list[Asset]:
+        """Return assets filtered by free-text query and/or tag.
+
+        When ``names_only`` is true (default), the query matches asset id and
+        basename/path stem. Otherwise tags and metadata are included too.
+        """
+        if offset < 0:
+            raise ValueError("offset must be >= 0")
+        if limit is not None and limit < 1:
+            raise ValueError("limit must be >= 1")
+        needle = (query or "").strip().lower()
+        tag_needle = (tag or "").strip().lower()
+        matches: list[Asset] = []
+        for asset in self.assets:
+            if tag_needle and tag_needle not in {item.lower() for item in asset.tags}:
+                continue
+            if needle:
+                name_bits = [
+                    asset.id,
+                    Path(asset.path).stem if asset.path else "",
+                    Path(asset.path).name if asset.path else "",
+                ]
+                if names_only:
+                    haystack = " ".join(name_bits).lower()
+                else:
+                    haystack = " ".join(
+                        [
+                            *name_bits,
+                            asset.path or "",
+                            asset.source or "",
+                            " ".join(asset.tags),
+                            " ".join(str(value) for value in asset.metadata.values()),
+                        ]
+                    ).lower()
+                if needle not in haystack:
+                    continue
+            matches.append(asset)
+        if limit is None:
+            return matches[offset:]
+        return matches[offset : offset + limit]
+
+    def list_page(
+        self,
+        *,
+        query: str | None = None,
+        tag: str | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        names_only: bool = True,
+    ) -> dict[str, Any]:
+        """Return a paginated catalog page with total/hasMore metadata."""
+        if offset < 0:
+            raise ValueError("offset must be >= 0")
+        if limit < 1:
+            raise ValueError("limit must be >= 1")
+        filtered = self.search(query=query, tag=tag, offset=0, limit=None, names_only=names_only)
+        total = len(filtered)
+        page = filtered[offset : offset + limit]
+        next_offset = offset + len(page)
+        return {
+            "assets": [asset.to_document() for asset in page],
+            "total": total,
+            "offset": offset,
+            "limit": limit,
+            "count": len(page),
+            "hasMore": next_offset < total,
+            "nextOffset": next_offset if next_offset < total else None,
+            "query": query,
+            "tag": tag,
+        }
+
     def to_document(self) -> dict[str, Any]:
         """Return the versioned catalog document."""
         return {

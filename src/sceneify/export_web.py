@@ -174,9 +174,7 @@ def _inject_config(index_path: Path, config: dict[str, Any]) -> None:
         raise FileNotFoundError(f"Missing viewer index at {index_path}")
     html = index_path.read_text(encoding="utf-8")
     snippet = (
-        "<script>window.__SCENEIFY_CONFIG__="
-        f"{json.dumps(config, separators=(',', ':'))}"
-        ";</script>"
+        f"<script>window.__SCENEIFY_CONFIG__={json.dumps(config, separators=(',', ':'))};</script>"
     )
     if "window.__SCENEIFY_CONFIG__" in html:
         html = re.sub(
