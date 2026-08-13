@@ -16,6 +16,7 @@ import threading
 import time
 import uuid
 import webbrowser
+from collections.abc import Mapping
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any, Literal
@@ -199,6 +200,7 @@ class RealtimeRuntime:
         self._loop: asyncio.AbstractEventLoop | None = None
         self._last_transforms: dict[str, tuple[tuple[float, float, float], ...]] | None = None
         self._last_frame_revision: int | None = None
+        self._capture_waiters: dict[str, asyncio.Future[dict[str, Any]]] = {}
 
     async def start(self) -> None:
         self._loop = asyncio.get_running_loop()
@@ -241,6 +243,7 @@ class RealtimeRuntime:
                     "recording",
                     "replay",
                     "sourceSync",
+                    "capture",
                 ],
                 "clientId": client_id,
                 "tickRate": self.tick_rate,
@@ -356,10 +359,14 @@ class RealtimeRuntime:
         if message_type == "record_control":
             await self._receive_record_control(websocket, message)
             return
+        if message_type == "capture_result":
+            await self._receive_capture_result(message)
+            return
         if message_type != "input":
             await self._send_error(
                 websocket,
-                "Expected input, semantic_event, command, resync, record_control, or ping",
+                "Expected input, semantic_event, command, resync, record_control, "
+                "capture_result, or ping",
             )
             return
         action = message.get("action")
@@ -601,6 +608,53 @@ class RealtimeRuntime:
         self._last_transforms = None
         self._last_frame_revision = None
 
+    async def request_capture(self, options: Mapping[str, Any] | None = None) -> dict[str, Any]:
+        """Ask a connected browser to capture the WebGL canvas and wait for PNG data."""
+        if not self._clients:
+            raise RuntimeError("No connected viewer available for capture")
+        request_id = uuid.uuid4().hex
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[dict[str, Any]] = loop.create_future()
+        self._capture_waiters[request_id] = future
+        payload = {
+            "type": "capture_request",
+            "requestId": request_id,
+            **(dict(options) if options else {}),
+        }
+        try:
+            await self._broadcast(payload)
+            return await asyncio.wait_for(future, timeout=15.0)
+        except TimeoutError as exc:
+            raise RuntimeError("Timed out waiting for viewer capture") from exc
+        finally:
+            self._capture_waiters.pop(request_id, None)
+
+    async def _receive_capture_result(self, message: dict[str, Any]) -> None:
+        request_id = message.get("requestId")
+        if not isinstance(request_id, str) or request_id not in self._capture_waiters:
+            return
+        future = self._capture_waiters[request_id]
+        if future.done():
+            return
+        if message.get("ok") is False:
+            future.set_exception(RuntimeError(str(message.get("error") or "Capture failed")))
+            return
+        image = message.get("image")
+        if not isinstance(image, str) or not image:
+            future.set_exception(RuntimeError("Capture result missing image data"))
+            return
+        future.set_result(
+            {
+                "requestId": request_id,
+                "mimeType": message.get("mimeType") or "image/png",
+                "image": image,
+                "width": message.get("width"),
+                "height": message.get("height"),
+                "camera": message.get("camera"),
+                "preset": message.get("preset"),
+            }
+        )
+
     async def _broadcast(self, message: dict[str, Any]) -> None:
         if message.get("type") in {"command_ack", "snapshot", "resync"}:
             self.invalidate_frame_cache()
@@ -660,6 +714,16 @@ def create_app(
     @app.get("/api/scene")
     def get_scene() -> JSONResponse:
         return JSONResponse({**scene.to_dict(), "revision": commands.revision})
+
+
+    @app.post("/api/scene/capture")
+    async def capture_scene(body: dict[str, Any] | None = None) -> JSONResponse:
+        options = body or {}
+        try:
+            result = await runtime.request_capture(options)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        return JSONResponse(result)
 
     @app.get("/api/scene/snapshot")
     def get_snapshot() -> JSONResponse:

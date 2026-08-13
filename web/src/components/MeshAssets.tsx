@@ -73,6 +73,7 @@ function TransformableGroup({
     <>
       <group
         ref={group}
+        name={node.id}
         position={position}
         rotation={rotation}
         scale={scale}

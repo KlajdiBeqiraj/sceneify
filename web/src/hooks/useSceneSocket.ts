@@ -169,6 +169,14 @@ export function useSceneSocket(
               ? (data as { commandId: string }).commandId
               : null);
           }
+          if (envelope.type === "capture_request") {
+            window.dispatchEvent(
+              new CustomEvent("sceneify-capture-request", {
+                detail: data as Record<string, unknown>,
+              }),
+            );
+            return;
+          }
           if (envelope.type === "record_state" || envelope.type === "record_ack") {
             const state = data as { recording?: unknown };
             setRecording(state.recording === true);
@@ -290,6 +298,18 @@ export function useSceneSocket(
       socketRef.current = null;
     };
   }, [onResync]);
+
+  useEffect(() => {
+    const onCaptureResult = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>).detail;
+      if (!detail || typeof detail !== "object") return;
+      send({ type: "capture_result", ...detail });
+    };
+    window.addEventListener("sceneify-capture-result", onCaptureResult as EventListener);
+    return () => {
+      window.removeEventListener("sceneify-capture-result", onCaptureResult as EventListener);
+    };
+  }, [send]);
 
   useEffect(() => {
     const sendKey = (action: "down" | "up", event: KeyboardEvent) => {

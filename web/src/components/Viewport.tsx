@@ -27,6 +27,7 @@ import type { RuntimePose } from "../store/editorStore";
 import { GlbVisual, MeshAssets, PrimitiveContent, preloadSceneAssets, WorldMeshView } from "./MeshAssets";
 import { Annotations } from "./Annotations";
 import { Trajectories } from "./Trajectories";
+import { CaptureBridge } from "./CaptureBridge";
 import { PerfHud, PerfOverlay } from "./PerfHud";
 
 function resolveAnnotations(scene: ScenePayload): AnnotationNode[] {
@@ -1037,6 +1038,7 @@ export function Viewport({
           editing={editing}
         />
         {showPerf ? <PerfHud /> : null}
+        <CaptureBridge />
         <Suspense fallback={null}>
           {presentation.environmentMap ? (
             <Environment files={assetUrl(presentation.environmentMap)} />
