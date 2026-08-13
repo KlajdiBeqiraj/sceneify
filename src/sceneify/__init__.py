@@ -31,6 +31,14 @@ from sceneify.game import (
     Timer,
 )
 from sceneify.objects import Material, MeshAsset, Physics, PrimitiveNode, SceneObject
+from sceneify.perception import (
+    describe_scene,
+    get_bounds,
+    get_node,
+    list_nodes,
+    spatial_query,
+    topdown_map,
+)
 from sceneify.prefabs import Prefab
 from sceneify.realtime import InputEvent, SemanticEvent
 from sceneify.remote_assets import (
@@ -86,16 +94,22 @@ __all__ = [
     "WorldTools",
     "Zone",
     "build_default_environment",
+    "describe_scene",
     "fetch_remote_asset",
+    "get_bounds",
+    "get_node",
     "get_remote_asset_info",
     "install_skill",
+    "list_nodes",
     "list_remote_assets",
     "load_schema",
     "save_python",
     "search_remote_assets",
     "source_sync_report",
+    "spatial_query",
     "tool_definition",
     "tool_definitions",
+    "topdown_map",
 ]
 
 __version__ = "0.4.0"

@@ -698,6 +698,42 @@ class Scene:
         visit(node_id)
         return result
 
+    def world_transform(self, node_id: str) -> dict[str, list[float]]:
+        """Return world-space position, rotation (degrees), and scale for a graph node."""
+        position, rotation, scale = self._world_transform(node_id)
+        return {
+            "position": [float(position[0]), float(position[1]), float(position[2])],
+            "rotation": [float(rotation[0]), float(rotation[1]), float(rotation[2])],
+            "scale": [float(scale[0]), float(scale[1]), float(scale[2])],
+        }
+
+    def iter_graph_nodes(self) -> list[str]:
+        """Return sorted graph node ids (meshes, objects, primitives)."""
+        return sorted(self._graph_nodes())
+
+    def list_nodes(
+        self,
+        *,
+        tag: str | None = None,
+        kind: str | None = None,
+        query: str | None = None,
+        parent_id: str | object | None = ...,
+        page_offset: int = 0,
+        limit: int = 50,
+    ) -> dict[str, Any]:
+        """Paginated node listing with world poses (see sceneify.perception)."""
+        from sceneify.perception import list_nodes as _list_nodes
+
+        return _list_nodes(
+            self,
+            tag=tag,
+            kind=kind,  # type: ignore[arg-type]
+            query=query,
+            parent_id=parent_id,
+            page_offset=page_offset,
+            limit=limit,
+        )
+
     def validate_graph(self) -> None:
         """Validate globally unique ids, existing parents, and acyclicity."""
         groups = [
