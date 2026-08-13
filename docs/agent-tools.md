@@ -72,7 +72,18 @@ Supported actions include:
 * presentation: `set_presentation` (merges fields; pass `asset=` for a fetched HDRI)
 * world authoring: `set_world`, `add_asset`, `add_primitive`, `add_object`, `add_annotation`,
   `update_node`, `patch_node`, `reparent`, `delete_node`, `place_on_world`, `set_gameplay_role`
+* perception: `describe_scene`, `get_node`, `list_nodes`, `topdown_map`, `spatial_query`,
+  `get_bounds` (world poses, ASCII XZ map, nearest/relative bearing)
+* live only: `capture_view` (PNG screenshot from a connected browser viewer)
 * document ops: `validate_scene`, `get_scene`, `load`, `save`
+
+Perception tools return compact results and omit the full scene dump by default
+(`sceneIncluded: false`). Mutations still include `scene` unless you pass
+`includeScene: false`. Prefer perception tools over `get_scene` when an agent needs layout
+awareness. Axes are Y-up, `+X` east, `-Z` north; rotations are Euler degrees as in the scene schema.
+
+Python helpers live in `sceneify.perception` (`describe_scene`, `topdown_map`, `spatial_query`, …)
+and `Scene.world_transform(id)`.
 
 Asset placement accepts only ids present in the catalog, so an agent selects existing or fetched
 assets instead of inventing mesh files.
@@ -129,7 +140,12 @@ that server, immediately broadcast to connected browsers, then written back to `
 source-sync. Keep scene construction in a marked region or in simple patchable literals: source
 sync only rewrites the sceneify-managed portion of the Python file.
 
-The server exposes catalog/scene resources plus tools for list/search/fetch/set_presentation/apply.
+The server exposes catalog/scene resources (`sceneify://scene/overview`,
+`sceneify://scene/topdown`) plus tools for list/search/fetch, perception
+(`describe_scene`, `get_node`, `list_nodes`, `topdown_map`, `spatial_query`, `get_bounds`),
+live `capture_view`, `set_presentation`, and `apply`.
+HTTP helpers on a running viewer: `GET /api/scene/overview`, `GET /api/scene/topdown`,
+`GET /api/nodes/{id}/world`, `POST /api/scene/capture`.
 MCP stdio is intended for a local trusted client; paths passed by that client are not sandboxed.
 Using the live Poly Haven API requires crediting Poly Haven to end users (API terms); the assets
 themselves remain CC0. OS3A / Polygonal Mind environment packs are CC0.

@@ -11,8 +11,20 @@ import httpx
 
 from sceneify.agent_tools import WorldTools, tool_definitions
 from sceneify.catalog import AssetCatalog
+from sceneify.perception import apply_perception, describe_scene, is_read_action, topdown_map
 from sceneify.scene import Scene
 from sceneify.session_manager import SessionManager
+
+_PERCEPTION_ACTIONS = frozenset(
+    {
+        "describe_scene",
+        "get_node",
+        "list_nodes",
+        "topdown_map",
+        "spatial_query",
+        "get_bounds",
+    }
+)
 
 
 class LiveWorldTools:
@@ -51,11 +63,19 @@ class LiveWorldTools:
             return self._local.apply(command)
         if action == "get_scene":
             scene = self._scene_payload()
-            return {"action": action, "result": scene, "scene": scene}
+            include_scene = command.get("includeScene")
+            if include_scene is None:
+                include_scene = True
+            payload: dict[str, Any] = {"action": action, "result": scene}
+            if include_scene:
+                payload["scene"] = scene
+            else:
+                payload["sceneIncluded"] = False
+            return payload
         if action == "validate_scene":
             scene = self.scene
             scene.validate_graph()
-            return {
+            result = {
                 "action": action,
                 "result": {
                     "graph": "ok",
@@ -63,8 +83,22 @@ class LiveWorldTools:
                         item.to_dict() for item in scene.validate_environment(raise_on_reject=False)
                     ],
                 },
-                "scene": scene.to_dict(),
             }
+            if command.get("includeScene"):
+                result["scene"] = scene.to_dict()
+            else:
+                result["sceneIncluded"] = False
+            return result
+        if action in _PERCEPTION_ACTIONS:
+            result = apply_perception(self.scene, command)
+            response: dict[str, Any] = {"action": action, "result": result}
+            if command.get("includeScene"):
+                response["scene"] = self.scene.to_dict()
+            else:
+                response["sceneIncluded"] = False
+            return response
+        if action == "capture_view":
+            return self._capture_view(command)
         if action in {"load", "save"}:
             raise ValueError(f"{action} is unavailable for a live MCP session")
 
@@ -166,6 +200,18 @@ class LiveWorldTools:
             }
         raise ValueError(f"Action {action!r} is not yet supported by a live MCP session")
 
+    def _capture_view(self, command: Mapping[str, Any]) -> dict[str, Any]:
+        body: dict[str, Any] = {
+            "preset": command.get("preset") or "presentation",
+            "width": int(command.get("width") or 1280),
+            "height": int(command.get("height") or 720),
+        }
+        for key in ("nodeId", "eye", "target", "fov"):
+            if key in command:
+                body[key] = command[key]
+        payload = self._request("POST", "/api/scene/capture", json=body)
+        return {"action": "capture_view", "result": payload, "sceneIncluded": False}
+
 
 def create_world_session(
     *,
@@ -198,8 +244,10 @@ def build_mcp_server(
         name="sceneify",
         instructions=(
             "Build sceneify worlds with catalog-grounded actions. "
+            "Before editing an existing scene, call sceneify_describe_scene then "
+            "sceneify_topdown_map / sceneify_spatial_query for layout awareness. "
+            "Prefer world poses from perception tools over raw get_scene. "
             "Discover assets with list/search tools (paginated). "
-            "Filter happens inside sceneify on id/name first. "
             "Use info_remote before fetch_remote, then add_asset. "
             "Credit Poly Haven when using the live API."
         ),
@@ -212,6 +260,14 @@ def build_mcp_server(
     @server.resource("sceneify://scene/current")
     def scene_resource() -> str:
         return json.dumps(session.scene.to_dict(), indent=2)
+
+    @server.resource("sceneify://scene/overview")
+    def scene_overview_resource() -> str:
+        return json.dumps(describe_scene(session.scene, detail="summary"), indent=2)
+
+    @server.resource("sceneify://scene/topdown")
+    def scene_topdown_resource() -> str:
+        return json.dumps(topdown_map(session.scene), indent=2)
 
     @server.resource("sceneify://tool-spec")
     def tool_spec_resource() -> str:
@@ -343,9 +399,9 @@ def build_mcp_server(
         return _safe_apply(session, command)
 
     @server.tool()
-    def sceneify_get_scene() -> dict[str, Any]:
-        """Return the current scene document."""
-        return _safe_apply(session, {"action": "get_scene"})
+    def sceneify_get_scene(includeScene: bool = True) -> dict[str, Any]:
+        """Return the full scene document (large). Prefer describe_scene for perception."""
+        return _safe_apply(session, {"action": "get_scene", "includeScene": includeScene})
 
     @server.tool()
     def sceneify_validate_scene() -> dict[str, Any]:
@@ -353,7 +409,200 @@ def build_mcp_server(
         return _safe_apply(session, {"action": "validate_scene"})
 
     @server.tool()
-    def sceneify_apply(action: str, fields: dict[str, Any] | None = None, **extra: Any) -> dict[str, Any]:
+    def sceneify_describe_scene(
+        detail: str = "summary",
+        tags: list[str] | None = None,
+        roots: list[str] | None = None,
+        maxNodes: int = 200,
+        includeAnnotations: bool = True,
+    ) -> dict[str, Any]:
+        """Compact scene overview with hierarchy tree and world poses."""
+        command: dict[str, Any] = {
+            "action": "describe_scene",
+            "detail": detail,
+            "maxNodes": maxNodes,
+            "includeAnnotations": includeAnnotations,
+        }
+        if tags is not None:
+            command["tags"] = tags
+        if roots is not None:
+            command["roots"] = roots
+        return _safe_apply(session, command)
+
+    @server.tool()
+    def sceneify_get_node(id: str, includeBounds: bool = True) -> dict[str, Any]:
+        """Inspect one node: local+world transform, children, bounds, annotations."""
+        return _safe_apply(
+            session,
+            {"action": "get_node", "id": id, "includeBounds": includeBounds},
+        )
+
+    @server.tool()
+    def sceneify_list_nodes(
+        tag: str | None = None,
+        kind: str | None = None,
+        query: str | None = None,
+        parentId: str | None = None,
+        pageOffset: int = 0,
+        limit: int = 50,
+    ) -> dict[str, Any]:
+        """Paginated scene nodes with world poses."""
+        command: dict[str, Any] = {
+            "action": "list_nodes",
+            "pageOffset": pageOffset,
+            "limit": limit,
+        }
+        if tag is not None:
+            command["tag"] = tag
+        if kind is not None:
+            command["kind"] = kind
+        if query is not None:
+            command["query"] = query
+        if parentId is not None:
+            command["parentId"] = parentId
+        return _safe_apply(session, command)
+
+    @server.tool()
+    def sceneify_topdown_map(
+        cellSize: float = 1.0,
+        width: int | None = None,
+        height: int | None = None,
+        focus: list[float] | None = None,
+        maxCells: int = 80,
+    ) -> dict[str, Any]:
+        """ASCII top-down occupancy map on XZ (top of ascii = north / -Z)."""
+        command: dict[str, Any] = {
+            "action": "topdown_map",
+            "cellSize": cellSize,
+            "maxCells": maxCells,
+        }
+        if width is not None:
+            command["width"] = width
+        if height is not None:
+            command["height"] = height
+        if focus is not None:
+            command["focus"] = focus
+        return _safe_apply(session, command)
+
+    @server.tool()
+    def sceneify_spatial_query(
+        mode: str,
+        id: str | None = None,
+        fromId: str | None = None,
+        toId: str | None = None,
+        point: list[float] | None = None,
+        k: int = 5,
+        radius: float | None = None,
+        tag: str | None = None,
+        kind: str | None = None,
+        x: float | None = None,
+        z: float | None = None,
+    ) -> dict[str, Any]:
+        """Spatial relations: nearest, distance, relative, in_radius, height_at."""
+        command: dict[str, Any] = {"action": "spatial_query", "mode": mode, "k": k}
+        if id is not None:
+            command["id"] = id
+        if fromId is not None:
+            command["fromId"] = fromId
+        if toId is not None:
+            command["toId"] = toId
+        if point is not None:
+            command["point"] = point
+        if radius is not None:
+            command["radius"] = radius
+        if tag is not None:
+            command["tag"] = tag
+        if kind is not None:
+            command["kind"] = kind
+        if x is not None:
+            command["x"] = x
+        if z is not None:
+            command["z"] = z
+        return _safe_apply(session, command)
+
+    @server.tool()
+    def sceneify_get_bounds(id: str | None = None) -> dict[str, Any]:
+        """World AABB for one node, or the whole scene when id is omitted."""
+        command: dict[str, Any] = {"action": "get_bounds"}
+        if id is not None:
+            command["id"] = id
+        return _safe_apply(session, command)
+
+    @server.tool()
+    def sceneify_capture_view(
+        preset: str = "presentation",
+        nodeId: str | None = None,
+        width: int = 1280,
+        height: int = 720,
+        eye: list[float] | None = None,
+        target: list[float] | None = None,
+        fov: float | None = None,
+    ) -> Any:
+        """Capture a PNG screenshot from a live viewer (requires --server or a session)."""
+        if not isinstance(session, LiveWorldTools):
+            return {
+                "ok": False,
+                "action": "capture_view",
+                "error": {
+                    "code": "CaptureUnavailable",
+                    "message": (
+                        "capture_view requires a live viewer "
+                        "(sceneify-mcp --server URL or a started session)"
+                    ),
+                },
+            }
+        command: dict[str, Any] = {
+            "action": "capture_view",
+            "preset": preset,
+            "width": width,
+            "height": height,
+        }
+        if nodeId is not None:
+            command["nodeId"] = nodeId
+        if eye is not None:
+            command["eye"] = eye
+        if target is not None:
+            command["target"] = target
+        if fov is not None:
+            command["fov"] = fov
+        result = _safe_apply(session, command)
+        if not result.get("ok"):
+            return result
+        capture = result.get("result")
+        if not isinstance(capture, dict):
+            return result
+        image_b64 = capture.get("image")
+        if not isinstance(image_b64, str) or not image_b64:
+            return result
+        try:
+            from mcp.types import ImageContent, TextContent
+
+            meta = {
+                "ok": True,
+                "action": "capture_view",
+                "preset": capture.get("preset") or preset,
+                "camera": capture.get("camera"),
+                "width": capture.get("width"),
+                "height": capture.get("height"),
+                "mimeType": capture.get("mimeType") or "image/png",
+            }
+            return [
+                TextContent(type="text", text=json.dumps(meta)),
+                ImageContent(
+                    type="image",
+                    data=image_b64,
+                    mimeType=str(capture.get("mimeType") or "image/png"),
+                ),
+            ]
+        except Exception:
+            return result
+
+    @server.tool()
+    def sceneify_apply(
+        action: str,
+        fields: dict[str, Any] | None = None,
+        **extra: Any,
+    ) -> dict[str, Any]:
         """Apply one validated sceneify world action."""
         payload = {**(fields or {}), **extra}
         # FastMCP exposes **kwargs as a nested "fields" object; accept both shapes.
@@ -470,15 +719,23 @@ def _safe_apply(tools: WorldTools | LiveWorldTools, command: dict[str, Any]) -> 
     try:
         return {"ok": True, **tools.apply(cleaned)}
     except Exception as exc:
-        return {
+        failure: dict[str, Any] = {
             "ok": False,
             "action": command.get("action"),
             "error": {
                 "code": exc.__class__.__name__,
                 "message": str(exc),
             },
-            "scene": tools.scene.to_dict(),
         }
+        action = command.get("action")
+        include_scene = command.get("includeScene")
+        if include_scene is None:
+            include_scene = isinstance(action, str) and not is_read_action(action)
+        if include_scene:
+            failure["scene"] = tools.scene.to_dict()
+        else:
+            failure["sceneIncluded"] = False
+        return failure
 
 
 def _without(command: Mapping[str, Any], *keys: str) -> dict[str, Any]:

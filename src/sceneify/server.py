@@ -715,6 +715,34 @@ def create_app(
     def get_scene() -> JSONResponse:
         return JSONResponse({**scene.to_dict(), "revision": commands.revision})
 
+    @app.get("/api/scene/overview")
+    def get_scene_overview(
+        detail: str = "summary",
+        maxNodes: int = 200,
+    ) -> JSONResponse:
+        from sceneify.perception import describe_scene
+
+        return JSONResponse(
+            describe_scene(scene, detail=detail, max_nodes=maxNodes)  # type: ignore[arg-type]
+        )
+
+    @app.get("/api/scene/topdown")
+    def get_scene_topdown(
+        cellSize: float = 1.0,
+        maxCells: int = 80,
+    ) -> JSONResponse:
+        from sceneify.perception import topdown_map
+
+        return JSONResponse(topdown_map(scene, cell_size=cellSize, max_cells=maxCells))
+
+    @app.get("/api/nodes/{node_id}/world")
+    def get_node_world(node_id: str) -> JSONResponse:
+        from sceneify.perception import get_node
+
+        try:
+            return JSONResponse(get_node(scene, node_id))
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.post("/api/scene/capture")
     async def capture_scene(body: dict[str, Any] | None = None) -> JSONResponse:

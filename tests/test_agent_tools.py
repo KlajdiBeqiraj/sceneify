@@ -169,3 +169,44 @@ def test_world_tools_apply_many_stops_on_error() -> None:
     assert results[0]["ok"] is True
     assert results[1]["ok"] is False
     assert len(results) == 2
+
+
+def test_world_tools_perception_omits_scene_dump_by_default() -> None:
+    scene = Scene("sense")
+    scene.set_environment(bounds_min=(-5, 0, -5), bounds_max=(5, 5, 5))
+    scene.add_object("root", position=(1, 0, 0))
+    scene.create_primitive("child", "box", parent_id="root", position=(0, 2, 0))
+    tools = WorldTools(scene, AssetCatalog())
+
+    described = tools.apply({"action": "describe_scene", "detail": "summary"})
+    assert described["sceneIncluded"] is False
+    assert "scene" not in described
+    assert described["result"]["nodes"][0]["world"]["position"] == [1.0, 0.0, 0.0]
+
+    node = tools.apply({"action": "get_node", "id": "child"})
+    assert node["result"]["world"]["position"] == [1.0, 2.0, 0.0]
+    assert "scene" not in node
+
+    mapped = tools.apply({"action": "topdown_map", "cellSize": 1})
+    assert "ascii" in mapped["result"]
+
+    relative = tools.apply(
+        {"action": "spatial_query", "mode": "relative", "fromId": "root", "toId": "child"}
+    )
+    assert relative["result"]["delta"][1] == 2.0
+
+    mutated = tools.apply(
+        {
+            "action": "update_node",
+            "id": "child",
+            "position": [0, 3, 0],
+            "includeScene": False,
+        }
+    )
+    assert "scene" not in mutated
+    assert mutated["sceneIncluded"] is False
+
+    names = {item["name"] for item in tool_definitions()}
+    assert "sceneify_describe_scene" in names
+    assert "sceneify_topdown_map" in names
+    assert "sceneify_spatial_query" in names

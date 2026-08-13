@@ -9,6 +9,7 @@ from typing import Any
 
 from sceneify.catalog import AssetCatalog
 from sceneify.game import GameManifest
+from sceneify.perception import apply_perception, is_read_action
 from sceneify.remote_assets import (
     HDRI_FORMATS,
     fetch_remote_asset,
@@ -65,6 +66,13 @@ ACTION_SCHEMA: dict[str, Any] = {
                 "set_gameplay_role",
                 "validate_scene",
                 "get_scene",
+                "describe_scene",
+                "get_node",
+                "list_nodes",
+                "topdown_map",
+                "spatial_query",
+                "get_bounds",
+                "capture_view",
                 "load",
                 "save",
             ]
@@ -115,6 +123,30 @@ ACTION_SCHEMA: dict[str, Any] = {
         "shadows": {"type": "boolean"},
         "title": {"type": "string"},
         "cacheDir": {"type": "string", "minLength": 1},
+        "includeScene": {
+            "type": "boolean",
+            "description": (
+                "Include full scene dump in the response. Defaults to false for read/perception "
+                "actions and true for mutations."
+            ),
+        },
+        "detail": {"enum": ["summary", "full"]},
+        "maxNodes": {"type": "integer", "minimum": 1},
+        "includeAnnotations": {"type": "boolean"},
+        "includeBounds": {"type": "boolean"},
+        "kind": {"enum": ["mesh", "object", "primitive", "annotation"]},
+        "roots": {"type": "array", "items": {"type": "string"}},
+        "cellSize": {"type": "number"},
+        "width": {"type": "integer", "minimum": 1},
+        "focus": {"$ref": "#/$defs/vec3"},
+        "maxCells": {"type": "integer", "minimum": 1},
+        "mode": {
+            "enum": ["nearest", "distance", "relative", "in_radius", "height_at"],
+        },
+        "fromId": {"type": "string", "minLength": 1},
+        "toId": {"type": "string", "minLength": 1},
+        "point": {"$ref": "#/$defs/vec3"},
+        "k": {"type": "integer", "minimum": 1},
     },
     "$defs": {
         "vec3": {
@@ -283,13 +315,158 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "sceneify_get_scene",
-            "description": "Return the current scene document.",
-            "inputSchema": {"type": "object", "properties": {}},
+            "description": (
+                "Return the full scene document (large). Prefer describe_scene / list_nodes "
+                "for agent perception."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {"includeScene": {"type": "boolean", "default": True}},
+            },
         },
         {
             "name": "sceneify_validate_scene",
             "description": "Validate the scene graph and environment rules.",
             "inputSchema": {"type": "object", "properties": {}},
+        },
+        {
+            "name": "sceneify_describe_scene",
+            "description": (
+                "Compact scene overview with hierarchy tree and world poses. "
+                "Use detail=summary before editing; detail=full for leaf nodes + bounds."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "detail": {"enum": ["summary", "full"], "default": "summary"},
+                    "tags": {"type": "array", "items": {"type": "string"}},
+                    "roots": {"type": "array", "items": {"type": "string"}},
+                    "maxNodes": {"type": "integer", "minimum": 1, "default": 200},
+                    "includeAnnotations": {"type": "boolean", "default": True},
+                },
+            },
+        },
+        {
+            "name": "sceneify_get_node",
+            "description": (
+                "Inspect one node: local+world transform, children, bounds, anchored annotations."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                    "id": {"type": "string", "minLength": 1},
+                    "includeBounds": {"type": "boolean", "default": True},
+                },
+            },
+        },
+        {
+            "name": "sceneify_list_nodes",
+            "description": "Paginated scene nodes with world poses; filter by tag/kind/query.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "tag": {"type": "string"},
+                    "kind": {"enum": ["mesh", "object", "primitive", "annotation"]},
+                    "query": {"type": "string"},
+                    "parentId": {"type": ["string", "null"]},
+                    "pageOffset": {"type": "integer", "minimum": 0, "default": 0},
+                    "limit": {"type": "integer", "minimum": 1, "default": 50},
+                },
+            },
+        },
+        {
+            "name": "sceneify_topdown_map",
+            "description": (
+                "ASCII top-down occupancy map on XZ (Y-up). "
+                "Top of ascii is north (-Z). Use for layout awareness."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "cellSize": {"type": "number", "default": 1.0},
+                    "width": {"type": "integer", "minimum": 1},
+                    "height": {"type": "integer", "minimum": 1},
+                    "focus": {
+                        "type": "array",
+                        "prefixItems": [
+                            {"type": "number"},
+                            {"type": "number"},
+                            {"type": "number"},
+                        ],
+                        "items": False,
+                    },
+                    "maxCells": {"type": "integer", "minimum": 1, "default": 80},
+                },
+            },
+        },
+        {
+            "name": "sceneify_spatial_query",
+            "description": (
+                "Spatial relations in world space: nearest, distance, relative bearing, "
+                "in_radius, height_at. Axes: +X east, -Z north, Y up."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "required": ["mode"],
+                "properties": {
+                    "mode": {
+                        "enum": ["nearest", "distance", "relative", "in_radius", "height_at"],
+                    },
+                    "id": {"type": "string"},
+                    "fromId": {"type": "string"},
+                    "toId": {"type": "string"},
+                    "point": {
+                        "type": "array",
+                        "prefixItems": [
+                            {"type": "number"},
+                            {"type": "number"},
+                            {"type": "number"},
+                        ],
+                        "items": False,
+                    },
+                    "k": {"type": "integer", "minimum": 1, "default": 5},
+                    "radius": {"type": "number"},
+                    "tag": {"type": "string"},
+                    "kind": {"enum": ["mesh", "object", "primitive", "annotation"]},
+                    "x": {"type": "number"},
+                    "z": {"type": "number"},
+                },
+            },
+        },
+        {
+            "name": "sceneify_get_bounds",
+            "description": (
+                "World AABB for one node id, or the whole scene when id is omitted. "
+                "Primitives use size/radius; meshes use GLB accessor bounds when available."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {"id": {"type": "string", "minLength": 1}},
+            },
+        },
+        {
+            "name": "sceneify_capture_view",
+            "description": (
+                "Capture a PNG screenshot from a live browser viewer. "
+                "Requires sceneify-mcp --server or a started session. "
+                "Presets: presentation, topdown, focus (with nodeId)."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "preset": {
+                        "enum": ["presentation", "topdown", "focus"],
+                        "default": "presentation",
+                    },
+                    "nodeId": {"type": "string"},
+                    "width": {"type": "integer", "minimum": 1, "default": 1280},
+                    "height": {"type": "integer", "minimum": 1, "default": 720},
+                    "eye": {"$ref": "#/$defs/vec3"},
+                    "target": {"$ref": "#/$defs/vec3"},
+                    "fov": {"type": "number"},
+                },
+            },
         },
         apply_tool,
     ]
@@ -303,7 +480,7 @@ class WorldTools:
         self.catalog = catalog
 
     def apply(self, command: Mapping[str, Any]) -> dict[str, Any]:
-        """Apply one action and return its result plus the current scene."""
+        """Apply one action and return its result plus optional scene dump."""
         action = _required_string(command, "action")
         handlers = {
             "list_assets": self._list_assets,
@@ -326,6 +503,13 @@ class WorldTools:
             "set_gameplay_role": self._set_gameplay_role,
             "validate_scene": self._validate_scene,
             "get_scene": self._get_scene,
+            "describe_scene": self._perception,
+            "get_node": self._perception,
+            "list_nodes": self._perception,
+            "topdown_map": self._perception,
+            "spatial_query": self._perception,
+            "get_bounds": self._perception,
+            "capture_view": self._capture_view,
             "load": self._load,
             "save": self._save,
         }
@@ -333,7 +517,17 @@ class WorldTools:
         if handler is None:
             raise ValueError(f"Unsupported world action: {action!r}")
         result = handler(command)
-        return {"action": action, "result": result, "scene": self.scene.to_dict()}
+        include_scene = command.get("includeScene")
+        if include_scene is None:
+            # Read/perception tools omit the full dump by default; mutations keep it
+            # for backward compatibility unless explicitly disabled.
+            include_scene = action == "get_scene" or not is_read_action(action)
+        payload: dict[str, Any] = {"action": action, "result": result}
+        if include_scene:
+            payload["scene"] = self.scene.to_dict()
+        else:
+            payload["sceneIncluded"] = False
+        return payload
 
     def apply_many(
         self,
@@ -347,18 +541,18 @@ class WorldTools:
             try:
                 results.append({"ok": True, **self.apply(command)})
             except Exception as exc:
-                results.append(
-                    {
-                        "ok": False,
-                        "action": command.get("action"),
-                        "error": {
-                            "code": exc.__class__.__name__,
-                            "message": str(exc),
-                            "hint": _hint_for(str(command.get("action") or ""), exc),
-                        },
-                        "scene": self.scene.to_dict(),
-                    }
-                )
+                failure: dict[str, Any] = {
+                    "ok": False,
+                    "action": command.get("action"),
+                    "error": {
+                        "code": exc.__class__.__name__,
+                        "message": str(exc),
+                        "hint": _hint_for(str(command.get("action") or ""), exc),
+                    },
+                }
+                if command.get("includeScene", True):
+                    failure["scene"] = self.scene.to_dict()
+                results.append(failure)
                 if stop_on_error:
                     break
         return results
@@ -606,6 +800,15 @@ class WorldTools:
     def _get_scene(self, command: Mapping[str, Any]) -> dict[str, Any]:
         del command
         return self.scene.to_dict()
+
+    def _perception(self, command: Mapping[str, Any]) -> dict[str, Any]:
+        return apply_perception(self.scene, command)
+
+    def _capture_view(self, command: Mapping[str, Any]) -> dict[str, Any]:
+        del command
+        raise ValueError(
+            "capture_view requires a live viewer (sceneify-mcp --server URL or a started session)"
+        )
 
     def _load(self, command: Mapping[str, Any]) -> dict[str, Any]:
         path = Path(_required_string(command, "path"))

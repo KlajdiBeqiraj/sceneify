@@ -216,8 +216,35 @@ appropriate colliders before the controller can be meaningfully tested.
 Read when you need schema or state:
 
 * `sceneify://catalog` — local catalog document
-* `sceneify://scene/current` — current scene JSON
+* `sceneify://scene/overview` — compact describe_scene summary (prefer this)
+* `sceneify://scene/topdown` — ASCII XZ occupancy map
+* `sceneify://scene/current` — full scene JSON (large; debug only)
 * `sceneify://tool-spec` — full action descriptors
+
+## Scene perception
+
+The agent does **not** see the browser. Use structured perception tools before editing an
+existing world. Coordinates are Y-up; `+X` is east, `-Z` is north; rotations are Euler degrees.
+
+Required inspect loop before mutating a non-empty scene:
+
+1. `sceneify_describe_scene` (`detail=summary`) — inventory, tree, root world poses
+2. `sceneify_topdown_map` — layout on XZ (top of ASCII = north)
+3. `sceneify_get_node` / `sceneify_spatial_query` on the targets you will move
+4. Mutate with one small action; re-check with describe or get_node (not full `get_scene`)
+5. Live only: `sceneify_capture_view` to verify appearance (not for exact meters)
+
+```text
+describe_scene(detail=summary)
+→ topdown_map(cellSize=1)
+→ spatial_query(mode=nearest|relative, ...)
+→ get_node(id=...)
+→ update_node / add_*
+→ describe_scene or capture_view
+```
+
+Use **world** poses from perception tools for alignment. Local transforms in raw JSON are
+parent-relative and misleading under hierarchies.
 
 ## Tools
 
@@ -233,10 +260,20 @@ Read when you need schema or state:
 Pagination fields: `pageOffset`, `limit`, response `total` / `hasMore` / `nextOffset`.
 Filtering is done inside sceneify (id/name first, then tags). Default remote `provider` is `polyhaven`.
 
-### Scene inspection
+### Scene inspection / perception
 
-* `sceneify_get_scene`
-* `sceneify_validate_scene`
+* `sceneify_describe_scene` — compact overview + tree + world poses (`detail=summary|full`)
+* `sceneify_list_nodes` — paginated nodes with world poses (`tag` / `kind` / `query`)
+* `sceneify_get_node` — one node: local+world, children, bounds, anchored annotations
+* `sceneify_topdown_map` — ASCII occupancy map on XZ
+* `sceneify_spatial_query` — `nearest` | `distance` | `relative` | `in_radius` | `height_at`
+* `sceneify_get_bounds` — world AABB for a node or the whole scene
+* `sceneify_capture_view` — PNG from live viewer (`preset=presentation|topdown|focus`)
+* `sceneify_validate_scene` — graph + environment rules
+* `sceneify_get_scene` — full document (large; prefer describe/list)
+
+Perception responses omit the full scene dump (`sceneIncluded: false`). Pass
+`includeScene: true` on mutations only when you need the raw document.
 
 ### Presentation
 
@@ -316,12 +353,15 @@ Vectors are `[x, y, z]`.
 ## Agent rules
 
 1. Turn a vague game request into a small playable loop before adding decoration.
-2. Discover before place — search/list with provider and type, then fetch, then add or set world.
-3. One small MCP action at a time; check `ok` after mutations.
-4. Prefer dedicated list/search/info/presentation tools; use `sceneify_apply` for world edits.
-5. Configure game runtime features in Python; MCP's `set_gameplay_role` alone does not add a controller or game rules.
-6. Keep live `--source` scripts patchable (marked region or simple literals).
-7. Run `sceneify_validate_scene` after structural changes and resolve graph/environment violations.
-8. Use HDRIs only through `sceneify_set_presentation`; do not place them as meshes.
-9. Do not sandbox-assume paths: MCP stdio is for a local trusted client.
-10. For full schemas see package docs `docs/agent-tools.md`, `docs/environment.md`, `docs/schema.md`, or `sceneify tool-spec --all`.
+2. Before editing an existing scene: `describe_scene` → `topdown_map` → `get_node` / `spatial_query`.
+3. Use world poses and spatial_query for placement; do not guess from raw local transforms.
+4. Discover before place — search/list with provider and type, then fetch, then add or set world.
+5. One small MCP action at a time; check `ok` after mutations.
+6. Prefer dedicated perception/list/search/info tools; use `sceneify_apply` for world edits.
+7. Configure game runtime features in Python; MCP's `set_gameplay_role` alone does not add a controller or game rules.
+8. Keep live `--source` scripts patchable (marked region or simple literals).
+9. Run `sceneify_validate_scene` after structural changes and resolve graph/environment violations.
+10. Use HDRIs only through `sceneify_set_presentation`; do not place them as meshes.
+11. `capture_view` is visual confirmation only; use structured tools for meters and yaw.
+12. Do not sandbox-assume paths: MCP stdio is for a local trusted client.
+13. For full schemas see package docs `docs/agent-tools.md`, `docs/environment.md`, `docs/schema.md`, or `sceneify tool-spec --all`.
