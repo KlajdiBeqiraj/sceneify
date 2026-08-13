@@ -68,16 +68,36 @@ Vite proxies `/api` to `http://127.0.0.1:8765`.
 
 ## CI expectations
 
-GitHub Actions runs:
+GitHub Actions (`ci.yml`) runs:
 
 - `uv sync --frozen --all-extras`
 - `ruff check` + `ruff format --check`
 - `pytest` on Python 3.12 and 3.13
 - `npm ci` + `npm test` + `npm run build` for the viewer
 
-## Publishing (personal)
+Publishing to PyPI is handled separately by `publish.yml` on GitHub Releases.
 
-When ready:
+## Publishing
+
+Releases are published to PyPI by `.github/workflows/publish.yml`.
+
+1. Bump `project.version` in `pyproject.toml`.
+2. Create and publish a GitHub Release whose tag matches that version
+   (`0.4.0` or `v0.4.0`).
+3. The workflow builds the viewer, packs the sdist/wheel, checks that the
+   tag matches `pyproject.toml`, then uploads to PyPI via Trusted Publishing.
+
+One-time setup on [PyPI](https://pypi.org/manage/account/publishing/):
+
+- Owner: `KlajdiBeqiraj`
+- Repository: `sceneify`
+- Workflow: `publish.yml`
+- Environment: `pypi`
+
+You can also run the workflow manually (`workflow_dispatch`). Use
+**dry_run** to build artifacts without uploading.
+
+Local fallback (personal account only):
 
 ```bash
 cd web && npm ci && npm run build && cd ..
