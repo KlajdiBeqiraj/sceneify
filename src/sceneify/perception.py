@@ -841,9 +841,7 @@ def spatial_query(
                     "id": node_id,
                     "distance": dist,
                     "worldPosition": pos,
-                    **(
-                        {"bearing": _bearing_xz(pos[0] - origin[0], pos[2] - origin[2])[0]}
-                    ),
+                    **({"bearing": _bearing_xz(pos[0] - origin[0], pos[2] - origin[2])[0]}),
                 }
                 for dist, node_id, pos in top
             ],

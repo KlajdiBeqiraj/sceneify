@@ -17,9 +17,7 @@ from sceneify.catalog import Asset, AssetCatalog
 DEFAULT_CACHE = Path.cwd() / ".sceneify_cache"
 USER_AGENT = "sceneify/0.4.0 (+https://github.com/KlajdiBeqiraj/sceneify)"
 POLYHAVEN_API = "https://api.polyhaven.com"
-OS3A_DATA_ROOT = (
-    "https://raw.githubusercontent.com/ToxSam/open-source-3d-assets/main/data"
-)
+OS3A_DATA_ROOT = "https://raw.githubusercontent.com/ToxSam/open-source-3d-assets/main/data"
 SUPPORTED_PROVIDERS = ("polyhaven", "os3a")
 _ASSETS_CACHE: dict[str, tuple[float, Any]] = {}
 _ASSETS_CACHE_TTL_SECONDS = 300.0
@@ -334,9 +332,7 @@ def _fetch_polyhaven(
             catalog_id=catalog_id,
             force=force,
         )
-    raise ValueError(
-        f"Poly Haven fetch supports models and hdris today, not {asset_type!r}"
-    )
+    raise ValueError(f"Poly Haven fetch supports models and hdris today, not {asset_type!r}")
 
 
 def _fetch_polyhaven_model(

@@ -6,8 +6,8 @@ Assets: procedural primitives (Poly Haven CC0 unused here).
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from sceneify import Material, Physics, Scene
 
@@ -27,7 +27,9 @@ PATH = "#7a7060"
 BRIDGE = "#8a8374"
 
 
-def _m(color: str, *, roughness: float = 0.9, metalness: float = 0.0, opacity: float = 1.0) -> Material:
+def _m(
+    color: str, *, roughness: float = 0.9, metalness: float = 0.0, opacity: float = 1.0
+) -> Material:
     return Material(color=color, roughness=roughness, metalness=metalness, opacity=opacity)
 
 
@@ -211,15 +213,71 @@ def _wolf_emblem(scene: Scene, root: str, *, x: float, z: float, scale: float = 
         tags=["banner", "red", "wolf"],
     )
     s = scale
-    _box(scene, f"{root}_pole", parent_id=root, size=(0.12 * s, 3.2 * s, 0.12 * s), position=(0, 1.6 * s, 0), color=WOOD[0])
-    _box(scene, f"{root}_cloth", parent_id=root, size=(1.4 * s, 1.8 * s, 0.08 * s), position=(0.75 * s, 2.4 * s, 0), color=RED_BANNER)
+    _box(
+        scene,
+        f"{root}_pole",
+        parent_id=root,
+        size=(0.12 * s, 3.2 * s, 0.12 * s),
+        position=(0, 1.6 * s, 0),
+        color=WOOD[0],
+    )
+    _box(
+        scene,
+        f"{root}_cloth",
+        parent_id=root,
+        size=(1.4 * s, 1.8 * s, 0.08 * s),
+        position=(0.75 * s, 2.4 * s, 0),
+        color=RED_BANNER,
+    )
     # Wolf head silhouette
-    _sphere(scene, f"{root}_head", parent_id=root, radius=0.28 * s, position=(0.75 * s, 2.55 * s, 0.12 * s), color="#7f1d1d")
-    _box(scene, f"{root}_snout", parent_id=root, size=(0.22 * s, 0.14 * s, 0.28 * s), position=(0.75 * s, 2.35 * s, 0.28 * s), color="#991b1b")
-    _box(scene, f"{root}_ear_l", parent_id=root, size=(0.12 * s, 0.22 * s, 0.08 * s), position=(0.55 * s, 2.85 * s, 0.12 * s), color="#450a0a")
-    _box(scene, f"{root}_ear_r", parent_id=root, size=(0.12 * s, 0.22 * s, 0.08 * s), position=(0.95 * s, 2.85 * s, 0.12 * s), color="#450a0a")
-    _sphere(scene, f"{root}_eye_l", parent_id=root, radius=0.05 * s, position=(0.62 * s, 2.6 * s, 0.32 * s), color="#fef08a")
-    _sphere(scene, f"{root}_eye_r", parent_id=root, radius=0.05 * s, position=(0.88 * s, 2.6 * s, 0.32 * s), color="#fef08a")
+    _sphere(
+        scene,
+        f"{root}_head",
+        parent_id=root,
+        radius=0.28 * s,
+        position=(0.75 * s, 2.55 * s, 0.12 * s),
+        color="#7f1d1d",
+    )
+    _box(
+        scene,
+        f"{root}_snout",
+        parent_id=root,
+        size=(0.22 * s, 0.14 * s, 0.28 * s),
+        position=(0.75 * s, 2.35 * s, 0.28 * s),
+        color="#991b1b",
+    )
+    _box(
+        scene,
+        f"{root}_ear_l",
+        parent_id=root,
+        size=(0.12 * s, 0.22 * s, 0.08 * s),
+        position=(0.55 * s, 2.85 * s, 0.12 * s),
+        color="#450a0a",
+    )
+    _box(
+        scene,
+        f"{root}_ear_r",
+        parent_id=root,
+        size=(0.12 * s, 0.22 * s, 0.08 * s),
+        position=(0.95 * s, 2.85 * s, 0.12 * s),
+        color="#450a0a",
+    )
+    _sphere(
+        scene,
+        f"{root}_eye_l",
+        parent_id=root,
+        radius=0.05 * s,
+        position=(0.62 * s, 2.6 * s, 0.32 * s),
+        color="#fef08a",
+    )
+    _sphere(
+        scene,
+        f"{root}_eye_r",
+        parent_id=root,
+        radius=0.05 * s,
+        position=(0.88 * s, 2.6 * s, 0.32 * s),
+        color="#fef08a",
+    )
 
 
 def _owl_emblem(scene: Scene, root: str, *, x: float, z: float, scale: float = 1.0) -> None:
@@ -231,17 +289,87 @@ def _owl_emblem(scene: Scene, root: str, *, x: float, z: float, scale: float = 1
         tags=["banner", "blue", "owl"],
     )
     s = scale
-    _box(scene, f"{root}_pole", parent_id=root, size=(0.12 * s, 3.2 * s, 0.12 * s), position=(0, 1.6 * s, 0), color=WOOD[1])
-    _box(scene, f"{root}_cloth", parent_id=root, size=(1.4 * s, 1.8 * s, 0.08 * s), position=(0.75 * s, 2.4 * s, 0), color=BLUE_BANNER)
+    _box(
+        scene,
+        f"{root}_pole",
+        parent_id=root,
+        size=(0.12 * s, 3.2 * s, 0.12 * s),
+        position=(0, 1.6 * s, 0),
+        color=WOOD[1],
+    )
+    _box(
+        scene,
+        f"{root}_cloth",
+        parent_id=root,
+        size=(1.4 * s, 1.8 * s, 0.08 * s),
+        position=(0.75 * s, 2.4 * s, 0),
+        color=BLUE_BANNER,
+    )
     # Owl body + big eyes + beak
-    _sphere(scene, f"{root}_body", parent_id=root, radius=0.32 * s, position=(0.75 * s, 2.4 * s, 0.12 * s), color="#1e3a8a")
-    _sphere(scene, f"{root}_eye_l", parent_id=root, radius=0.12 * s, position=(0.6 * s, 2.55 * s, 0.32 * s), color="#e0f2fe")
-    _sphere(scene, f"{root}_eye_r", parent_id=root, radius=0.12 * s, position=(0.9 * s, 2.55 * s, 0.32 * s), color="#e0f2fe")
-    _sphere(scene, f"{root}_pupil_l", parent_id=root, radius=0.05 * s, position=(0.6 * s, 2.55 * s, 0.42 * s), color="#0f172a")
-    _sphere(scene, f"{root}_pupil_r", parent_id=root, radius=0.05 * s, position=(0.9 * s, 2.55 * s, 0.42 * s), color="#0f172a")
-    _box(scene, f"{root}_beak", parent_id=root, size=(0.12 * s, 0.1 * s, 0.16 * s), position=(0.75 * s, 2.28 * s, 0.38 * s), color="#f59e0b")
-    _box(scene, f"{root}_tuft_l", parent_id=root, size=(0.1 * s, 0.22 * s, 0.08 * s), position=(0.52 * s, 2.8 * s, 0.1 * s), color="#172554")
-    _box(scene, f"{root}_tuft_r", parent_id=root, size=(0.1 * s, 0.22 * s, 0.08 * s), position=(0.98 * s, 2.8 * s, 0.1 * s), color="#172554")
+    _sphere(
+        scene,
+        f"{root}_body",
+        parent_id=root,
+        radius=0.32 * s,
+        position=(0.75 * s, 2.4 * s, 0.12 * s),
+        color="#1e3a8a",
+    )
+    _sphere(
+        scene,
+        f"{root}_eye_l",
+        parent_id=root,
+        radius=0.12 * s,
+        position=(0.6 * s, 2.55 * s, 0.32 * s),
+        color="#e0f2fe",
+    )
+    _sphere(
+        scene,
+        f"{root}_eye_r",
+        parent_id=root,
+        radius=0.12 * s,
+        position=(0.9 * s, 2.55 * s, 0.32 * s),
+        color="#e0f2fe",
+    )
+    _sphere(
+        scene,
+        f"{root}_pupil_l",
+        parent_id=root,
+        radius=0.05 * s,
+        position=(0.6 * s, 2.55 * s, 0.42 * s),
+        color="#0f172a",
+    )
+    _sphere(
+        scene,
+        f"{root}_pupil_r",
+        parent_id=root,
+        radius=0.05 * s,
+        position=(0.9 * s, 2.55 * s, 0.42 * s),
+        color="#0f172a",
+    )
+    _box(
+        scene,
+        f"{root}_beak",
+        parent_id=root,
+        size=(0.12 * s, 0.1 * s, 0.16 * s),
+        position=(0.75 * s, 2.28 * s, 0.38 * s),
+        color="#f59e0b",
+    )
+    _box(
+        scene,
+        f"{root}_tuft_l",
+        parent_id=root,
+        size=(0.1 * s, 0.22 * s, 0.08 * s),
+        position=(0.52 * s, 2.8 * s, 0.1 * s),
+        color="#172554",
+    )
+    _box(
+        scene,
+        f"{root}_tuft_r",
+        parent_id=root,
+        size=(0.1 * s, 0.22 * s, 0.08 * s),
+        position=(0.98 * s, 2.8 * s, 0.1 * s),
+        color="#172554",
+    )
 
 
 # 30 house recipes: (label, w, h, d, trait)
@@ -363,87 +491,430 @@ def _build_house(
 
     # Trait-specific peculiarities
     if trait == "tower":
-        _box(scene, f"{root}_spire", parent_id=root, size=(1.2, 2.2, 1.2), position=(0, body_y + h + 1.3, 0), color=wall)
-        _box(scene, f"{root}_spire_roof", parent_id=root, size=(1.5, 0.4, 1.5), position=(0, body_y + h + 2.5, 0), color=roof)
+        _box(
+            scene,
+            f"{root}_spire",
+            parent_id=root,
+            size=(1.2, 2.2, 1.2),
+            position=(0, body_y + h + 1.3, 0),
+            color=wall,
+        )
+        _box(
+            scene,
+            f"{root}_spire_roof",
+            parent_id=root,
+            size=(1.5, 0.4, 1.5),
+            position=(0, body_y + h + 2.5, 0),
+            color=roof,
+        )
     elif trait == "inn":
-        _box(scene, f"{root}_sign", parent_id=root, size=(1.2, 0.7, 0.1), position=(0, body_y + 2.2, d / 2 + 0.4), color=accent)
-        _box(scene, f"{root}_sign_arm", parent_id=root, size=(0.12, 0.12, 0.8), position=(0, body_y + 2.5, d / 2 + 0.2), color=trim)
+        _box(
+            scene,
+            f"{root}_sign",
+            parent_id=root,
+            size=(1.2, 0.7, 0.1),
+            position=(0, body_y + 2.2, d / 2 + 0.4),
+            color=accent,
+        )
+        _box(
+            scene,
+            f"{root}_sign_arm",
+            parent_id=root,
+            size=(0.12, 0.12, 0.8),
+            position=(0, body_y + 2.5, d / 2 + 0.2),
+            color=trim,
+        )
     elif trait == "forge":
-        _box(scene, f"{root}_anvil_block", parent_id=root, size=(1.2, 0.6, 1.0), position=(w / 2 + 0.9, 0.3, 0), color="#3f3f46")
-        _sphere(scene, f"{root}_ember", parent_id=root, radius=0.18, position=(w / 2 + 0.9, 0.75, 0), color="#f97316")
+        _box(
+            scene,
+            f"{root}_anvil_block",
+            parent_id=root,
+            size=(1.2, 0.6, 1.0),
+            position=(w / 2 + 0.9, 0.3, 0),
+            color="#3f3f46",
+        )
+        _sphere(
+            scene,
+            f"{root}_ember",
+            parent_id=root,
+            radius=0.18,
+            position=(w / 2 + 0.9, 0.75, 0),
+            color="#f97316",
+        )
     elif trait == "mill":
-        _box(scene, f"{root}_wheel", parent_id=root, size=(0.25, 1.8, 1.8), position=(-w / 2 - 0.3, 1.1, 0), color=trim)
+        _box(
+            scene,
+            f"{root}_wheel",
+            parent_id=root,
+            size=(0.25, 1.8, 1.8),
+            position=(-w / 2 - 0.3, 1.1, 0),
+            color=trim,
+        )
     elif trait == "balcony":
-        _box(scene, f"{root}_balcony", parent_id=root, size=(w * 0.7, 0.12, 1.0), position=(0, body_y + h * 0.65, d / 2 + 0.55), color=trim)
-        _box(scene, f"{root}_bal_rail", parent_id=root, size=(w * 0.7, 0.45, 0.1), position=(0, body_y + h * 0.65 + 0.28, d / 2 + 1.0), color=accent)
+        _box(
+            scene,
+            f"{root}_balcony",
+            parent_id=root,
+            size=(w * 0.7, 0.12, 1.0),
+            position=(0, body_y + h * 0.65, d / 2 + 0.55),
+            color=trim,
+        )
+        _box(
+            scene,
+            f"{root}_bal_rail",
+            parent_id=root,
+            size=(w * 0.7, 0.45, 0.1),
+            position=(0, body_y + h * 0.65 + 0.28, d / 2 + 1.0),
+            color=accent,
+        )
     elif trait == "tall":
-        _box(scene, f"{root}_attic", parent_id=root, size=(w * 0.85, 1.0, d * 0.85), position=(0, body_y + h + 0.7, 0), color=wall)
+        _box(
+            scene,
+            f"{root}_attic",
+            parent_id=root,
+            size=(w * 0.85, 1.0, d * 0.85),
+            position=(0, body_y + h + 0.7, 0),
+            color=wall,
+        )
     elif trait == "stall":
-        _box(scene, f"{root}_awning", parent_id=root, size=(w + 0.4, 0.1, 1.6), position=(0, 2.0, d / 2 + 0.9), color=accent)
-        _box(scene, f"{root}_counter", parent_id=root, size=(w * 0.8, 0.7, 0.7), position=(0, 0.35, d / 2 + 0.8), color=trim)
+        _box(
+            scene,
+            f"{root}_awning",
+            parent_id=root,
+            size=(w + 0.4, 0.1, 1.6),
+            position=(0, 2.0, d / 2 + 0.9),
+            color=accent,
+        )
+        _box(
+            scene,
+            f"{root}_counter",
+            parent_id=root,
+            size=(w * 0.8, 0.7, 0.7),
+            position=(0, 0.35, d / 2 + 0.8),
+            color=trim,
+        )
     elif trait == "chimney":
-        _box(scene, f"{root}_chimney", parent_id=root, size=(0.55, 1.6, 0.55), position=(w * 0.3, body_y + h + 0.9, -d * 0.2), color="#4b5563")
+        _box(
+            scene,
+            f"{root}_chimney",
+            parent_id=root,
+            size=(0.55, 1.6, 0.55),
+            position=(w * 0.3, body_y + h + 0.9, -d * 0.2),
+            color="#4b5563",
+        )
     elif trait == "wing":
-        _box(scene, f"{root}_wing", parent_id=root, size=(w * 0.55, h * 0.75, d * 0.7), position=(w * 0.55, body_y + h * 0.375, -d * 0.1), color=wall)
-        _box(scene, f"{root}_wing_roof", parent_id=root, size=(w * 0.65, 0.3, d * 0.8), position=(w * 0.55, body_y + h * 0.75 + 0.15, -d * 0.1), color=roof)
+        _box(
+            scene,
+            f"{root}_wing",
+            parent_id=root,
+            size=(w * 0.55, h * 0.75, d * 0.7),
+            position=(w * 0.55, body_y + h * 0.375, -d * 0.1),
+            color=wall,
+        )
+        _box(
+            scene,
+            f"{root}_wing_roof",
+            parent_id=root,
+            size=(w * 0.65, 0.3, d * 0.8),
+            position=(w * 0.55, body_y + h * 0.75 + 0.15, -d * 0.1),
+            color=roof,
+        )
     elif trait == "dock":
-        _box(scene, f"{root}_pier", parent_id=root, size=(1.2, 0.2, 3.5), position=(0, 0.15, d / 2 + 1.8), color=trim)
+        _box(
+            scene,
+            f"{root}_pier",
+            parent_id=root,
+            size=(1.2, 0.2, 3.5),
+            position=(0, 0.15, d / 2 + 1.8),
+            color=trim,
+        )
     elif trait == "library":
-        _box(scene, f"{root}_dome", parent_id=root, size=(1.4, 0.9, 1.4), position=(0, body_y + h + 0.7, 0), color=accent)
+        _box(
+            scene,
+            f"{root}_dome",
+            parent_id=root,
+            size=(1.4, 0.9, 1.4),
+            position=(0, body_y + h + 0.7, 0),
+            color=accent,
+        )
     elif trait == "double_roof":
-        _box(scene, f"{root}_roof2", parent_id=root, size=(w * 0.7, 0.3, d * 0.7), position=(0, body_y + h + 0.55, 0), color=roof)
+        _box(
+            scene,
+            f"{root}_roof2",
+            parent_id=root,
+            size=(w * 0.7, 0.3, d * 0.7),
+            position=(0, body_y + h + 0.55, 0),
+            color=roof,
+        )
     elif trait == "corner_tower":
-        _box(scene, f"{root}_ctower", parent_id=root, size=(1.3, h + 1.2, 1.3), position=(w / 2, body_y + (h + 1.2) / 2, d / 2), color=STONE[2])
-        _box(scene, f"{root}_ctower_cap", parent_id=root, size=(1.6, 0.35, 1.6), position=(w / 2, body_y + h + 1.4, d / 2), color=roof)
+        _box(
+            scene,
+            f"{root}_ctower",
+            parent_id=root,
+            size=(1.3, h + 1.2, 1.3),
+            position=(w / 2, body_y + (h + 1.2) / 2, d / 2),
+            color=STONE[2],
+        )
+        _box(
+            scene,
+            f"{root}_ctower_cap",
+            parent_id=root,
+            size=(1.6, 0.35, 1.6),
+            position=(w / 2, body_y + h + 1.4, d / 2),
+            color=roof,
+        )
     elif trait == "oven":
-        _sphere(scene, f"{root}_oven", parent_id=root, radius=0.55, position=(-w / 2 - 0.4, 0.55, 0), color="#78716c")
+        _sphere(
+            scene,
+            f"{root}_oven",
+            parent_id=root,
+            radius=0.55,
+            position=(-w / 2 - 0.4, 0.55, 0),
+            color="#78716c",
+        )
     elif trait == "porch":
-        _box(scene, f"{root}_porch", parent_id=root, size=(w * 0.9, 0.15, 1.4), position=(0, 0.2, d / 2 + 0.7), color=PATH)
-        _box(scene, f"{root}_col_l", parent_id=root, size=(0.2, 1.8, 0.2), position=(-w * 0.35, 1.1, d / 2 + 1.2), color=trim)
-        _box(scene, f"{root}_col_r", parent_id=root, size=(0.2, 1.8, 0.2), position=(w * 0.35, 1.1, d / 2 + 1.2), color=trim)
+        _box(
+            scene,
+            f"{root}_porch",
+            parent_id=root,
+            size=(w * 0.9, 0.15, 1.4),
+            position=(0, 0.2, d / 2 + 0.7),
+            color=PATH,
+        )
+        _box(
+            scene,
+            f"{root}_col_l",
+            parent_id=root,
+            size=(0.2, 1.8, 0.2),
+            position=(-w * 0.35, 1.1, d / 2 + 1.2),
+            color=trim,
+        )
+        _box(
+            scene,
+            f"{root}_col_r",
+            parent_id=root,
+            size=(0.2, 1.8, 0.2),
+            position=(w * 0.35, 1.1, d / 2 + 1.2),
+            color=trim,
+        )
     elif trait == "narrow":
-        _box(scene, f"{root}_bay", parent_id=root, size=(0.9, 1.2, 0.7), position=(0, body_y + 1.8, d / 2 + 0.35), color=wall)
+        _box(
+            scene,
+            f"{root}_bay",
+            parent_id=root,
+            size=(0.9, 1.2, 0.7),
+            position=(0, body_y + 1.8, d / 2 + 0.35),
+            color=wall,
+        )
     elif trait == "garden":
-        _box(scene, f"{root}_hedge", parent_id=root, size=(w + 1.5, 0.7, 0.35), position=(0, 0.35, d / 2 + 1.5), color="#3f6212")
-        _sphere(scene, f"{root}_bush", parent_id=root, radius=0.4, position=(w * 0.4, 0.4, d / 2 + 1.2), color="#4d7c0f")
+        _box(
+            scene,
+            f"{root}_hedge",
+            parent_id=root,
+            size=(w + 1.5, 0.7, 0.35),
+            position=(0, 0.35, d / 2 + 1.5),
+            color="#3f6212",
+        )
+        _sphere(
+            scene,
+            f"{root}_bush",
+            parent_id=root,
+            radius=0.4,
+            position=(w * 0.4, 0.4, d / 2 + 1.2),
+            color="#4d7c0f",
+        )
     elif trait == "warehouse":
-        _box(scene, f"{root}_crate_a", parent_id=root, size=(0.8, 0.8, 0.8), position=(w / 2 + 0.8, 0.4, 0.5), color=trim)
-        _box(scene, f"{root}_crate_b", parent_id=root, size=(0.7, 0.7, 0.7), position=(w / 2 + 0.8, 0.35, -0.5), color=WOOD[2])
+        _box(
+            scene,
+            f"{root}_crate_a",
+            parent_id=root,
+            size=(0.8, 0.8, 0.8),
+            position=(w / 2 + 0.8, 0.4, 0.5),
+            color=trim,
+        )
+        _box(
+            scene,
+            f"{root}_crate_b",
+            parent_id=root,
+            size=(0.7, 0.7, 0.7),
+            position=(w / 2 + 0.8, 0.35, -0.5),
+            color=WOOD[2],
+        )
     elif trait == "chapel":
-        _box(scene, f"{root}_steeple", parent_id=root, size=(0.7, 1.8, 0.7), position=(0, body_y + h + 1.1, 0), color=wall)
-        _box(scene, f"{root}_cross_v", parent_id=root, size=(0.12, 0.7, 0.12), position=(0, body_y + h + 2.2, 0), color="#f8fafc")
-        _box(scene, f"{root}_cross_h", parent_id=root, size=(0.45, 0.12, 0.12), position=(0, body_y + h + 2.35, 0), color="#f8fafc")
+        _box(
+            scene,
+            f"{root}_steeple",
+            parent_id=root,
+            size=(0.7, 1.8, 0.7),
+            position=(0, body_y + h + 1.1, 0),
+            color=wall,
+        )
+        _box(
+            scene,
+            f"{root}_cross_v",
+            parent_id=root,
+            size=(0.12, 0.7, 0.12),
+            position=(0, body_y + h + 2.2, 0),
+            color="#f8fafc",
+        )
+        _box(
+            scene,
+            f"{root}_cross_h",
+            parent_id=root,
+            size=(0.45, 0.12, 0.12),
+            position=(0, body_y + h + 2.35, 0),
+            color="#f8fafc",
+        )
     elif trait == "maproom":
-        _box(scene, f"{root}_oriel", parent_id=root, size=(1.1, 1.0, 0.8), position=(0, body_y + h * 0.6, d / 2 + 0.4), color="#93c5fd" if not is_red else "#fca5a5")
+        _box(
+            scene,
+            f"{root}_oriel",
+            parent_id=root,
+            size=(1.1, 1.0, 0.8),
+            position=(0, body_y + h * 0.6, d / 2 + 0.4),
+            color="#93c5fd" if not is_red else "#fca5a5",
+        )
     elif trait == "triple_chimney":
         for i, ox in enumerate((-0.7, 0.0, 0.7)):
-            _box(scene, f"{root}_ch_{i}", parent_id=root, size=(0.4, 1.3, 0.4), position=(ox, body_y + h + 0.8, -d * 0.25), color="#57534e")
+            _box(
+                scene,
+                f"{root}_ch_{i}",
+                parent_id=root,
+                size=(0.4, 1.3, 0.4),
+                position=(ox, body_y + h + 0.8, -d * 0.25),
+                color="#57534e",
+            )
     elif trait == "loggia":
-        _box(scene, f"{root}_loggia", parent_id=root, size=(w * 0.85, 0.12, 1.2), position=(0, body_y + h * 0.45, d / 2 + 0.6), color=trim)
+        _box(
+            scene,
+            f"{root}_loggia",
+            parent_id=root,
+            size=(w * 0.85, 0.12, 1.2),
+            position=(0, body_y + h * 0.45, d / 2 + 0.6),
+            color=trim,
+        )
         for i, ox in enumerate((-w * 0.3, 0.0, w * 0.3)):
-            _box(scene, f"{root}_log_col_{i}", parent_id=root, size=(0.18, h * 0.45, 0.18), position=(ox, body_y + h * 0.225, d / 2 + 1.1), color=STONE[1])
+            _box(
+                scene,
+                f"{root}_log_col_{i}",
+                parent_id=root,
+                size=(0.18, h * 0.45, 0.18),
+                position=(ox, body_y + h * 0.225, d / 2 + 1.1),
+                color=STONE[1],
+            )
     elif trait == "scribe":
-        _box(scene, f"{root}_lantern", parent_id=root, size=(0.25, 0.35, 0.25), position=(0, body_y + 1.8, d / 2 + 0.25), color="#fde68a")
+        _box(
+            scene,
+            f"{root}_lantern",
+            parent_id=root,
+            size=(0.25, 0.35, 0.25),
+            position=(0, body_y + 1.8, d / 2 + 0.25),
+            color="#fde68a",
+        )
     elif trait == "loom":
-        _box(scene, f"{root}_frame", parent_id=root, size=(1.5, 1.4, 0.2), position=(w / 2 + 0.9, 0.9, 0), color=trim)
-        _box(scene, f"{root}_cloth_hang", parent_id=root, size=(1.2, 1.0, 0.08), position=(w / 2 + 0.9, 0.8, 0.15), color=accent)
+        _box(
+            scene,
+            f"{root}_frame",
+            parent_id=root,
+            size=(1.5, 1.4, 0.2),
+            position=(w / 2 + 0.9, 0.9, 0),
+            color=trim,
+        )
+        _box(
+            scene,
+            f"{root}_cloth_hang",
+            parent_id=root,
+            size=(1.2, 1.0, 0.08),
+            position=(w / 2 + 0.9, 0.8, 0.15),
+            color=accent,
+        )
     elif trait == "raised":
-        _box(scene, f"{root}_stilts_l", parent_id=root, size=(0.25, 0.3, 0.25), position=(-w * 0.35, 0.15, d * 0.3), color=trim)
-        _box(scene, f"{root}_stilts_r", parent_id=root, size=(0.25, 0.3, 0.25), position=(w * 0.35, 0.15, d * 0.3), color=trim)
+        _box(
+            scene,
+            f"{root}_stilts_l",
+            parent_id=root,
+            size=(0.25, 0.3, 0.25),
+            position=(-w * 0.35, 0.15, d * 0.3),
+            color=trim,
+        )
+        _box(
+            scene,
+            f"{root}_stilts_r",
+            parent_id=root,
+            size=(0.25, 0.3, 0.25),
+            position=(w * 0.35, 0.15, d * 0.3),
+            color=trim,
+        )
     elif trait == "stable":
-        _box(scene, f"{root}_stable", parent_id=root, size=(w * 0.7, h * 0.6, d * 0.8), position=(w * 0.6, h * 0.3, 0), color=WOOD[3])
+        _box(
+            scene,
+            f"{root}_stable",
+            parent_id=root,
+            size=(w * 0.7, h * 0.6, d * 0.8),
+            position=(w * 0.6, h * 0.3, 0),
+            color=WOOD[3],
+        )
     elif trait == "bell":
-        _box(scene, f"{root}_belfry", parent_id=root, size=(1.0, 1.2, 1.0), position=(0, body_y + h + 0.9, 0), color=wall)
-        _sphere(scene, f"{root}_bell", parent_id=root, radius=0.25, position=(0, body_y + h + 0.85, 0), color="#ca8a04")
+        _box(
+            scene,
+            f"{root}_belfry",
+            parent_id=root,
+            size=(1.0, 1.2, 1.0),
+            position=(0, body_y + h + 0.9, 0),
+            color=wall,
+        )
+        _sphere(
+            scene,
+            f"{root}_bell",
+            parent_id=root,
+            radius=0.25,
+            position=(0, body_y + h + 0.85, 0),
+            color="#ca8a04",
+        )
     elif trait == "herbs":
         for i, ox in enumerate((-0.6, 0.0, 0.6)):
-            _sphere(scene, f"{root}_herb_{i}", parent_id=root, radius=0.28, position=(ox, 0.3, d / 2 + 1.0), color=("#65a30d", "#4d7c0f", "#84cc16")[i])
+            _sphere(
+                scene,
+                f"{root}_herb_{i}",
+                parent_id=root,
+                radius=0.28,
+                position=(ox, 0.3, d / 2 + 1.0),
+                color=("#65a30d", "#4d7c0f", "#84cc16")[i],
+            )
     elif trait == "palace":
-        _box(scene, f"{root}_cornice", parent_id=root, size=(w + 0.5, 0.25, d + 0.5), position=(0, body_y + h + 0.45, 0), color=accent)
-        _box(scene, f"{root}_banner_hang", parent_id=root, size=(0.9, 1.5, 0.08), position=(0, body_y + h * 0.55, d / 2 + 0.2), color=accent)
+        _box(
+            scene,
+            f"{root}_cornice",
+            parent_id=root,
+            size=(w + 0.5, 0.25, d + 0.5),
+            position=(0, body_y + h + 0.45, 0),
+            color=accent,
+        )
+        _box(
+            scene,
+            f"{root}_banner_hang",
+            parent_id=root,
+            size=(0.9, 1.5, 0.08),
+            position=(0, body_y + h * 0.55, d / 2 + 0.2),
+            color=accent,
+        )
     elif trait == "herald":
-        _box(scene, f"{root}_pole", parent_id=root, size=(0.1, 2.4, 0.1), position=(w / 2 + 0.5, 1.2, d / 2), color=trim)
-        _box(scene, f"{root}_flag", parent_id=root, size=(1.0, 0.7, 0.06), position=(w / 2 + 1.05, 2.1, d / 2), color=accent)
+        _box(
+            scene,
+            f"{root}_pole",
+            parent_id=root,
+            size=(0.1, 2.4, 0.1),
+            position=(w / 2 + 0.5, 1.2, d / 2),
+            color=trim,
+        )
+        _box(
+            scene,
+            f"{root}_flag",
+            parent_id=root,
+            size=(1.0, 0.7, 0.06),
+            position=(w / 2 + 1.05, 2.1, d / 2),
+            color=accent,
+        )
 
 
 def _place_districts(scene: Scene) -> None:

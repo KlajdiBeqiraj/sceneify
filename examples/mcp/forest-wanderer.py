@@ -13,8 +13,8 @@ Assets: Poly Haven mossy_forest HDRI (CC0) + KayKit mage (examples/assets/kaykit
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from sceneify import Game, Material, Physics, Scene
 
@@ -39,7 +39,9 @@ CLOAK = "#3b6ea5"
 SKIN = "#e7c6a0"
 
 
-def _m(color: str, *, roughness: float = 0.92, metalness: float = 0.0, opacity: float = 1.0) -> Material:
+def _m(
+    color: str, *, roughness: float = 0.92, metalness: float = 0.0, opacity: float = 1.0
+) -> Material:
     return Material(color=color, roughness=roughness, metalness=metalness, opacity=opacity)
 
 
@@ -141,8 +143,21 @@ def _fir(
 
 
 def _stump(scene: Scene, node_id: str, *, x: float, z: float, yaw: float = 0.0) -> None:
-    scene.add_object(node_id, label="Ceppo", position=(x, 0.0, z), rotation=(0.0, yaw, 0.0), tags=["prop", "stump"])
-    _box(scene, f"{node_id}_body", parent_id=node_id, size=(0.9, 0.55, 0.9), position=(0.0, 0.28, 0.0), color=BARK)
+    scene.add_object(
+        node_id,
+        label="Ceppo",
+        position=(x, 0.0, z),
+        rotation=(0.0, yaw, 0.0),
+        tags=["prop", "stump"],
+    )
+    _box(
+        scene,
+        f"{node_id}_body",
+        parent_id=node_id,
+        size=(0.9, 0.55, 0.9),
+        position=(0.0, 0.28, 0.0),
+        color=BARK,
+    )
     _sphere(
         scene,
         f"{node_id}_top",
@@ -155,8 +170,16 @@ def _stump(scene: Scene, node_id: str, *, x: float, z: float, yaw: float = 0.0) 
     )
 
 
-def _rock(scene: Scene, node_id: str, *, x: float, z: float, scale: float = 1.0, yaw: float = 0.0) -> None:
-    scene.add_object(node_id, label="Roccia", position=(x, 0.0, z), rotation=(0.0, yaw, 0.0), tags=["prop", "rock"])
+def _rock(
+    scene: Scene, node_id: str, *, x: float, z: float, scale: float = 1.0, yaw: float = 0.0
+) -> None:
+    scene.add_object(
+        node_id,
+        label="Roccia",
+        position=(x, 0.0, z),
+        rotation=(0.0, yaw, 0.0),
+        tags=["prop", "rock"],
+    )
     _sphere(
         scene,
         f"{node_id}_a",
@@ -183,8 +206,22 @@ def _rock(scene: Scene, node_id: str, *, x: float, z: float, scale: float = 1.0,
 def _shrine(scene: Scene, node_id: str, *, x: float, z: float) -> None:
     """Simple stone shrine figure (placeholder for a woodland guardian)."""
     scene.add_object(node_id, label="Santuario", position=(x, 0.0, z), tags=["prop", "shrine"])
-    _box(scene, f"{node_id}_base", parent_id=node_id, size=(1.4, 0.25, 1.4), position=(0.0, 0.12, 0.0), color=STONE)
-    _box(scene, f"{node_id}_plinth", parent_id=node_id, size=(0.7, 0.5, 0.7), position=(0.0, 0.5, 0.0), color="#7a7468")
+    _box(
+        scene,
+        f"{node_id}_base",
+        parent_id=node_id,
+        size=(1.4, 0.25, 1.4),
+        position=(0.0, 0.12, 0.0),
+        color=STONE,
+    )
+    _box(
+        scene,
+        f"{node_id}_plinth",
+        parent_id=node_id,
+        size=(0.7, 0.5, 0.7),
+        position=(0.0, 0.5, 0.0),
+        color="#7a7468",
+    )
     scene.create_primitive(
         f"{node_id}_body",
         "capsule",
@@ -195,14 +232,44 @@ def _shrine(scene: Scene, node_id: str, *, x: float, z: float) -> None:
         material=_m("#9a9488"),
         tags=["prop", "shrine"],
     )
-    _sphere(scene, f"{node_id}_head", parent_id=node_id, radius=0.22, position=(0.0, 1.95, 0.0), color="#aea89c")
+    _sphere(
+        scene,
+        f"{node_id}_head",
+        parent_id=node_id,
+        radius=0.22,
+        position=(0.0, 1.95, 0.0),
+        color="#aea89c",
+    )
 
 
 def _add_terrain(scene: Scene) -> None:
-    _box(scene, "ground", size=(48.0, 0.25, 48.0), position=(0.0, -0.12, 0.0), color=GROUND, tags=["ground"])
-    _box(scene, "moss_patch", size=(18.0, 0.08, 14.0), position=(0.0, 0.02, -2.0), color=MOSS, tags=["ground", "moss"])
-    _box(scene, "path", size=(3.2, 0.06, 28.0), position=(0.0, 0.04, 2.0), color=PATH, tags=["path"])
-    _box(scene, "clearing", size=(10.0, 0.05, 10.0), position=(0.0, 0.03, 4.0), color="#4a6b42", tags=["clearing"])
+    _box(
+        scene,
+        "ground",
+        size=(48.0, 0.25, 48.0),
+        position=(0.0, -0.12, 0.0),
+        color=GROUND,
+        tags=["ground"],
+    )
+    _box(
+        scene,
+        "moss_patch",
+        size=(18.0, 0.08, 14.0),
+        position=(0.0, 0.02, -2.0),
+        color=MOSS,
+        tags=["ground", "moss"],
+    )
+    _box(
+        scene, "path", size=(3.2, 0.06, 28.0), position=(0.0, 0.04, 2.0), color=PATH, tags=["path"]
+    )
+    _box(
+        scene,
+        "clearing",
+        size=(10.0, 0.05, 10.0),
+        position=(0.0, 0.03, 4.0),
+        color="#4a6b42",
+        tags=["clearing"],
+    )
 
 
 def _add_forest(scene: Scene) -> None:

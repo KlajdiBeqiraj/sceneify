@@ -4,6 +4,7 @@ from pathlib import Path
 
 from sceneify import Material, Physics, Scene
 
+
 # sceneify:scene-begin
 def build_scene() -> Scene:
     scene = Scene("Conversational Room", background="#10131a")

@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import json
 import struct
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from sceneify import Material, Physics, Scene
 
@@ -37,7 +37,9 @@ BANK = "#4a6b3a"
 STONE = "#6f685c"
 
 
-def _m(color: str, *, roughness: float = 0.9, metalness: float = 0.0, opacity: float = 1.0) -> Material:
+def _m(
+    color: str, *, roughness: float = 0.9, metalness: float = 0.0, opacity: float = 1.0
+) -> Material:
     return Material(color=color, roughness=roughness, metalness=metalness, opacity=opacity)
 
 
@@ -89,7 +91,9 @@ def _sphere(
     )
 
 
-def _poi(scene: Scene, node_id: str, position: Sequence[float], label: str, description: str) -> None:
+def _poi(
+    scene: Scene, node_id: str, position: Sequence[float], label: str, description: str
+) -> None:
     scene.add_annotation(node_id, tuple(position), label=label, description=description)
 
 
@@ -145,59 +149,293 @@ def _place_glb(
     return True
 
 
-def _wolf_banner(scene: Scene, root: str, *, x: float, z: float, scale: float = 1.0, yaw: float = 0.0) -> None:
-    scene.add_object(root, label="Stemma Lupo Rosso", position=(x, 0.0, z), rotation=(0.0, yaw, 0.0), tags=["banner", "red", "wolf"])
+def _wolf_banner(
+    scene: Scene, root: str, *, x: float, z: float, scale: float = 1.0, yaw: float = 0.0
+) -> None:
+    scene.add_object(
+        root,
+        label="Stemma Lupo Rosso",
+        position=(x, 0.0, z),
+        rotation=(0.0, yaw, 0.0),
+        tags=["banner", "red", "wolf"],
+    )
     s = scale
-    _box(scene, f"{root}_pole", parent_id=root, size=(0.12 * s, 3.2 * s, 0.12 * s), position=(0, 1.6 * s, 0), color=WOOD[0])
-    _box(scene, f"{root}_cloth", parent_id=root, size=(1.4 * s, 1.8 * s, 0.08 * s), position=(0.75 * s, 2.4 * s, 0), color=RED)
-    _sphere(scene, f"{root}_head", parent_id=root, radius=0.28 * s, position=(0.75 * s, 2.55 * s, 0.12 * s), color="#7f1d1d")
-    _box(scene, f"{root}_snout", parent_id=root, size=(0.22 * s, 0.14 * s, 0.28 * s), position=(0.75 * s, 2.35 * s, 0.28 * s), color="#991b1b")
-    _box(scene, f"{root}_ear_l", parent_id=root, size=(0.12 * s, 0.22 * s, 0.08 * s), position=(0.55 * s, 2.85 * s, 0.12 * s), color="#450a0a")
-    _box(scene, f"{root}_ear_r", parent_id=root, size=(0.12 * s, 0.22 * s, 0.08 * s), position=(0.95 * s, 2.85 * s, 0.12 * s), color="#450a0a")
-    _sphere(scene, f"{root}_eye_l", parent_id=root, radius=0.05 * s, position=(0.62 * s, 2.6 * s, 0.32 * s), color="#fef08a")
-    _sphere(scene, f"{root}_eye_r", parent_id=root, radius=0.05 * s, position=(0.88 * s, 2.6 * s, 0.32 * s), color="#fef08a")
+    _box(
+        scene,
+        f"{root}_pole",
+        parent_id=root,
+        size=(0.12 * s, 3.2 * s, 0.12 * s),
+        position=(0, 1.6 * s, 0),
+        color=WOOD[0],
+    )
+    _box(
+        scene,
+        f"{root}_cloth",
+        parent_id=root,
+        size=(1.4 * s, 1.8 * s, 0.08 * s),
+        position=(0.75 * s, 2.4 * s, 0),
+        color=RED,
+    )
+    _sphere(
+        scene,
+        f"{root}_head",
+        parent_id=root,
+        radius=0.28 * s,
+        position=(0.75 * s, 2.55 * s, 0.12 * s),
+        color="#7f1d1d",
+    )
+    _box(
+        scene,
+        f"{root}_snout",
+        parent_id=root,
+        size=(0.22 * s, 0.14 * s, 0.28 * s),
+        position=(0.75 * s, 2.35 * s, 0.28 * s),
+        color="#991b1b",
+    )
+    _box(
+        scene,
+        f"{root}_ear_l",
+        parent_id=root,
+        size=(0.12 * s, 0.22 * s, 0.08 * s),
+        position=(0.55 * s, 2.85 * s, 0.12 * s),
+        color="#450a0a",
+    )
+    _box(
+        scene,
+        f"{root}_ear_r",
+        parent_id=root,
+        size=(0.12 * s, 0.22 * s, 0.08 * s),
+        position=(0.95 * s, 2.85 * s, 0.12 * s),
+        color="#450a0a",
+    )
+    _sphere(
+        scene,
+        f"{root}_eye_l",
+        parent_id=root,
+        radius=0.05 * s,
+        position=(0.62 * s, 2.6 * s, 0.32 * s),
+        color="#fef08a",
+    )
+    _sphere(
+        scene,
+        f"{root}_eye_r",
+        parent_id=root,
+        radius=0.05 * s,
+        position=(0.88 * s, 2.6 * s, 0.32 * s),
+        color="#fef08a",
+    )
 
 
-def _owl_banner(scene: Scene, root: str, *, x: float, z: float, scale: float = 1.0, yaw: float = 0.0) -> None:
-    scene.add_object(root, label="Stemma Gufo Blu", position=(x, 0.0, z), rotation=(0.0, yaw, 0.0), tags=["banner", "blue", "owl"])
+def _owl_banner(
+    scene: Scene, root: str, *, x: float, z: float, scale: float = 1.0, yaw: float = 0.0
+) -> None:
+    scene.add_object(
+        root,
+        label="Stemma Gufo Blu",
+        position=(x, 0.0, z),
+        rotation=(0.0, yaw, 0.0),
+        tags=["banner", "blue", "owl"],
+    )
     s = scale
-    _box(scene, f"{root}_pole", parent_id=root, size=(0.12 * s, 3.2 * s, 0.12 * s), position=(0, 1.6 * s, 0), color=WOOD[1])
-    _box(scene, f"{root}_cloth", parent_id=root, size=(1.4 * s, 1.8 * s, 0.08 * s), position=(0.75 * s, 2.4 * s, 0), color=BLUE)
-    _sphere(scene, f"{root}_body", parent_id=root, radius=0.32 * s, position=(0.75 * s, 2.4 * s, 0.12 * s), color="#1e3a8a")
-    _sphere(scene, f"{root}_eye_l", parent_id=root, radius=0.12 * s, position=(0.6 * s, 2.55 * s, 0.32 * s), color="#e0f2fe")
-    _sphere(scene, f"{root}_eye_r", parent_id=root, radius=0.12 * s, position=(0.9 * s, 2.55 * s, 0.32 * s), color="#e0f2fe")
-    _sphere(scene, f"{root}_pupil_l", parent_id=root, radius=0.05 * s, position=(0.6 * s, 2.55 * s, 0.42 * s), color="#0f172a")
-    _sphere(scene, f"{root}_pupil_r", parent_id=root, radius=0.05 * s, position=(0.9 * s, 2.55 * s, 0.42 * s), color="#0f172a")
-    _box(scene, f"{root}_beak", parent_id=root, size=(0.12 * s, 0.1 * s, 0.16 * s), position=(0.75 * s, 2.28 * s, 0.38 * s), color="#f59e0b")
-    _box(scene, f"{root}_tuft_l", parent_id=root, size=(0.1 * s, 0.22 * s, 0.08 * s), position=(0.52 * s, 2.8 * s, 0.1 * s), color="#172554")
-    _box(scene, f"{root}_tuft_r", parent_id=root, size=(0.1 * s, 0.22 * s, 0.08 * s), position=(0.98 * s, 2.8 * s, 0.1 * s), color="#172554")
+    _box(
+        scene,
+        f"{root}_pole",
+        parent_id=root,
+        size=(0.12 * s, 3.2 * s, 0.12 * s),
+        position=(0, 1.6 * s, 0),
+        color=WOOD[1],
+    )
+    _box(
+        scene,
+        f"{root}_cloth",
+        parent_id=root,
+        size=(1.4 * s, 1.8 * s, 0.08 * s),
+        position=(0.75 * s, 2.4 * s, 0),
+        color=BLUE,
+    )
+    _sphere(
+        scene,
+        f"{root}_body",
+        parent_id=root,
+        radius=0.32 * s,
+        position=(0.75 * s, 2.4 * s, 0.12 * s),
+        color="#1e3a8a",
+    )
+    _sphere(
+        scene,
+        f"{root}_eye_l",
+        parent_id=root,
+        radius=0.12 * s,
+        position=(0.6 * s, 2.55 * s, 0.32 * s),
+        color="#e0f2fe",
+    )
+    _sphere(
+        scene,
+        f"{root}_eye_r",
+        parent_id=root,
+        radius=0.12 * s,
+        position=(0.9 * s, 2.55 * s, 0.32 * s),
+        color="#e0f2fe",
+    )
+    _sphere(
+        scene,
+        f"{root}_pupil_l",
+        parent_id=root,
+        radius=0.05 * s,
+        position=(0.6 * s, 2.55 * s, 0.42 * s),
+        color="#0f172a",
+    )
+    _sphere(
+        scene,
+        f"{root}_pupil_r",
+        parent_id=root,
+        radius=0.05 * s,
+        position=(0.9 * s, 2.55 * s, 0.42 * s),
+        color="#0f172a",
+    )
+    _box(
+        scene,
+        f"{root}_beak",
+        parent_id=root,
+        size=(0.12 * s, 0.1 * s, 0.16 * s),
+        position=(0.75 * s, 2.28 * s, 0.38 * s),
+        color="#f59e0b",
+    )
+    _box(
+        scene,
+        f"{root}_tuft_l",
+        parent_id=root,
+        size=(0.1 * s, 0.22 * s, 0.08 * s),
+        position=(0.52 * s, 2.8 * s, 0.1 * s),
+        color="#172554",
+    )
+    _box(
+        scene,
+        f"{root}_tuft_r",
+        parent_id=root,
+        size=(0.1 * s, 0.22 * s, 0.08 * s),
+        position=(0.98 * s, 2.8 * s, 0.1 * s),
+        color="#172554",
+    )
 
 
 def _add_terrain(scene: Scene) -> None:
     """Ground, river, banks, and roads that form the town skeleton."""
-    _box(scene, "ground", size=(80.0, 0.25, 90.0), position=(0.0, -0.12, 0.0), color=GROUND, tags=["ground"])
+    _box(
+        scene,
+        "ground",
+        size=(80.0, 0.25, 90.0),
+        position=(0.0, -0.12, 0.0),
+        color=GROUND,
+        tags=["ground"],
+    )
 
     # River runs north-south through the center (narrower near bridge, wider at docks).
-    _box(scene, "river", size=(5.0, 0.35, 100.0), position=(0.0, -0.28, 0.0), color=RIVER, opacity=0.92, tags=["river", "water"])
-    _box(scene, "bank_west", size=(1.4, 0.18, 100.0), position=(-3.2, -0.04, 0.0), color=BANK, tags=["riverbank"])
-    _box(scene, "bank_east", size=(1.4, 0.18, 100.0), position=(3.2, -0.04, 0.0), color=BANK, tags=["riverbank"])
+    _box(
+        scene,
+        "river",
+        size=(5.0, 0.35, 100.0),
+        position=(0.0, -0.28, 0.0),
+        color=RIVER,
+        opacity=0.92,
+        tags=["river", "water"],
+    )
+    _box(
+        scene,
+        "bank_west",
+        size=(1.4, 0.18, 100.0),
+        position=(-3.2, -0.04, 0.0),
+        color=BANK,
+        tags=["riverbank"],
+    )
+    _box(
+        scene,
+        "bank_east",
+        size=(1.4, 0.18, 100.0),
+        position=(3.2, -0.04, 0.0),
+        color=BANK,
+        tags=["riverbank"],
+    )
 
     # Main road along both banks (parallel to river).
-    _box(scene, "road_west", size=(5.5, 0.08, 72.0), position=(-7.0, 0.02, 0.0), color=PATH, tags=["path", "road"])
-    _box(scene, "road_east", size=(5.5, 0.08, 72.0), position=(7.0, 0.02, 0.0), color=PATH, tags=["path", "road"])
+    _box(
+        scene,
+        "road_west",
+        size=(5.5, 0.08, 72.0),
+        position=(-7.0, 0.02, 0.0),
+        color=PATH,
+        tags=["path", "road"],
+    )
+    _box(
+        scene,
+        "road_east",
+        size=(5.5, 0.08, 72.0),
+        position=(7.0, 0.02, 0.0),
+        color=PATH,
+        tags=["path", "road"],
+    )
 
     # Bridge approaches (east-west spurs).
-    _box(scene, "approach_west", size=(8.0, 0.08, 5.0), position=(-8.0, 0.03, 0.0), color=PLAZA, tags=["path"])
-    _box(scene, "approach_east", size=(8.0, 0.08, 5.0), position=(8.0, 0.03, 0.0), color=PLAZA, tags=["path"])
+    _box(
+        scene,
+        "approach_west",
+        size=(8.0, 0.08, 5.0),
+        position=(-8.0, 0.03, 0.0),
+        color=PLAZA,
+        tags=["path"],
+    )
+    _box(
+        scene,
+        "approach_east",
+        size=(8.0, 0.08, 5.0),
+        position=(8.0, 0.03, 0.0),
+        color=PLAZA,
+        tags=["path"],
+    )
 
     # District plazas.
-    _box(scene, "plaza_treaty", size=(12.0, 0.1, 12.0), position=(0.0, 0.04, 0.0), color=PLAZA, tags=["plaza", "neutral"])
-    _box(scene, "plaza_wolf", size=(14.0, 0.08, 16.0), position=(-14.0, 0.03, -6.0), color="#6e6558", tags=["plaza", "red"])
-    _box(scene, "plaza_owl", size=(14.0, 0.08, 16.0), position=(14.0, 0.03, 6.0), color="#5e6670", tags=["plaza", "blue"])
+    _box(
+        scene,
+        "plaza_treaty",
+        size=(12.0, 0.1, 12.0),
+        position=(0.0, 0.04, 0.0),
+        color=PLAZA,
+        tags=["plaza", "neutral"],
+    )
+    _box(
+        scene,
+        "plaza_wolf",
+        size=(14.0, 0.08, 16.0),
+        position=(-14.0, 0.03, -6.0),
+        color="#6e6558",
+        tags=["plaza", "red"],
+    )
+    _box(
+        scene,
+        "plaza_owl",
+        size=(14.0, 0.08, 16.0),
+        position=(14.0, 0.03, 6.0),
+        color="#5e6670",
+        tags=["plaza", "blue"],
+    )
 
     # Wooden dock pads by the river (south of bridge).
-    _box(scene, "dock_west", size=(3.5, 0.22, 8.0), position=(-4.5, 0.08, 14.0), color=WOOD[0], tags=["dock", "red"])
-    _box(scene, "dock_east", size=(3.5, 0.22, 8.0), position=(4.5, 0.08, 14.0), color=WOOD[1], tags=["dock", "blue"])
+    _box(
+        scene,
+        "dock_west",
+        size=(3.5, 0.22, 8.0),
+        position=(-4.5, 0.08, 14.0),
+        color=WOOD[0],
+        tags=["dock", "red"],
+    )
+    _box(
+        scene,
+        "dock_east",
+        size=(3.5, 0.22, 8.0),
+        position=(4.5, 0.08, 14.0),
+        color=WOOD[1],
+        tags=["dock", "blue"],
+    )
 
     _poi(
         scene,
@@ -209,15 +447,63 @@ def _add_terrain(scene: Scene) -> None:
 
 
 def _add_bridge(scene: Scene) -> None:
-    scene.add_object("bridge", label="Ponte del Confine", position=(0.0, 0.0, 0.0), tags=["bridge", "landmark", "neutral"])
-    _box(scene, "bridge_deck", parent_id="bridge", size=(10.0, 0.35, 5.0), position=(0.0, 0.55, 0.0), color=PLAZA, tags=["bridge"])
-    _box(scene, "bridge_rail_n", parent_id="bridge", size=(10.0, 0.55, 0.25), position=(0.0, 0.95, -2.35), color=STONE)
-    _box(scene, "bridge_rail_s", parent_id="bridge", size=(10.0, 0.55, 0.25), position=(0.0, 0.95, 2.35), color=STONE)
+    scene.add_object(
+        "bridge",
+        label="Ponte del Confine",
+        position=(0.0, 0.0, 0.0),
+        tags=["bridge", "landmark", "neutral"],
+    )
+    _box(
+        scene,
+        "bridge_deck",
+        parent_id="bridge",
+        size=(10.0, 0.35, 5.0),
+        position=(0.0, 0.55, 0.0),
+        color=PLAZA,
+        tags=["bridge"],
+    )
+    _box(
+        scene,
+        "bridge_rail_n",
+        parent_id="bridge",
+        size=(10.0, 0.55, 0.25),
+        position=(0.0, 0.95, -2.35),
+        color=STONE,
+    )
+    _box(
+        scene,
+        "bridge_rail_s",
+        parent_id="bridge",
+        size=(10.0, 0.55, 0.25),
+        position=(0.0, 0.95, 2.35),
+        color=STONE,
+    )
     for i, x in enumerate((-3.2, -1.1, 1.1, 3.2)):
-        _box(scene, f"bridge_pier_{i}", parent_id="bridge", size=(0.75, 1.15, 1.5), position=(x, 0.15, 0.0), color="#5c564c")
+        _box(
+            scene,
+            f"bridge_pier_{i}",
+            parent_id="bridge",
+            size=(0.75, 1.15, 1.5),
+            position=(x, 0.15, 0.0),
+            color="#5c564c",
+        )
     # Split crest: red west half, blue east half.
-    _box(scene, "bridge_crest_red", parent_id="bridge", size=(0.18, 1.5, 0.9), position=(-0.4, 1.45, 0.0), color=RED)
-    _box(scene, "bridge_crest_blue", parent_id="bridge", size=(0.18, 1.5, 0.9), position=(0.4, 1.45, 0.0), color=BLUE)
+    _box(
+        scene,
+        "bridge_crest_red",
+        parent_id="bridge",
+        size=(0.18, 1.5, 0.9),
+        position=(-0.4, 1.45, 0.0),
+        color=RED,
+    )
+    _box(
+        scene,
+        "bridge_crest_blue",
+        parent_id="bridge",
+        size=(0.18, 1.5, 0.9),
+        position=(0.4, 1.45, 0.0),
+        color=BLUE,
+    )
     _poi(
         scene,
         "poi_bridge",
@@ -307,8 +593,22 @@ def _add_red_wolf_district(scene: Scene) -> None:
 
     # Food market row facing the west road (south of tavern).
     food_row = (
-        ("stall_bread", "medieval-fair-007", "Booth_Food01.glb", (-12.5, -12.0), "Bottega del Pane", "Pane caldo e focacce per i viandanti."),
-        ("stall_spices", "medieval-fair-008", "Booth_Food02.glb", (-17.5, -12.0), "Bottega delle Spezie", "Sale, pepe e erbe dal sud. Odore forte sulla piazza."),
+        (
+            "stall_bread",
+            "medieval-fair-007",
+            "Booth_Food01.glb",
+            (-12.5, -12.0),
+            "Bottega del Pane",
+            "Pane caldo e focacce per i viandanti.",
+        ),
+        (
+            "stall_spices",
+            "medieval-fair-008",
+            "Booth_Food02.glb",
+            (-17.5, -12.0),
+            "Bottega delle Spezie",
+            "Sale, pepe e erbe dal sud. Odore forte sulla piazza.",
+        ),
     )
     for node_id, remote, filename, (x, z), label, desc in food_row:
         _place_glb(
