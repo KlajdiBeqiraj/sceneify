@@ -143,20 +143,11 @@ scene.add_annotation(
 
 See [docs/protocol.md](docs/protocol.md) for synchronization and semantic events.
 
-## Use with Gymnasium and Stable Baselines3
+## Reinforcement learning
 
-The optional RL extra installs Gymnasium only:
-
-```bash
-uv add "sceneify[rl]"
-```
-
-`sceneify.rl.ReachTargetEnv` trains headless and can stream a human render to the browser. Stable
-Baselines3 is not a sceneify dependency. Add it to the application that needs it:
-
-```bash
-uv add stable-baselines3 "sceneify[rl]"
-```
+RL training lives in [scenegym](https://github.com/KlajdiBeqiraj/scenegym). sceneify remains
+the viewer and world authoring stack; install `scenegym` for Gymnasium envs and optional
+Stable Baselines3.
 
 ## Build worlds with a coding agent
 
@@ -232,15 +223,14 @@ package and remain independent from model SDKs. The `sceneify[mcp]` extra only a
 
 ```bash
 uv add "sceneify[mesh]"
-uv add "sceneify[rl]"
 uv add "sceneify[llm]"
 uv add "sceneify[mcp]"
 ```
 
 * `mesh` adds local geometry processing with trimesh and NumPy
-* `rl` adds the Gymnasium environment interface
 * `llm` keeps a provider-neutral install target without installing model runtimes
 * `mcp` adds the optional MCP stdio server for coding agents
+* `rl` is an empty compatibility marker; use the separate `scenegym` package for training
 
 ## Examples and checks
 

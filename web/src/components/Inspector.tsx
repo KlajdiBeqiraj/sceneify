@@ -1,10 +1,14 @@
-import { Copy, Trash2, X } from "lucide-react";
+import { BoxSelect, Copy, Trash2, X } from "lucide-react";
 import type { EditableNode, GameplayRole, NodeFields, ScenePayload } from "../types/scene";
 import type { NodePatch } from "../hooks/useScene";
 
 export function findNode(scene: ScenePayload, id: string | null): EditableNode | null {
   if (!id) return null;
   return [...scene.meshes, ...scene.objects, ...(scene.primitives ?? []), ...scene.annotations].find((node) => node.id === id) ?? null;
+}
+
+function isGraphNode(node: EditableNode): boolean {
+  return node.kind === "mesh" || node.kind === "object" || node.kind === "primitive";
 }
 
 function VectorInput({ label, values, onCommit }: { label: string; values: number[]; onCommit: (value: number[]) => void }) {
@@ -30,6 +34,7 @@ export function Inspector({
   onGameplayRole,
   onDuplicate,
   onDelete,
+  onSavePrefab,
 }: {
   scene: ScenePayload;
   selectedId: string | null;
@@ -39,6 +44,7 @@ export function Inspector({
   onGameplayRole: (id: string, role: GameplayRole) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
+  onSavePrefab: (id: string) => void;
 }) {
   const node = findNode(scene, selectedId);
   if (!node) return <div className="inspector-empty"><p>Select an entity to inspect it.</p></div>;
@@ -71,7 +77,15 @@ export function Inspector({
         <label className="form-field"><span>Gameplay role</span><select value={gameplayRole} onChange={(event) => onGameplayRole(node.id, event.target.value as GameplayRole)}>{roles.map((role) => <option key={role}>{role}</option>)}</select></label>
         <label className="form-field"><span>Tags</span><input value={fields.tags?.join(", ") ?? ""} onChange={(event) => onPatch(node.id, { tags: event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean) })} /></label>
       </section>
-      <div className="danger-actions"><button onClick={() => onDuplicate(node.id)}><Copy size={15} />Duplicate</button><button className="danger" onClick={() => onDelete(node.id)}><Trash2 size={15} />Delete</button></div>
+      <div className="danger-actions">
+        {isGraphNode(node) && (
+          <button onClick={() => onSavePrefab(node.id)} title="Save selection subtree as prefab">
+            <BoxSelect size={15} />Save prefab
+          </button>
+        )}
+        <button onClick={() => onDuplicate(node.id)}><Copy size={15} />Duplicate</button>
+        <button className="danger" onClick={() => onDelete(node.id)}><Trash2 size={15} />Delete</button>
+      </div>
     </div>
   );
 }

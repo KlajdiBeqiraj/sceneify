@@ -143,6 +143,8 @@ export function App() {
     void run(() => patchNode(id, patch, scene.revision), `Updated ${id}`);
   }, [run]);
 
+  const [focusNonce, setFocusNonce] = useState(0);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (isTextEntry(event.target) || running) {
@@ -171,6 +173,20 @@ export function App() {
       if (commandKey || event.altKey) {
         return;
       }
+      if (event.key === "Delete" || event.key === "Backspace") {
+        if (state.selectedId) {
+          event.preventDefault();
+          command("delete", { id: state.selectedId }, `Deleted ${state.selectedId}`);
+        }
+        return;
+      }
+      if (key === "f") {
+        if (state.selectedId) {
+          event.preventDefault();
+          setFocusNonce((value) => value + 1);
+        }
+        return;
+      }
       if (key === "w") {
         dispatch({ type: "transformMode", mode: "translate" });
       } else if (key === "e") {
@@ -181,7 +197,7 @@ export function App() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [command, running]);
+  }, [command, running, state.selectedId]);
 
   useEffect(() => {
     if (!running || state.gamePhase !== "playing") return;
@@ -304,6 +320,7 @@ export function App() {
             scene={scene}
             runtimePoses={state.runtimePoses}
             selectedId={state.selectedId}
+            focusNonce={focusNonce}
             editing={editorConnected && !running}
             playing={running}
             gameActive={state.gamePhase === "playing"}
@@ -352,7 +369,16 @@ export function App() {
           )}
         </>
       }
-      inspector={<Inspector scene={scene} selectedId={state.selectedId} gameplayRole={state.selectedId ? roles.get(state.selectedId) ?? "none" : "none"} onGameplayRole={(id, role) => command("set_gameplay_role", { id, role }, `Set ${id} role to ${role}`)} onClose={() => dispatch({ type: "toggleInspector" })} onPatch={applyPatch} onDuplicate={(id) => command("duplicate", { id }, `Duplicated ${id}`)} onDelete={(id) => command("delete", { id }, `Deleted ${id}`)} />}
+      inspector={<Inspector scene={scene} selectedId={state.selectedId} gameplayRole={state.selectedId ? roles.get(state.selectedId) ?? "none" : "none"} onGameplayRole={(id, role) => command("set_gameplay_role", { id, role }, `Set ${id} role to ${role}`)} onClose={() => dispatch({ type: "toggleInspector" })} onPatch={applyPatch} onDuplicate={(id) => command("duplicate", { id }, `Duplicated ${id}`)} onDelete={(id) => command("delete", { id }, `Deleted ${id}`)} onSavePrefab={(id) => {
+        const taken = new Set((scene.prefabs ?? []).map((prefab) => prefab.id));
+        let prefabId = `${id}_prefab`;
+        let index = 2;
+        while (taken.has(prefabId)) {
+          prefabId = `${id}_prefab_${index}`;
+          index += 1;
+        }
+        command("define_prefab", { id: prefabId, fromNode: id }, `Saved prefab ${prefabId}`);
+      }} />}
       status={
         <StatusBar
           status={`${recording ? "Recording · " : ""}${replaying ? "Replaying · " : ""}${status}`}

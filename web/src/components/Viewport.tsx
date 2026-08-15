@@ -946,6 +946,7 @@ export function Viewport({
   scene,
   runtimePoses = {},
   selectedId,
+  focusNonce = 0,
   editing,
   playing,
   gameActive,
@@ -961,6 +962,7 @@ export function Viewport({
   scene: ScenePayload;
   runtimePoses?: Record<string, RuntimePose>;
   selectedId: string | null;
+  focusNonce?: number;
   editing: boolean;
   playing: boolean;
   gameActive: boolean;
@@ -1110,7 +1112,15 @@ export function Viewport({
           />
         )}
         {!gamePlaying && !tourEnabled && (
-          <OrbitControls makeDefault target={camera?.target} />
+          <>
+            <OrbitControls makeDefault target={camera?.target} />
+            <FocusOnSelection
+              scene={scene}
+              selectedId={selectedId}
+              focusNonce={focusNonce}
+              enabled={editing}
+            />
+          </>
         )}
       </Canvas>
       {showPerf ? <PerfOverlay /> : null}
@@ -1138,6 +1148,38 @@ function ExposureController({ value }: { value: number }) {
   useFrame(() => {
     gl.toneMappingExposure += (value - gl.toneMappingExposure) * 0.08;
   });
+  return null;
+}
+
+function FocusOnSelection({
+  scene,
+  selectedId,
+  focusNonce,
+  enabled,
+}: {
+  scene: ScenePayload;
+  selectedId: string | null;
+  focusNonce: number;
+  enabled: boolean;
+}) {
+  const { camera, controls, invalidate } = useThree();
+  useEffect(() => {
+    if (!enabled || !selectedId || focusNonce <= 0) return;
+    const node = [...scene.meshes, ...scene.objects, ...(scene.primitives ?? []), ...scene.annotations].find(
+      (item) => item.id === selectedId,
+    );
+    if (!node || !("position" in node)) return;
+    const target = new Vector3(node.position[0], node.position[1], node.position[2]);
+    const offset = new Vector3(4, 3, 4);
+    camera.position.copy(target.clone().add(offset));
+    camera.lookAt(target);
+    const orbit = controls as { target?: Vector3; update?: () => void } | null;
+    if (orbit?.target) {
+      orbit.target.copy(target);
+      orbit.update?.();
+    }
+    invalidate();
+  }, [camera, controls, enabled, focusNonce, invalidate, scene, selectedId]);
   return null;
 }
 

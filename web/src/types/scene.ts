@@ -187,6 +187,7 @@ export type ScenePayload = {
   annotations: AnnotationNode[];
   trajectories: TrajectoryNode[];
   game?: GameManifest | null;
+  prefabs?: Array<{ id: string; rootId?: string; label?: string | null; [key: string]: unknown }>;
   presentation?: {
     environmentMap?: string | null;
     environmentPreset?: "apartment" | "city" | "dawn" | "forest" | "lobby" | "night" | "park" | "studio" | "sunset" | "warehouse" | null;
