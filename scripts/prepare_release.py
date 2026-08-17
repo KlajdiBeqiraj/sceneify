@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compute the next 0.0.N-style release and refresh versioning.json."""
+"""Compute the next 0.0.N-style release from git tags and versioning.json."""
 
 from __future__ import annotations
 
@@ -123,18 +123,6 @@ def write_version_files(version: str) -> None:
     )
 
 
-def write_versioning(data: dict, version: str, patch: int, commits: list[str]) -> None:
-    payload = {
-        "major": data["major"],
-        "minor": data["minor"],
-        "patch": patch,
-        "version": version,
-        "userNotes": data["userNotes"],
-        "commits": commits,
-    }
-    VERSIONING_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-
-
 def build_notes(user_notes: str, commits: list[str], since_tag: str | None) -> str:
     sections: list[str] = []
     notes = user_notes.strip()
@@ -176,7 +164,20 @@ def main() -> int:
         action="store_true",
         help="Print the next version without writing files",
     )
+    parser.add_argument(
+        "--stamp-version",
+        metavar="VERSION",
+        help="Rewrite local version files to VERSION without committing",
+    )
     args = parser.parse_args()
+
+    if args.stamp_version:
+        version = args.stamp_version.removeprefix("v")
+        if parse_version(version) is None:
+            raise SystemExit(f"invalid version: {args.stamp_version}")
+        write_version_files(version)
+        print(f"Stamped version {version}")
+        return 0
 
     if SKIP_RELEASE_TOKEN in head_subject():
         return skip(f"Skipping release because the latest commit contains {SKIP_RELEASE_TOKEN}")
@@ -202,8 +203,6 @@ def main() -> int:
         write_output(skipped="true", version=version, tag=version, notes_path="")
         return 0
 
-    write_versioning(data, version, patch, commits)
-    write_version_files(version)
     notes_path.write_text(notes, encoding="utf-8")
     write_output(
         skipped="false",

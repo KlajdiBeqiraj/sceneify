@@ -81,15 +81,17 @@ or by `publish.yml` for a manual GitHub Release / `workflow_dispatch`.
 ## Publishing
 
 Every successful CI run on `main` creates a GitHub Release and publishes to
-PyPI. Versioning lives in `versioning.json`:
+PyPI. The tag is placed on the commit that passed CI; the pipeline does not
+create a version bump commit.
+
+Versioning lives in `versioning.json`:
 
 - `major` and `minor` are set by you.
-- `patch` is incremented on each release, producing tags like `0.0.1`,
-  `0.0.2`, … Change `major` / `minor` in the file when you want `1.2.N`.
+- `patch` is incremented on each release from existing tags, producing
+  tags like `0.0.1`, `0.0.2`, … Change `major` / `minor` in the file when
+  you want `1.2.N`.
 - `userNotes` is your prose for the release. Leave it empty if you only
   want the commit list.
-- `commits` is rewritten by CI with the non-merge commits since the
-  previous tag.
 
 Skip a push with `[skip release]` in the commit subject.
 
@@ -97,9 +99,8 @@ Manual path:
 
 1. Edit `major` / `minor` / `userNotes` in `versioning.json` if needed.
 2. Push to `main` (or run the **Release** workflow).
-3. CI must pass; then `release.yml` tags `MAJOR.MINOR.PATCH`, updates
-   `versioning.json` / `pyproject.toml`, creates the GitHub Release, and
-   uploads to PyPI via Trusted Publishing.
+3. CI must pass; then `release.yml` tags that commit `MAJOR.MINOR.PATCH`,
+   creates the GitHub Release, and uploads to PyPI via Trusted Publishing.
 
 One-time setup on [PyPI](https://pypi.org/manage/account/publishing/):
 

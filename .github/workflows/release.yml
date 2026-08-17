@@ -33,17 +33,13 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          ref: main
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout main branch
-        run: git checkout -B main origin/main
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Prepare release
         id: prepare
         run: python3 scripts/prepare_release.py
 
-      - name: Commit, tag, and publish GitHub Release
+      - name: Tag the CI commit and publish GitHub Release
         if: steps.prepare.outputs.skipped != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,13 +47,10 @@ jobs:
           TAG: ${{ steps.prepare.outputs.tag }}
           NOTES_PATH: ${{ steps.prepare.outputs.notes_path }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add versioning.json pyproject.toml src/sceneify/__init__.py uv.lock
-          git commit -m "chore(release): ${VERSION}"
-          git push origin main
+          sha="$(git rev-parse HEAD)"
+          echo "Tagging ${sha} as ${TAG}"
           gh release create "${TAG}" \
-            --target main \
+            --target "${sha}" \
             --title "${VERSION}" \
             --notes-file "${NOTES_PATH}"
 
