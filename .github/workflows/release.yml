@@ -36,6 +36,9 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Checkout main branch
+        run: git checkout -B main origin/main
+
       - name: Prepare release
         id: prepare
         run: python3 scripts/prepare_release.py
@@ -52,10 +55,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add versioning.json pyproject.toml src/sceneify/__init__.py uv.lock
           git commit -m "chore(release): ${VERSION}"
-          git tag "${TAG}"
-          git push origin HEAD:main
-          git push origin "${TAG}"
+          git push origin main
           gh release create "${TAG}" \
+            --target main \
             --title "${VERSION}" \
             --notes-file "${NOTES_PATH}"
 
