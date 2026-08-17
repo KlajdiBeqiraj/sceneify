@@ -1,8 +1,28 @@
 {
   "major": 0,
   "minor": 0,
-  "patch": 0,
-  "version": "0.0.0",
+  "patch": 1,
+  "version": "0.0.1",
   "userNotes": "",
-  "commits": []
+  "commits": [
+    "c3c85cf feat: tag 0.0.N releases from versioning.json on main",
+    "38405f2 fix: bug fiexed",
+    "a340d01 feat: removed the rl part",
+    "2c505c3 Add MCP example scenes for guided agent workflows.",
+    "176f7fc Expose perception and capture through MCP and HTTP.",
+    "5d5571a Add live viewer PNG capture over the websocket.",
+    "70a08ac Add structured scene perception helpers.",
+    "5ba4dd3 Add GitHub Actions workflow to publish sceneify to PyPI.",
+    "f21af21 Document ambientazioni providers and ship the MCP Agent Skill.",
+    "3e497f1 Add set_presentation for applying fetched HDRI lighting via MCP.",
+    "cc17640 Add Poly Haven HDRI downloads and OS3A environment provider.",
+    "1f3be80 Organize guided examples by workflow",
+    "de81d5d Upgrade the browser play and authoring experience",
+    "45f5317 Add reusable runtime authoring features",
+    "f4c0bdb Add agent discovery tools, Poly Haven fetch, and optional MCP server.",
+    "841544e Add sword combat, selective camera tour lighting, and pit-aware enemy paths.",
+    "20264be Add Collect & Escape and Roman showcase with POI camera focus.",
+    "240c219 Add world editing loop and modernize tooling with uv.",
+    "6059799 Initial public scaffold for sceneify."
+  ]
 }
