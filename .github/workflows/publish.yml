@@ -32,7 +32,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_call' && inputs.ref || github.event.release.tag_name || github.sha }}
+          # github.event_name stays the caller's event (e.g. workflow_run),
+          # never "workflow_call". Prefer inputs.ref when the reusable
+          # workflow is invoked from release.yml.
+          ref: ${{ inputs.ref || github.event.release.tag_name || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -53,9 +56,9 @@ jobs:
           enable-cache: true
 
       - name: Verify release version
-        if: github.event_name == 'release' || github.event_name == 'workflow_call'
+        if: github.event_name == 'release' || inputs.ref != ''
         env:
-          RELEASE_TAG: ${{ github.event_name == 'workflow_call' && inputs.ref || github.event.release.tag_name }}
+          RELEASE_TAG: ${{ inputs.ref || github.event.release.tag_name }}
         run: |
           expected="${RELEASE_TAG#v}"
           actual="$(
@@ -81,9 +84,12 @@ jobs:
     name: Publish to PyPI
     needs: build
     if: >-
-      github.event_name == 'release' ||
-      (github.event_name == 'workflow_call' && inputs.dry_run != true) ||
-      (github.event_name == 'workflow_dispatch' && inputs.dry_run != true)
+      inputs.dry_run != true &&
+      (
+        github.event_name == 'release' ||
+        github.event_name == 'workflow_dispatch' ||
+        inputs.ref != ''
+      )
     runs-on: ubuntu-latest
     environment:
       name: pypi
