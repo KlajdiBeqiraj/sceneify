@@ -5,32 +5,43 @@ build-backend = "hatchling.build"
 [project]
 name = "sceneify"
 version = "0.0.3"
-description = "Build interactive browser-based 3D worlds and games from Python."
-readme = "README.md"
+description = "Build interactive browser-based 3D worlds and games from Python, with a Streamlit-like API and a bundled web editor."
+readme = { file = "README.pypi.md", content-type = "text/markdown" }
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 authors = [
-  { name = "Klajdi Beqiraj" },
+  { name = "Klajdi Beqiraj", email = "klousebeqiraj@gmail.com" },
 ]
 keywords = [
   "3d",
+  "editor",
+  "game",
   "glb",
   "gltf",
+  "mcp",
   "ply",
+  "python",
   "scene",
-  "websocket",
-  "visualization",
   "three.js",
+  "visualization",
+  "webgl",
+  "websocket",
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
+  "Environment :: Web Environment",
   "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Topic :: Games/Entertainment",
   "Topic :: Multimedia :: Graphics :: 3D Modeling",
   "Topic :: Scientific/Engineering :: Visualization",
   "Typing :: Typed",
@@ -56,10 +67,11 @@ mesh = [
 rl = []
 
 [project.urls]
-Homepage = "https://github.com/KlajdiBeqiraj/sceneify"
+Homepage = "https://pypi.org/project/sceneify/"
 Repository = "https://github.com/KlajdiBeqiraj/sceneify"
 Issues = "https://github.com/KlajdiBeqiraj/sceneify/issues"
 Documentation = "https://github.com/KlajdiBeqiraj/sceneify#readme"
+Changelog = "https://github.com/KlajdiBeqiraj/sceneify/releases"
 
 [project.scripts]
 sceneify = "sceneify.cli:main"
@@ -85,6 +97,7 @@ include = [
   "/skills",
   "/tests",
   "/README.md",
+  "/README.pypi.md",
   "/THIRD_PARTY_ASSETS.md",
   "/LICENSE",
 ]
