@@ -75,17 +75,31 @@ GitHub Actions (`ci.yml`) runs:
 - `pytest` on Python 3.12 and 3.13
 - `npm ci` + `npm test` + `npm run build` for the viewer
 
-Publishing to PyPI is handled separately by `publish.yml` on GitHub Releases.
+Publishing to PyPI is handled by `release.yml` after CI passes on `main`,
+or by `publish.yml` for a manual GitHub Release / `workflow_dispatch`.
 
 ## Publishing
 
-Releases are published to PyPI by `.github/workflows/publish.yml`.
+Every successful CI run on `main` creates a GitHub Release and publishes to
+PyPI. Versioning lives in `versioning.json`:
 
-1. Bump `project.version` in `pyproject.toml`.
-2. Create and publish a GitHub Release whose tag matches that version
-   (`0.4.0` or `v0.4.0`).
-3. The workflow builds the viewer, packs the sdist/wheel, checks that the
-   tag matches `pyproject.toml`, then uploads to PyPI via Trusted Publishing.
+- `major` and `minor` are set by you.
+- `patch` is incremented on each release, producing tags like `0.0.1`,
+  `0.0.2`, … Change `major` / `minor` in the file when you want `1.2.N`.
+- `userNotes` is your prose for the release. Leave it empty if you only
+  want the commit list.
+- `commits` is rewritten by CI with the non-merge commits since the
+  previous tag.
+
+Skip a push with `[skip release]` in the commit subject.
+
+Manual path:
+
+1. Edit `major` / `minor` / `userNotes` in `versioning.json` if needed.
+2. Push to `main` (or run the **Release** workflow).
+3. CI must pass; then `release.yml` tags `MAJOR.MINOR.PATCH`, updates
+   `versioning.json` / `pyproject.toml`, creates the GitHub Release, and
+   uploads to PyPI via Trusted Publishing.
 
 One-time setup on [PyPI](https://pypi.org/manage/account/publishing/):
 

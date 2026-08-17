@@ -9,6 +9,17 @@ on:
         description: "Build only; skip uploading to PyPI"
         type: boolean
         default: false
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref to build (tag or SHA)"
+        type: string
+        required: false
+        default: ""
+      dry_run:
+        description: "Build only; skip uploading to PyPI"
+        type: boolean
+        default: false
 
 concurrency:
   group: publish-${{ github.workflow }}-${{ github.ref }}
@@ -20,6 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_call' && inputs.ref || github.event.release.tag_name || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -40,9 +53,9 @@ jobs:
           enable-cache: true
 
       - name: Verify release version
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || github.event_name == 'workflow_call'
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_call' && inputs.ref || github.event.release.tag_name }}
         run: |
           expected="${RELEASE_TAG#v}"
           actual="$(
@@ -69,6 +82,7 @@ jobs:
     needs: build
     if: >-
       github.event_name == 'release' ||
+      (github.event_name == 'workflow_call' && inputs.dry_run != true) ||
       (github.event_name == 'workflow_dispatch' && inputs.dry_run != true)
     runs-on: ubuntu-latest
     environment:
