@@ -61,15 +61,25 @@ jobs:
             --title "${VERSION}" \
             --notes-file "${NOTES_PATH}"
 
-  publish:
-    name: Publish to PyPI
+  # PyPI Trusted Publishing does not support reusable workflows
+  # (workflow_ref would be release.yml, publisher is publish.yml).
+  # GITHUB_TOKEN may dispatch workflow_dispatch, unlike release events.
+  trigger-publish:
+    name: Trigger PyPI publish
     needs: tag-release
     if: >-
       needs.tag-release.result == 'success' &&
       needs.tag-release.outputs.skipped != 'true'
-    uses: ./.github/workflows/publish.yml
-    with:
-      ref: ${{ needs.tag-release.outputs.tag }}
+    runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: read
-      id-token: write
+    steps:
+      - name: Dispatch publish.yml on the release tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.tag-release.outputs.tag }}
+        run: |
+          gh workflow run publish.yml \
+            --repo "${{ github.repository }}" \
+            --ref "${TAG}"
