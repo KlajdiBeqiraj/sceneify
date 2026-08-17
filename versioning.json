@@ -1,10 +1,10 @@
 {
   "major": 0,
   "minor": 0,
-  "patch": 2,
-  "version": "0.0.2",
+  "patch": 3,
+  "version": "0.0.3",
   "userNotes": "",
   "commits": [
-    "aa13287 fix: point GitHub release tags at the tip of main"
+    "ae78dcb fix: run PyPI upload when Release calls the reusable workflow"
   ]
 }
