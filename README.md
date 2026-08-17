@@ -4,6 +4,10 @@
 
 # sceneify
 
+[![PyPI](https://img.shields.io/pypi/v/sceneify.svg)](https://pypi.org/project/sceneify/)
+[![Python](https://img.shields.io/pypi/pyversions/sceneify.svg)](https://pypi.org/project/sceneify/)
+[![License: MIT](https://img.shields.io/pypi/l/sceneify.svg)](https://pypi.org/project/sceneify/)
+
 Build interactive browser-based 3D worlds from Python.
 
 `sceneify` is a PyPI library with a Streamlit-like authoring API. Python defines the scene and

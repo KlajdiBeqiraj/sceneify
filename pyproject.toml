@@ -70,7 +70,7 @@ rl = []
 Homepage = "https://pypi.org/project/sceneify/"
 Repository = "https://github.com/KlajdiBeqiraj/sceneify"
 Issues = "https://github.com/KlajdiBeqiraj/sceneify/issues"
-Documentation = "https://github.com/KlajdiBeqiraj/sceneify#readme"
+Documentation = "https://github.com/KlajdiBeqiraj/sceneify/blob/main/docs/development.md"
 Changelog = "https://github.com/KlajdiBeqiraj/sceneify/releases"
 
 [project.scripts]

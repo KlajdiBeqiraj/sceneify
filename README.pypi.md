@@ -1,8 +1,13 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/KlajdiBeqiraj/sceneify/main/assets/logo.png" alt="sceneify" width="160" />
+</p>
+
 # sceneify
 
 [![PyPI](https://img.shields.io/pypi/v/sceneify.svg)](https://pypi.org/project/sceneify/)
 [![Python](https://img.shields.io/pypi/pyversions/sceneify.svg)](https://pypi.org/project/sceneify/)
 [![License: MIT](https://img.shields.io/pypi/l/sceneify.svg)](https://pypi.org/project/sceneify/)
+[![GitHub](https://img.shields.io/badge/github-KlajdiBeqiraj%2Fsceneify-181717?logo=github)](https://github.com/KlajdiBeqiraj/sceneify)
 
 Build interactive browser-based 3D worlds and games from Python.
 
@@ -91,7 +96,9 @@ sceneify fetch-remote Barrel_01 --id barrel
 - [Source](https://github.com/KlajdiBeqiraj/sceneify)
 - [Issues](https://github.com/KlajdiBeqiraj/sceneify/issues)
 - [Releases](https://github.com/KlajdiBeqiraj/sceneify/releases)
-- [Documentation](https://github.com/KlajdiBeqiraj/sceneify#readme)
+- [Agent tools](https://github.com/KlajdiBeqiraj/sceneify/blob/main/docs/agent-tools.md)
+- [Protocol](https://github.com/KlajdiBeqiraj/sceneify/blob/main/docs/protocol.md)
+- [Development](https://github.com/KlajdiBeqiraj/sceneify/blob/main/docs/development.md)
 
 ## License
 
