@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 from collections.abc import Mapping
 from pathlib import Path
@@ -9,9 +10,10 @@ from typing import Any
 
 import httpx
 
-from sceneify.agent_tools import WorldTools, tool_definitions
+from sceneify.agent_tools import ACTION_SCHEMA, WorldTools, tool_definitions
 from sceneify.catalog import AssetCatalog
 from sceneify.perception import apply_perception, describe_scene, is_read_action, topdown_map
+from sceneify.remote_assets import HDRI_FORMATS
 from sceneify.scene import Scene
 from sceneify.session_manager import SessionManager
 
@@ -141,13 +143,42 @@ class LiveWorldTools:
 
     def _server_command(self, command: Mapping[str, Any]) -> dict[str, Any]:
         action = str(command["action"])
+        if action == "set_presentation":
+            payload = dict(_without(command, "action"))
+            asset_id = payload.get("asset")
+            if isinstance(asset_id, str) and asset_id:
+                try:
+                    asset = self.catalog.get(asset_id)
+                except KeyError as exc:
+                    raise ValueError(
+                        f"Unknown catalog asset {asset_id!r}. "
+                        "Call fetch_remote (or list_assets) before set_presentation."
+                    ) from exc
+                fmt = (asset.format or "").lower()
+                if fmt not in HDRI_FORMATS:
+                    raise ValueError(
+                        f"Catalog asset {asset.id!r} format {fmt!r} is not an HDRI "
+                        f"(expected one of {sorted(HDRI_FORMATS)})"
+                    )
+                if not asset.path:
+                    raise ValueError(f"Catalog asset {asset.id!r} has no local path")
+                payload["environmentMap"] = asset.path
+                payload.pop("asset", None)
+            return {"action": "set_presentation", **payload}
         if action == "add_primitive":
             return {
                 **_without(command, "action"),
                 "action": "create_primitive",
             }
         if action == "add_asset":
-            asset = self.catalog.get(_required_string(command, "asset"))
+            asset_id = _required_string(command, "asset")
+            try:
+                asset = self.catalog.get(asset_id)
+            except KeyError as exc:
+                raise ValueError(
+                    f"Unknown catalog asset {asset_id!r}. "
+                    "Call fetch_remote (or list_assets) before add_asset."
+                ) from exc
             if not asset.path:
                 raise ValueError(f"Catalog asset {asset.id!r} has no local path")
             return {
@@ -216,12 +247,16 @@ class LiveWorldTools:
 def create_world_session(
     *,
     scene_name: str = "mcp-world",
+    catalog: AssetCatalog | None = None,
     catalog_path: str | Path | None = None,
     scene_path: str | Path | None = None,
 ) -> WorldTools:
     """Create the in-memory WorldTools session used by the MCP server."""
     scene = Scene.load(scene_path) if scene_path else Scene(scene_name)
-    catalog = AssetCatalog.load(catalog_path) if catalog_path else AssetCatalog()
+    if catalog is None:
+        catalog = AssetCatalog.load_or_create(catalog_path) if catalog_path else AssetCatalog()
+    elif catalog_path:
+        catalog.bind_path(catalog_path)
     return WorldTools(scene, catalog)
 
 
@@ -598,27 +633,64 @@ def build_mcp_server(
             return result
 
     @server.tool()
+    @_with_apply_signature()
     def sceneify_apply(
         action: str,
         fields: dict[str, Any] | None = None,
         **extra: Any,
     ) -> dict[str, Any]:
         """Apply one validated sceneify world action."""
-        payload = {**(fields or {}), **extra}
-        # FastMCP exposes **kwargs as a nested "fields" object; accept both shapes.
-        nested = payload.pop("fields", None)
-        if isinstance(nested, Mapping):
-            payload = {**nested, **payload}
-        command = {"action": action, **payload}
+        command = _merge_apply_payload(action, fields, extra)
         return _safe_apply(session, command)
 
     @server.tool()
-    def sceneify_create_example(name: str, title: str | None = None) -> dict[str, Any]:
-        """Create a source-sync-ready Python example under examples/mcp."""
+    def sceneify_scaffold(
+        family: str,
+        title: str | None = None,
+        name: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a playable present, character, or board shell under examples/mcp.
+
+        family=present — orbit/HDRI room plus embed snippet next steps.
+        family=character — controller plus optional collect/reach objectives.
+        family=board — clickable grid, pieces, turns, HUD; rules stay in Python.
+        """
+        if manager is None:
+            raise ValueError("Scaffold requires sceneify-mcp --session-manager")
+        normalized = family.strip().lower()
+        path = manager.scaffold(normalized, name=name, title=title)
+        relative = str(path.relative_to(manager.project_root))
+        next_steps = _scaffold_next_steps(normalized, relative)
+        result: dict[str, Any] = {
+            "path": relative,
+            "family": normalized,
+            "nextSteps": next_steps,
+        }
+        if normalized == "present":
+            from sceneify.export_web import embed_snippets
+
+            result["embed"] = embed_snippets(
+                api_base="http://127.0.0.1:8765",
+                mode="look",
+                src="./embed.html",
+            )
+        return result
+
+    @server.tool()
+    def sceneify_create_example(
+        name: str,
+        title: str | None = None,
+        kind: str = "world",
+    ) -> dict[str, Any]:
+        """Create a source-sync-ready Python example under examples/mcp.
+
+        kind=world (default) starts the editor with .run().
+        kind=game starts a play loop with .play() and a stub on_input.
+        """
         if manager is None:
             raise ValueError("Example sessions require sceneify-mcp --session-manager")
-        path = manager.create_example(name, title=title)
-        return {"path": str(path.relative_to(manager.project_root))}
+        path = manager.create_example(name, title=title, kind=kind)
+        return {"path": str(path.relative_to(manager.project_root)), "kind": kind}
 
     @server.tool()
     def sceneify_start_session(script: str, sessionId: str | None = None) -> dict[str, object]:
@@ -642,6 +714,7 @@ def build_mcp_server(
         return manager.stop(sessionId)
 
     @server.tool()
+    @_with_apply_signature(session=True)
     def sceneify_apply_session(
         sessionId: str,
         action: str,
@@ -651,15 +724,11 @@ def build_mcp_server(
         """Apply an action to the explicitly selected live example session."""
         if manager is None:
             raise ValueError("Example sessions require sceneify-mcp --session-manager")
-        payload = {**(fields or {}), **extra}
-        # FastMCP exposes **kwargs as a nested "fields" object; accept both shapes.
-        nested = payload.pop("fields", None)
-        if isinstance(nested, Mapping):
-            payload = {**nested, **payload}
+        command = _merge_apply_payload(action, fields, extra)
         target = manager.get(sessionId)
         source = str(target.script.relative_to(manager.project_root))
-        live = LiveWorldTools(target.url, source_path=source)
-        return _safe_apply(live, {"action": action, **payload})
+        live = LiveWorldTools(target.url, source_path=source, catalog=session.catalog)
+        return _safe_apply(live, command)
 
     return server
 
@@ -692,7 +761,7 @@ def main(argv: list[str] | None = None) -> None:
     )
     args = parser.parse_args(argv)
 
-    catalog = AssetCatalog.load(args.catalog) if args.catalog else AssetCatalog()
+    catalog = AssetCatalog.load_or_create(args.catalog) if args.catalog else AssetCatalog()
     if args.server and args.session_manager:
         parser.error("--server and --session-manager cannot be combined")
     if args.server:
@@ -706,12 +775,72 @@ def main(argv: list[str] | None = None) -> None:
             parser.error("--source requires --server")
         tools = create_world_session(
             scene_name=args.name,
+            catalog=catalog,
             catalog_path=args.catalog,
             scene_path=args.scene,
         )
     manager = SessionManager(args.project_root) if args.session_manager else None
     server = build_mcp_server(tools, session_manager=manager)
     server.run(transport="stdio")
+
+
+def _with_apply_signature(*, session: bool = False):
+    """Rewrite FastMCP inputSchema so VAR_KEYWORD ``extra`` is not required."""
+
+    def decorator(fn):
+        fn.__signature__ = _apply_signature(session=session)
+        return fn
+
+    return decorator
+
+
+def _apply_signature(*, session: bool = False) -> inspect.Signature:
+    params: list[inspect.Parameter] = []
+    if session:
+        params.append(
+            inspect.Parameter("sessionId", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=str)
+        )
+    params.append(
+        inspect.Parameter("action", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=str)
+    )
+    params.append(
+        inspect.Parameter(
+            "fields",
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            default=None,
+            annotation=dict[str, Any] | None,
+        )
+    )
+    for name in ACTION_SCHEMA["properties"]:
+        if name == "action":
+            continue
+        params.append(
+            inspect.Parameter(
+                name,
+                inspect.Parameter.KEYWORD_ONLY,
+                default=None,
+                annotation=Any,
+            )
+        )
+    return inspect.Signature(params, return_annotation=dict[str, Any])
+
+
+def _merge_apply_payload(
+    action: str,
+    fields: dict[str, Any] | None,
+    extra: Mapping[str, Any],
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {}
+    nested = extra.get("fields")
+    if isinstance(nested, Mapping):
+        payload.update(nested)
+    if isinstance(fields, Mapping):
+        payload.update(fields)
+    for key, value in extra.items():
+        if key == "fields" or value is None:
+            continue
+        payload[key] = value
+    return {"action": action, **payload}
 
 
 def _safe_apply(tools: WorldTools | LiveWorldTools, command: dict[str, Any]) -> dict[str, Any]:
@@ -740,6 +869,27 @@ def _safe_apply(tools: WorldTools | LiveWorldTools, command: dict[str, Any]) -> 
 
 def _without(command: Mapping[str, Any], *keys: str) -> dict[str, Any]:
     return {key: value for key, value in command.items() if key not in keys}
+
+
+def _scaffold_next_steps(family: str, path: str) -> list[str]:
+    start = f"sceneify_start_session(script={path!r})"
+    if family == "present":
+        return [
+            start,
+            "Decorate with catalog / Poly Haven HDRI via set_presentation.",
+            "Call scene.export_web(...) then paste EMBED.txt (<sceneify-viewer> or iframe) on the site.",
+        ]
+    if family == "character":
+        return [
+            start,
+            "Place ground, player, pickups or an exit. Use play.objective('collect'|'reach'|'survive').",
+            "Do not attach overlap collect to a board.",
+        ]
+    return [
+        start,
+        "Keep rules in the short @board.on_pick handler. Do not add a named chess/go engine.",
+        "Use board.place / move / next_turn / end('win'|'lose'|'draw').",
+    ]
 
 
 def _required_string(command: Mapping[str, Any], key: str) -> str:
