@@ -14,6 +14,7 @@ from pathlib import Path
 import sceneify as sf
 from sceneify.objects import Material, Physics
 
+ROOT = Path(__file__).resolve().parents[2]
 KAYKIT = "examples/assets/kaykit"
 
 
@@ -105,7 +106,7 @@ def write_synthetic_episode(path: Path) -> Path:
 
 
 def run_replay(scene: sf.Scene, path: Path) -> None:
-    handle = scene.play(block=False, open_browser=True)
+    handle = scene.play(block=False, open_browser=True, project_root=ROOT)
     try:
         print(f"Replaying {path} …")
         handle.replay(path)
@@ -116,7 +117,7 @@ def run_replay(scene: sf.Scene, path: Path) -> None:
 
 
 def run_record(scene: sf.Scene, out: Path) -> None:
-    handle = scene.play(block=False, open_browser=True)
+    handle = scene.play(block=False, open_browser=True, project_root=ROOT)
     try:
         print("Recording… move with WASD / Space, then press Enter to stop and save.")
         handle.start_recording(episode_id="live-capture")

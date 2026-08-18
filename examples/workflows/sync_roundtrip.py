@@ -56,7 +56,7 @@ def main() -> None:
     source = path.read_text(encoding="utf-8")
     print("Markers present:", BEGIN_MARKER in source and END_MARKER in source)
     print("Open the viewer, edit transforms, use Save JSON / Save Py.")
-    scene.run()
+    scene.run(project_root=Path(__file__).resolve().parents[2])
 
 
 if __name__ == "__main__":

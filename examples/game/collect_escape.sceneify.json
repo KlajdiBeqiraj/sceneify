@@ -5692,181 +5692,231 @@
     ],
     "annotations": [],
     "trajectories": [],
-    "game": {
-      "version": 1,
-      "actionMaps": {
-        "default": {
-          "moveForward": [
-            "KeyW",
-            "ArrowUp"
-          ],
-          "moveBack": [
-            "KeyS",
-            "ArrowDown"
-          ],
-          "moveLeft": [
-            "KeyA",
-            "ArrowLeft"
-          ],
-          "moveRight": [
-            "KeyD",
-            "ArrowRight"
-          ],
-          "jump": [
-            "Space"
-          ],
-          "attack": [
-            "KeyJ",
-            "Mouse0"
-          ]
-        }
+    "experience": {
+      "schemaVersion": 1,
+      "family": "character",
+      "runtimeSlot": "character_world",
+      "camera": {
+        "mode": "follow",
+        "distance": 6.0,
+        "height": 3.0,
+        "targetId": null
       },
-      "controllers": [
-        {
-          "nodeId": "player",
-          "moveSpeed": 5.5,
-          "jumpSpeed": 7.0,
-          "actionMap": "default",
-          "preset": "simple",
-          "sprintMult": 2.0
-        }
-      ],
-      "cameras": [
-        {
-          "targetId": "player",
-          "distance": 9.5,
-          "height": 4.8,
-          "smoothing": 0.12
-        }
-      ],
-      "collectibles": [
-        {
-          "nodeId": "coin_1",
-          "value": 1,
-          "event": "collect",
-          "respawnSeconds": null
-        },
-        {
-          "nodeId": "coin_2",
-          "value": 1,
-          "event": "collect",
-          "respawnSeconds": null
-        },
-        {
-          "nodeId": "coin_3",
-          "value": 1,
-          "event": "collect",
-          "respawnSeconds": null
-        }
-      ],
-      "hazards": [
-        {
-          "nodeId": "hazard",
-          "damage": 1,
-          "event": "hazard",
-          "resetToCheckpoint": true
-        }
-      ],
-      "checkpoints": [
-        {
-          "nodeId": "checkpoint",
-          "event": "checkpoint"
-        }
-      ],
-      "goals": [
-        {
-          "nodeId": "goal",
-          "event": "goal",
-          "requiredScore": 3
-        }
-      ],
-      "enemies": {
-        "spawnPoints": [
-          [
-            -8.0,
-            0.75,
-            -8.0
-          ],
-          [
-            8.0,
-            0.75,
-            -8.0
-          ],
-          [
-            -8.0,
-            0.75,
-            6.0
-          ],
-          [
-            8.0,
-            0.75,
-            6.0
-          ],
-          [
-            0.0,
-            0.75,
-            -12.0
-          ]
-        ],
-        "types": [
-          {
-            "kind": "knight",
-            "source": "examples/assets/kaykit/knight.glb",
-            "maxAlive": 2,
-            "intervalSeconds": 5.0,
-            "speed": 2.9,
-            "scale": 0.75,
-            "health": 3,
-            "contactDamage": 1,
-            "hitEvent": "hazard",
-            "animation": {
-              "idle": "Idle",
-              "run": "Running_A",
-              "hit": "Hit_A",
-              "death": "Death_A"
-            }
-          },
-          {
-            "kind": "mage",
-            "source": "examples/assets/kaykit/mage.glb",
-            "maxAlive": 2,
-            "intervalSeconds": 6.5,
-            "speed": 2.3,
-            "scale": 0.75,
-            "health": 2,
-            "contactDamage": 1,
-            "hitEvent": "hazard",
-            "animation": {
-              "idle": "Idle",
-              "run": "Running_A",
-              "hit": "Hit_A",
-              "death": "Death_A"
-            }
-          }
-        ]
+      "input": {
+        "enabled": true
+      },
+      "interaction": {
+        "primary": "overlap"
       },
       "hud": {
-        "showScore": true,
-        "showHealth": true,
-        "showTimer": true,
+        "enabled": true,
         "title": "Collect & Escape",
+        "hint": "Move: WASD or arrows \u00b7 Jump: Space \u00b7 Attack: J or click",
         "description": "Collect the three relics, avoid the pit, then reach the chest.",
-        "controlsHint": "Move: WASD or arrows \u00b7 Jump: Space \u00b7 Attack: J or click"
+        "metrics": [
+          {
+            "id": "score",
+            "label": "Relics",
+            "kind": "score"
+          },
+          {
+            "id": "health",
+            "label": "Health",
+            "kind": "health"
+          },
+          {
+            "id": "timer",
+            "label": "Time",
+            "kind": "timer"
+          }
+        ],
+        "winMessage": "You gathered the relics and escaped the dungeon.",
+        "loseMessage": "You fell in the pit or ran out of health. Fight smarter next time.",
+        "drawMessage": null,
+        "startLabel": "Start run"
       },
-      "timer": {
-        "seconds": 90,
-        "mode": "countdown",
-        "startOnLoad": true,
-        "timeoutEvent": "timeout"
+      "character": {
+        "version": 1,
+        "actionMaps": {
+          "default": {
+            "moveForward": [
+              "KeyW",
+              "ArrowUp"
+            ],
+            "moveBack": [
+              "KeyS",
+              "ArrowDown"
+            ],
+            "moveLeft": [
+              "KeyA",
+              "ArrowLeft"
+            ],
+            "moveRight": [
+              "KeyD",
+              "ArrowRight"
+            ],
+            "jump": [
+              "Space"
+            ],
+            "attack": [
+              "KeyJ",
+              "Mouse0"
+            ]
+          }
+        },
+        "controllers": [
+          {
+            "nodeId": "player",
+            "moveSpeed": 5.5,
+            "jumpSpeed": 7.0,
+            "actionMap": "default",
+            "preset": "simple",
+            "sprintMult": 2.0
+          }
+        ],
+        "cameras": [
+          {
+            "targetId": "player",
+            "distance": 9.5,
+            "height": 4.8,
+            "smoothing": 0.12
+          }
+        ],
+        "collectibles": [
+          {
+            "nodeId": "coin_1",
+            "value": 1,
+            "event": "collect",
+            "respawnSeconds": null
+          },
+          {
+            "nodeId": "coin_2",
+            "value": 1,
+            "event": "collect",
+            "respawnSeconds": null
+          },
+          {
+            "nodeId": "coin_3",
+            "value": 1,
+            "event": "collect",
+            "respawnSeconds": null
+          }
+        ],
+        "hazards": [
+          {
+            "nodeId": "hazard",
+            "damage": 1,
+            "event": "hazard",
+            "resetToCheckpoint": true
+          }
+        ],
+        "checkpoints": [
+          {
+            "nodeId": "checkpoint",
+            "event": "checkpoint"
+          }
+        ],
+        "goals": [
+          {
+            "nodeId": "goal",
+            "event": "goal",
+            "requiredScore": 3
+          }
+        ],
+        "enemies": {
+          "spawnPoints": [
+            [
+              -8.0,
+              0.75,
+              -8.0
+            ],
+            [
+              8.0,
+              0.75,
+              -8.0
+            ],
+            [
+              -8.0,
+              0.75,
+              6.0
+            ],
+            [
+              8.0,
+              0.75,
+              6.0
+            ],
+            [
+              0.0,
+              0.75,
+              -12.0
+            ]
+          ],
+          "types": [
+            {
+              "kind": "knight",
+              "source": "examples/assets/kaykit/knight.glb",
+              "maxAlive": 2,
+              "intervalSeconds": 5.0,
+              "speed": 2.9,
+              "scale": 0.75,
+              "health": 3,
+              "contactDamage": 1,
+              "hitEvent": "hazard",
+              "animation": {
+                "idle": "Idle",
+                "run": "Running_A",
+                "hit": "Hit_A",
+                "death": "Death_A"
+              }
+            },
+            {
+              "kind": "mage",
+              "source": "examples/assets/kaykit/mage.glb",
+              "maxAlive": 2,
+              "intervalSeconds": 6.5,
+              "speed": 2.3,
+              "scale": 0.75,
+              "health": 2,
+              "contactDamage": 1,
+              "hitEvent": "hazard",
+              "animation": {
+                "idle": "Idle",
+                "run": "Running_A",
+                "hit": "Hit_A",
+                "death": "Death_A"
+              }
+            }
+          ]
+        },
+        "hud": {
+          "showScore": true,
+          "showHealth": true,
+          "showTimer": true,
+          "title": "Collect & Escape",
+          "description": "Collect the three relics, avoid the pit, then reach the chest.",
+          "controlsHint": "Move: WASD or arrows \u00b7 Jump: Space \u00b7 Attack: J or click"
+        },
+        "timer": {
+          "seconds": 90,
+          "mode": "countdown",
+          "startOnLoad": true,
+          "timeoutEvent": "timeout"
+        },
+        "win": {
+          "event": "goal",
+          "message": "You gathered the relics and escaped the dungeon."
+        },
+        "lose": {
+          "event": "timeout",
+          "message": "You fell in the pit or ran out of health. Fight smarter next time."
+        }
       },
-      "win": {
-        "event": "goal",
-        "message": "You gathered the relics and escaped the dungeon."
+      "tabletop": null,
+      "match": {
+        "phase": "menu"
       },
-      "lose": {
-        "event": "timeout",
-        "message": "You fell in the pit or ran out of health. Fight smarter next time."
-      }
+      "objectives": [],
+      "sync": 0
     },
     "presentation": {
       "grid": false,

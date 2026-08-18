@@ -10,6 +10,35 @@ from sceneify import InputEvent, Scene
 from sceneify.server import PROTOCOL_NAME, PROTOCOL_VERSION, create_app
 
 
+def test_tick_delta_example_moves_under_play() -> None:
+    import socket
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(root))
+    from examples.realtime.tick_delta_demo import build_scene
+
+    scene = build_scene()
+    assert scene._tick_callbacks
+    start = scene._primitives["platform"].position[0]
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = int(sock.getsockname()[1])
+    handle = scene.play(port=port, block=False, open_browser=False, project_root=root)
+    try:
+        deadline = time.time() + 1.5
+        moved = False
+        while time.time() < deadline:
+            if abs(scene._primitives["platform"].position[0] - start) > 0.05:
+                moved = True
+                break
+            time.sleep(0.05)
+        assert moved
+    finally:
+        handle.stop()
+
+
 def test_transforms_delta_reports_only_dirty_poses() -> None:
     scene = Scene("delta")
     scene.create_primitive("a", "box", position=(0, 0, 0))

@@ -12,9 +12,12 @@ physics while sharing the same template.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import sceneify as sf
 from sceneify.objects import Material, Physics
 
+ROOT = Path(__file__).resolve().parents[2]
 KAYKIT = "examples/assets/kaykit"
 
 
@@ -56,7 +59,7 @@ def _define_crate_prefab(scene: sf.Scene) -> None:
     # Prototype stays in the scene as a reference at the origin.
 
 
-def main() -> None:
+def build_scene() -> sf.Scene:
     scene = sf.Scene("prefab-demo", background="#1a1f2a")
     scene.set_presentation(
         grid=True,
@@ -140,11 +143,11 @@ def main() -> None:
         controls_hint="Move: WASD or arrows · Jump: Space · Push the crates to compare them",
     )
     scene.set_game(game)
-
-    print("Prefabs:", scene.list_prefabs())
-    print("Instances: crate_a (loot/dark lid), crate_b (green), crate_c (blue/gold lid)")
-    scene.play()
+    return scene
 
 
 if __name__ == "__main__":
-    main()
+    scene = build_scene()
+    print("Prefabs:", scene.list_prefabs())
+    print("Instances: crate_a (loot/dark lid), crate_b (green), crate_c (blue/gold lid)")
+    scene.play(project_root=ROOT)

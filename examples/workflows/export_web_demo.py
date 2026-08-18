@@ -1,10 +1,12 @@
-"""Demo: export a static viewer that talks to a live Python backend.
+"""Export a static viewer plus a real ``<sceneify-viewer>`` embed snippet.
 
   uv run python examples/workflows/export_web_demo.py
   uv run python examples/workflows/export_web_demo.py --serve
   uv run python examples/workflows/export_web_demo.py --out dist-web --api-base http://127.0.0.1:8765
 
-With --serve: exports, starts scene.play() (backend), and prints how to host dist-web/.
+Writes ``index.html`` (full page), ``embed.html``, and ``EMBED.txt``
+(web component + iframe). ``--serve`` starts the Python play backend.
+Assets: KayKit knight (CC0, examples/assets/kaykit).
 """
 
 from __future__ import annotations
@@ -25,7 +27,7 @@ def build_scene() -> sf.Scene:
         helpers=False,
         shadows=True,
         title="Static web export",
-        subtitle="Viewer files are static; play/API stay on Python",
+        subtitle="Full-page index.html plus <sceneify-viewer> embed",
         camera={"position": [0, 5, 10], "target": [0, 1, 0], "fov": 50},
     )
     scene.create_primitive(
@@ -121,13 +123,15 @@ def main() -> None:
     )
     print(f"Exported viewer → {out.resolve()}")
     print(f"  apiBase = {args.api_base!r}")
+    print("Full page: index.html · embed: embed.html + EMBED.txt")
+    print((out / "EMBED.txt").read_text(encoding="utf-8"))
     print("Host the folder statically, e.g.:")
     print(f"  uv run python -m http.server 8080 --directory {out}")
     print("Keep the Python backend running (scene.play / --serve).")
 
     if args.serve:
         print(f"\nStarting backend at {args.api_base} …")
-        scene.play()
+        scene.play(project_root=Path(__file__).resolve().parents[2])
 
 
 if __name__ == "__main__":

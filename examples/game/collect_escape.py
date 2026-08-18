@@ -4,7 +4,9 @@ Run from the repository root:
   uv run python examples/game/collect_escape.py
 
 Controls: WASD / arrows to move, Space to jump, J or left click to attack.
-Use ``--edit`` to open the same world in the authoring editor.
+``Game()`` is character-collect sugar on ``scene.experience``. Use ``--edit``
+to open the same world in the authoring editor.
+Assets: KayKit dungeon + characters (CC0, examples/assets/kaykit).
 """
 
 from __future__ import annotations

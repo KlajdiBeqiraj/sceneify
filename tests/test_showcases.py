@@ -8,6 +8,7 @@ sys.path.insert(0, str(ROOT))
 
 from examples.game.collect_escape import build_scene as build_game  # noqa: E402
 from examples.showcase.roman_environment import build_scene as build_roman  # noqa: E402
+from sceneify.experience import character_payload  # noqa: E402
 
 
 def test_collect_escape_uses_animated_glb_visuals() -> None:
@@ -54,7 +55,8 @@ def test_collect_escape_uses_animated_glb_visuals() -> None:
     goal = next(node for node in scene["primitives"] if node["id"] == "goal")
     assert goal["meta"].get("renderPrimitive") is False
     assert any(node["id"] == "goal_chest" for node in scene["meshes"])
-    assert {item["nodeId"] for item in scene["game"]["collectibles"]} == {
+    game = character_payload(scene)
+    assert {item["nodeId"] for item in game["collectibles"]} == {
         "coin_1",
         "coin_2",
         "coin_3",
@@ -62,10 +64,10 @@ def test_collect_escape_uses_animated_glb_visuals() -> None:
     assert (
         next(node for node in scene["meshes"] if node["id"] == "player_visual")["scale"][1] == 0.78
     )
-    enemy_kinds = {item["kind"] for item in scene["game"]["enemies"]["types"]}
+    enemy_kinds = {item["kind"] for item in game["enemies"]["types"]}
     assert enemy_kinds == {"knight", "mage"}
-    assert len(scene["game"]["enemies"]["spawnPoints"]) >= 4
-    for enemy in scene["game"]["enemies"]["types"]:
+    assert len(game["enemies"]["spawnPoints"]) >= 4
+    for enemy in game["enemies"]["types"]:
         assert (ROOT / enemy["source"]).is_file()
         assert int(enemy.get("health", 0)) >= 1
     assert (
@@ -78,6 +80,8 @@ def test_collect_escape_uses_animated_glb_visuals() -> None:
 
 def test_roman_showcase_has_local_presentation_and_interactive_pois() -> None:
     scene = build_roman().to_dict()
+    assert scene["experience"]["family"] == "present"
+    assert scene["experience"]["hud"]["enabled"] is False
     assert scene["presentation"]["environmentMap"].endswith("colosseum_1k.hdr")
     assert scene["presentation"]["grid"] is False
     assert len(scene["annotations"]) == 4
@@ -107,3 +111,37 @@ def test_demo_asset_budget_stays_under_twenty_megabytes() -> None:
         path.stat().st_size for path in (ROOT / "examples" / "assets").rglob("*") if path.is_file()
     )
     assert total < 20 * 1024 * 1024
+
+
+def test_family_shells_match_present_character_board() -> None:
+    from examples.mcp.hall import build_scene as build_hall
+    from examples.mcp.ruins import build_scene as build_ruins
+    from examples.mcp.tokens import build_scene as build_tokens
+
+    hall = build_hall().to_dict()
+    assert hall["experience"]["family"] == "present"
+    assert hall["experience"]["hud"]["enabled"] is False
+
+    ruins = build_ruins().to_dict()
+    assert ruins["experience"]["family"] == "character"
+    assert ruins["experience"]["runtimeSlot"] == "character_world"
+
+    tokens = build_tokens().to_dict()
+    assert tokens["experience"]["family"] == "board"
+    assert tokens["experience"]["interaction"]["primary"] == "cell_pick"
+    piece_ids = {mesh["id"] for mesh in tokens["meshes"]}
+    assert {"token_a", "token_b"} <= piece_ids
+    knight = next(mesh for mesh in tokens["meshes"] if mesh["id"] == "token_a")
+    assert knight["source"].endswith("knight.glb")
+    mage = next(mesh for mesh in tokens["meshes"] if mesh["id"] == "token_b")
+    assert mage["source"].endswith("mage.glb")
+
+
+def test_example_scripts_are_runnable_shells() -> None:
+    """Every example exposes build_scene and pins project_root so assets resolve."""
+    scripts = sorted((ROOT / "examples").rglob("*.py"))
+    assert scripts
+    for path in scripts:
+        text = path.read_text(encoding="utf-8")
+        assert "def build_scene(" in text, path
+        assert "project_root=" in text, path

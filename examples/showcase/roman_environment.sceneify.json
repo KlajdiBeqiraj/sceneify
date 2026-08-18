@@ -612,7 +612,41 @@
       }
     ],
     "trajectories": [],
-    "game": null,
+    "experience": {
+      "schemaVersion": 1,
+      "family": "present",
+      "runtimeSlot": "present",
+      "camera": {
+        "mode": "orbit",
+        "distance": null,
+        "height": null,
+        "targetId": null
+      },
+      "input": {
+        "enabled": false
+      },
+      "interaction": {
+        "primary": "poi"
+      },
+      "hud": {
+        "enabled": false,
+        "title": "Fragments of Rome",
+        "hint": null,
+        "description": null,
+        "metrics": [],
+        "winMessage": null,
+        "loseMessage": null,
+        "drawMessage": null,
+        "startLabel": null
+      },
+      "character": null,
+      "tabletop": null,
+      "match": {
+        "phase": "menu"
+      },
+      "objectives": [],
+      "sync": 0
+    },
     "presentation": {
       "environmentMap": "examples/assets/roman/colosseum_1k.hdr",
       "grid": false,

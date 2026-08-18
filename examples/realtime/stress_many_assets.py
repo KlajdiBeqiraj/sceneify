@@ -6,6 +6,8 @@ Used by Playwright (`--stress`) and as a manual demo:
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from sceneify import Material, Physics, Scene
 
 KAYKIT = "examples/assets/kaykit"
@@ -89,7 +91,7 @@ def main() -> None:
     payload = scene.to_dict()
     print(f"meshes={len(payload['meshes'])} primitives={len(payload['primitives'])}")
     print("Open with ?perf=1 to see FPS / draw calls.")
-    scene.run()
+    scene.run(project_root=Path(__file__).resolve().parents[2])
 
 
 if __name__ == "__main__":

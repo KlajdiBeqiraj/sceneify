@@ -3,18 +3,20 @@
 Run from the repository root:
   uv run python examples/showcase/roman_environment.py
 
-Let the tour run to see the presentation system; use ``--edit`` to inspect
+Let the tour run (present family, no match HUD). Use ``--edit`` to inspect
 assets, annotations, and camera stops in the authoring editor.
+Assets: in-repo Roman GLBs + Colosseum HDRI (CC0, examples/assets/roman).
 """
 
 import argparse
 from pathlib import Path
 
-from sceneify import Material, Scene, SemanticEvent
+from sceneify import ExperienceManifest, Material, Scene, SemanticEvent
 
 
 def build_scene() -> Scene:
     scene = Scene("Roman Forum Explorer", background="#cbb9a0")
+    scene.set_experience(ExperienceManifest.present(title="Fragments of Rome"))
     scene.set_presentation(
         environmentMap="examples/assets/roman/colosseum_1k.hdr",
         grid=False,

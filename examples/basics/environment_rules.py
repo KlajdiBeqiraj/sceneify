@@ -5,6 +5,7 @@ Run from the repository root:
 
 The helmet is deliberately placed off-grid and below ground. Inspect its final
 position to see the environment clamp and snap the placement.
+Assets: Khronos DamagedHelmet (cached under .sceneify_cache).
 """
 
 from pathlib import Path
@@ -13,9 +14,11 @@ import sceneify as sf
 from sceneify.demo_assets import download_public_asset
 from sceneify.environment import RuleKind
 
+ROOT = Path(__file__).resolve().parents[2]
 
-def main() -> None:
-    helmet = download_public_asset("damaged_helmet")
+
+def build_scene() -> sf.Scene:
+    helmet = download_public_asset("damaged_helmet", cache_dir=ROOT / ".sceneify_cache")
 
     scene = sf.Scene("demo-environment")
     env = scene.set_environment(
@@ -53,13 +56,13 @@ def main() -> None:
         points=[(-1.5, 0.5, -1), (0, 0.75, 0), (1, 0.5, 1)],
         color="#56ccf2",
     )
-
-    print("Environment:", scene.to_dict()["environment"]["bounds"])
-    print("Helmet position after rules:", scene.to_dict()["meshes"][0]["position"])
-    print("Cached assets under:", Path(".sceneify_cache").resolve())
-    print("Toggle Edit to inspect the allowed work cell and forbidden no-go volume.")
-    scene.run()
+    return scene
 
 
 if __name__ == "__main__":
-    main()
+    scene = build_scene()
+    print("Environment:", scene.to_dict()["environment"]["bounds"])
+    print("Helmet position after rules:", scene.to_dict()["meshes"][0]["position"])
+    print("Cached assets under:", (ROOT / ".sceneify_cache").resolve())
+    print("Toggle Edit to inspect the allowed work cell and forbidden no-go volume.")
+    scene.run(project_root=ROOT)

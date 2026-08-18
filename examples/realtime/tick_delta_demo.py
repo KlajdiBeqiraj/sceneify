@@ -1,4 +1,4 @@
-"""Demo: Python on_tick motion with dirty pose deltas over the wire.
+"""Protocol demo: Python on_tick motion with dirty pose deltas over the wire.
 
 A platform and a spinning marker move every tick. Quiet frames (no transform
 changes) skip the network; dirty poses are sent as compact frame deltas.
@@ -6,26 +6,29 @@ changes) skip the network; dirty poses are sent as compact frame deltas.
 Run from the repository root:
   uv run python examples/realtime/tick_delta_demo.py
 
-Watch the platform: its transform is authored in Python every frame, while the
-viewer receives only changed poses instead of a complete scene document.
+This is not a character or board game. ``play()`` is required so ``on_tick``
+runs; ``run()`` is editor-only and would leave the platform still.
 """
 
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import sceneify as sf
 from sceneify.objects import Material, Physics
 
+ROOT = Path(__file__).resolve().parents[2]
 
-def main() -> None:
+
+def build_scene() -> sf.Scene:
     scene = sf.Scene("tick-delta-demo", background="#10141c")
     scene.set_presentation(
         grid=True,
         helpers=False,
         shadows=True,
         title="Tick + pose deltas",
-        subtitle="Python drives transforms; only dirty poses leave the wire",
+        subtitle="Protocol demo — Python drives transforms; only dirty poses leave the wire",
         camera={"position": [8, 6, 10], "target": [0, 1, 0], "fov": 50},
     )
 
@@ -62,19 +65,20 @@ def main() -> None:
         color="#56ccf2",
     )
 
-    t = {"elapsed": 0.0}
+    elapsed = {"seconds": 0.0}
 
     @scene.on_tick
     def animate(current: sf.Scene, dt: float) -> None:
-        t["elapsed"] += dt
-        x = math.sin(t["elapsed"] * 1.2) * 3.0
+        elapsed["seconds"] += dt
+        x = math.sin(elapsed["seconds"] * 1.2) * 3.0
         current.update_node("platform", position=(x, 0.2, 0))
-        yaw = t["elapsed"] * 90.0  # degrees / second-ish for demo readability
+        yaw = elapsed["seconds"] * 90.0
         current.update_node("spinner", position=(x, 1.2, 0), rotation=(0, yaw, 0))
 
-    print("Watch the platform oscillate — transforms stream as dirty pose deltas.")
-    scene.run()
+    return scene
 
 
 if __name__ == "__main__":
-    main()
+    print("Leave this process running and look at the browser (not this terminal).")
+    print("Blue platform slides on X; yellow cube spins above it. Enter here only to stop.")
+    build_scene().play(project_root=ROOT)
