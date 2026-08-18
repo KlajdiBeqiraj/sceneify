@@ -41,6 +41,7 @@ export type EditorAction =
   | { type: "gameDamage"; amount?: number }
   | { type: "gameWin" }
   | { type: "gameLose" }
+  | { type: "gameDraw" }
   | { type: "checkpoint"; position: [number, number, number] }
   | { type: "gameReset" };
 
@@ -130,6 +131,8 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       return { ...state, gamePhase: "won" };
     case "gameLose":
       return { ...state, gamePhase: "lost" };
+    case "gameDraw":
+      return { ...state, gamePhase: "draw" };
     case "checkpoint":
       return { ...state, checkpoint: action.position };
     case "gameReset":

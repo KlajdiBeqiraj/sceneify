@@ -11,8 +11,16 @@ import {
   type NodePatch,
 } from "../hooks/useScene";
 import { useSceneSocket } from "../hooks/useSceneSocket";
+import { getConfig } from "../config";
 import type { GameplayRole, ScenePayload } from "../types/scene";
-import { gameplayRoles, primitiveById, runtimeConfig } from "../game/runtime";
+import {
+  characterManifest,
+  gameplayRoles,
+  primitiveById,
+  runtimeConfig,
+  runtimeSlot,
+  sceneExperience,
+} from "../game/runtime";
 import { editorReducer, initialEditorState, type RuntimePose } from "../store/editorStore";
 import { AppShell } from "./AppShell";
 import { IconRail } from "./IconRail";
@@ -49,11 +57,14 @@ export function App() {
 
   const updateScene = useCallback((nextScene: ScenePayload) => {
     const revision = typeof nextScene.revision === "number" ? nextScene.revision : null;
+    const nextSync = nextScene.experience?.sync;
+    const prevSync = sceneRef.current?.experience?.sync;
     if (
       revision !== null &&
       revisionRef.current !== null &&
       revision === revisionRef.current &&
-      sceneRef.current?.name === nextScene.name
+      sceneRef.current?.name === nextScene.name &&
+      nextSync === prevSync
     ) {
       return;
     }
@@ -201,6 +212,7 @@ export function App() {
 
   useEffect(() => {
     if (!running || state.gamePhase !== "playing") return;
+    if (state.scene && runtimeSlot(state.scene) === "tabletop") return;
     let previous = performance.now();
     const timer = window.setInterval(() => {
       const now = performance.now();
@@ -208,15 +220,52 @@ export function App() {
       previous = now;
     }, 100);
     return () => window.clearInterval(timer);
-  }, [running, state.gamePhase]);
+  }, [running, state.gamePhase, state.scene]);
 
   useEffect(() => {
-    if (!replaying || !state.scene?.game || state.gamePhase === "playing") return;
+    if (!replaying || !state.scene || !characterManifest(state.scene) || state.gamePhase === "playing") return;
     const spawn = primitiveById(state.scene, runtimeConfig(state.scene).playerNodeId)?.position as
       | [number, number, number]
       | undefined;
     dispatch({ type: "gameStart", timeLimit: runtimeConfig(state.scene).seconds, spawn });
   }, [replaying, state.gamePhase, state.scene]);
+
+  useEffect(() => {
+    const remote = state.scene?.experience?.match?.phase;
+    if (remote === "won") dispatch({ type: "gameWin" });
+    if (remote === "lost") dispatch({ type: "gameLose" });
+    if (remote === "draw") dispatch({ type: "gameDraw" });
+  }, [state.scene?.experience?.match?.phase]);
+
+  useEffect(() => {
+    if (runtimeMode === "play") setPlaying(true);
+  }, [runtimeMode]);
+
+  useEffect(() => {
+    if (!state.scene) return;
+    const slot = runtimeSlot(state.scene);
+    const chrome = getConfig().chrome ?? "editor";
+    if (getConfig().mode === "play") setPlaying(true);
+    if (chrome !== "editor" && (slot === "character_world" || slot === "tabletop")) {
+      setPlaying(true);
+    }
+  }, [state.scene]);
+
+  useEffect(() => {
+    if (!running || !state.scene || state.gamePhase !== "menu") return;
+    const slot = runtimeSlot(state.scene);
+    if (slot !== "character_world" && slot !== "tabletop") return;
+    const spawn = primitiveById(state.scene, runtimeConfig(state.scene).playerNodeId)?.position as
+      | [number, number, number]
+      | undefined;
+    dispatch({
+      type: "gameStart",
+      timeLimit: slot === "tabletop" ? 0 : runtimeConfig(state.scene).seconds,
+      spawn,
+    });
+    sendSemanticEvent("match_started");
+    sendSemanticEvent("game_started");
+  }, [running, sendSemanticEvent, state.gamePhase, state.scene]);
 
   async function onSave() {
     try {
@@ -248,13 +297,19 @@ export function App() {
   const scene = state.scene;
   const gameConfig = runtimeConfig(scene);
   const roles = gameplayRoles(scene);
+  const experience = sceneExperience(scene);
+  const slot = runtimeSlot(scene);
+  const chrome = getConfig().chrome ?? "editor";
+  const hideEditor = chrome !== "editor";
+  const character = characterManifest(scene);
+  const matchHud = slot === "character_world" || slot === "tabletop";
   const editorConnected = connection === "connected" && protocol.compatible;
   const playerSpawn = primitiveById(scene, gameConfig.playerNodeId)?.position as [number, number, number] | undefined;
   const gameEvent = (event: GameplayRole, nodeId: string) => {
     if (state.gamePhase !== "playing") return;
     sendSemanticEvent(event, nodeId);
     if (event === "pickup") {
-      const value = scene.game?.collectibles?.find((item) => item.nodeId === nodeId)?.value ?? 1;
+      const value = characterManifest(scene)?.collectibles?.find((item) => item.nodeId === nodeId)?.value ?? 1;
       dispatch({ type: "gamePickup", id: nodeId, value });
       if (state.score + value >= gameConfig.requiredScore) setStatus("All relics collected. Find the exit.");
     } else if (event === "hazard") {
@@ -286,6 +341,7 @@ export function App() {
   return (
     <AppShell
       playing={running}
+      embed={hideEditor}
       leftOpen={state.leftOpen && !running}
       inspectorOpen={state.inspectorOpen && !running}
       toolbar={
@@ -312,7 +368,7 @@ export function App() {
           onPlay={togglePlay}
         />
       }
-      rail={<IconRail panel={state.leftPanel} playing={playing} onPanel={(panel) => dispatch({ type: "panel", panel })} onToggleInspector={() => dispatch({ type: "toggleInspector" })} onPlay={togglePlay} />}
+      rail={<IconRail panel={state.leftPanel} playing={running} onPanel={(panel) => dispatch({ type: "panel", panel })} onToggleInspector={() => dispatch({ type: "toggleInspector" })} onPlay={togglePlay} />}
       left={left}
       viewport={
         <>
@@ -321,19 +377,20 @@ export function App() {
             runtimePoses={state.runtimePoses}
             selectedId={state.selectedId}
             focusNonce={focusNonce}
-            editing={editorConnected && !running}
+            editing={editorConnected && !running && !hideEditor}
             playing={running}
             gameActive={state.gamePhase === "playing"}
             collectedIds={state.collectedIds}
             gameRun={state.gameRun}
             transformMode={state.transformMode}
             snap={state.snap}
+            chrome={chrome}
             onSelect={(id) => dispatch({ type: "select", id })}
             onTransform={(id, position, rotation, scale) => applyPatch(id, { position, rotation, scale })}
             onGameEvent={gameEvent}
             onAnnotationEvent={(name, nodeId) => sendSemanticEvent(name, nodeId)}
           />
-          {running && scene.game && (
+          {running && matchHud && (
             <GameOverlay
               phase={state.gamePhase}
               score={state.score}
@@ -341,21 +398,42 @@ export function App() {
               health={state.health}
               maxHealth={state.maxHealth}
               timeLeft={state.timeLeft}
-              title={gameConfig.title}
-              showScore={scene.game.hud?.showScore !== false}
-              showHealth={scene.game.hud?.showHealth !== false}
-              showTimer={scene.game.hud?.showTimer !== false}
-              showAttackHint={Boolean(scene.game.enemies?.types?.length)}
-              description={scene.game.hud?.description}
-              controlsHint={scene.game.hud?.controlsHint}
+              title={experience?.hud?.title ?? gameConfig.title}
+              showScore={slot === "character_world" && character?.hud?.showScore !== false}
+              showHealth={slot === "character_world" && character?.hud?.showHealth !== false}
+              showTimer={slot === "character_world" && character?.hud?.showTimer !== false}
+              showAttackHint={Boolean(character?.enemies?.types?.length)}
+              description={experience?.hud?.description ?? character?.hud?.description}
+              controlsHint={experience?.hud?.hint ?? character?.hud?.controlsHint}
+              metrics={
+                slot === "tabletop"
+                  ? [
+                      {
+                        id: "turn",
+                        label: "Turn",
+                        value: experience?.tabletop?.owners?.[experience.tabletop.turn ?? 0] ?? `P${(experience?.tabletop?.turn ?? 0) + 1}`,
+                      },
+                      {
+                        id: "selected",
+                        label: "Selected",
+                        value: experience?.tabletop?.selectedId ?? "—",
+                      },
+                    ]
+                  : undefined
+              }
+              winMessage={experience?.hud?.winMessage}
+              loseMessage={experience?.hud?.loseMessage}
+              drawMessage={experience?.hud?.drawMessage}
+              startLabel={experience?.hud?.startLabel}
               onStart={() => {
-                dispatch({ type: "gameStart", timeLimit: gameConfig.seconds, spawn: playerSpawn });
+                dispatch({ type: "gameStart", timeLimit: slot === "tabletop" ? 0 : gameConfig.seconds, spawn: playerSpawn });
+                sendSemanticEvent("match_started");
                 sendSemanticEvent("game_started");
               }}
-              onExit={runtimeMode === "edit" ? () => setPlaying(false) : undefined}
+              onExit={!hideEditor && runtimeMode === "edit" ? () => setPlaying(false) : undefined}
             />
           )}
-          {running && !scene.game && scene.presentation?.title && (
+          {running && !matchHud && scene.presentation?.title && (
             <div className="showcase-title">
               <span>Sceneify environment study</span>
               <h1>{scene.presentation.title}</h1>

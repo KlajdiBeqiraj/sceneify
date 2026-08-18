@@ -5,6 +5,10 @@ export type SceneifyRuntimeConfig = {
   sceneFile?: string;
   /** Prefer packed ./assets paths when present; otherwise use backend /api/asset. */
   assetMode?: "api" | "static";
+  /** Embed chrome: none hides editor UI, grid, and gizmos. */
+  chrome?: "none" | "minimal" | "editor";
+  /** look = present/orbit; play = character/board HUD. */
+  mode?: "look" | "play";
 };
 
 declare global {
@@ -35,6 +39,13 @@ export async function loadConfig(): Promise<SceneifyRuntimeConfig> {
   } catch {
     // Same-origin / offline: keep inline or empty defaults.
   }
+  const params = new URLSearchParams(window.location.search);
+  const apiBase = params.get("apiBase");
+  const mode = params.get("mode");
+  const chrome = params.get("chrome");
+  if (apiBase) config.apiBase = apiBase;
+  if (mode === "look" || mode === "play") config.mode = mode;
+  if (chrome === "none" || chrome === "minimal" || chrome === "editor") config.chrome = chrome;
   loaded = true;
   return config;
 }

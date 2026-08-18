@@ -30,6 +30,7 @@ import type {
   WorldMeshNode,
 } from "../types/scene";
 import { assetUrl } from "../hooks/useScene";
+import { resolveNodeClick } from "./playPick";
 
 type TransformCallback = (
   id: string,
@@ -47,6 +48,7 @@ function TransformableGroup({
   snap,
   onSelect,
   onTransform,
+  onPlayPick,
   children,
 }: {
   node: MeshNode | ObjectNode | PrimitiveNode;
@@ -57,6 +59,7 @@ function TransformableGroup({
   snap: SnapSettings;
   onSelect: (id: string) => void;
   onTransform: TransformCallback;
+  onPlayPick?: (nodeId: string) => void;
   children: React.ReactNode;
 }) {
   const group = useRef<Group>(null);
@@ -79,11 +82,13 @@ function TransformableGroup({
         scale={scale}
         visible={node.visible}
         onClick={(event) => {
-          if (!editMode) {
+          event.stopPropagation();
+          const intent = resolveNodeClick(editMode, node.id);
+          if (intent.type === "select") {
+            onSelect(intent.nodeId);
             return;
           }
-          event.stopPropagation();
-          onSelect(node.id);
+          onPlayPick?.(intent.nodeId);
         }}
       >
         {children}
@@ -213,7 +218,15 @@ function hasIncludedAncestor(node: ThreeObject3D, includeNodes: string[]): boole
   return false;
 }
 
-export function PrimitiveContent({ node, selected }: { node: PrimitiveNode; selected: boolean }) {
+export function PrimitiveContent({
+  node,
+  selected,
+  highlighted = false,
+}: {
+  node: PrimitiveNode;
+  selected: boolean;
+  highlighted?: boolean;
+}) {
   const size = node.size ?? [1, 1, 1];
   const geometry =
     node.primitive === "sphere" ? (
@@ -233,9 +246,10 @@ export function PrimitiveContent({ node, selected }: { node: PrimitiveNode; sele
     <mesh castShadow receiveShadow>
       {geometry}
       <meshStandardMaterial
-        color={selected ? "#82a5ff" : (node.material?.color ?? "#7185b7")}
+        color={highlighted ? "#f4d35e" : selected ? "#82a5ff" : (node.material?.color ?? "#7185b7")}
         roughness={node.material?.roughness ?? 0.65}
-        metalness={node.material?.metalness ?? 0.05}
+        metalness={highlighted ? 0.35 : (node.material?.metalness ?? 0.05)}
+        emissive={highlighted ? "#7a5b12" : "#000000"}
         opacity={opacity}
         transparent={opacity < 1}
         wireframe={node.material?.wireframe ?? false}
@@ -424,6 +438,8 @@ export function MeshAssets({
   snap,
   onSelect,
   onTransform,
+  onPlayPick,
+  highlightedIds = [],
 }: {
   meshes: MeshNode[];
   objects: ObjectNode[];
@@ -435,6 +451,8 @@ export function MeshAssets({
   snap: SnapSettings;
   onSelect: (id: string) => void;
   onTransform: TransformCallback;
+  onPlayPick?: (nodeId: string) => void;
+  highlightedIds?: string[];
 }) {
   const meshById = useMemo(() => new Map(meshes.map((mesh) => [mesh.id, mesh])), [meshes]);
   const objectById = useMemo(() => new Map(objects.map((object) => [object.id, object])), [objects]);
@@ -493,6 +511,7 @@ export function MeshAssets({
           snap={snap}
           onSelect={onSelect}
           onTransform={onTransform}
+          onPlayPick={onPlayPick}
         >
           {(childrenByParent.get(object.id) ?? []).map((childId) =>
             renderNode(childId, nextAncestors),
@@ -516,9 +535,14 @@ export function MeshAssets({
           snap={snap}
           onSelect={onSelect}
           onTransform={onTransform}
+          onPlayPick={onPlayPick}
         >
           {primitive.meta?.renderPrimitive !== false && (
-            <PrimitiveContent node={primitive} selected={selectedId === primitive.id} />
+            <PrimitiveContent
+              node={primitive}
+              selected={selectedId === primitive.id}
+              highlighted={highlightedIds.includes(primitive.id)}
+            />
           )}
           {(childrenByParent.get(primitive.id) ?? []).map((childId) =>
             renderNode(childId, nextAncestors),
@@ -549,6 +573,7 @@ export function MeshAssets({
           snap={snap}
           onSelect={onSelect}
           onTransform={onTransform}
+          onPlayPick={onPlayPick}
         >
           <LodGlbVisual node={mesh} castShadow={!editMode} />
         </TransformableGroup>

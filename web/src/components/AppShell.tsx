@@ -10,6 +10,7 @@ export function AppShell({
   leftOpen,
   inspectorOpen,
   playing,
+  embed = false,
 }: {
   toolbar: ReactNode;
   rail: ReactNode;
@@ -20,8 +21,9 @@ export function AppShell({
   leftOpen: boolean;
   inspectorOpen: boolean;
   playing: boolean;
+  embed?: boolean;
 }) {
-  if (playing) {
+  if (playing || embed) {
     return <main className="run-shell">{viewport}</main>;
   }
 

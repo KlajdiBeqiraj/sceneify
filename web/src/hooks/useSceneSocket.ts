@@ -227,9 +227,6 @@ export function useSceneSocket(
           } else if (envelope.type === "frame") {
             modeRef.current = "play";
             setMode("play");
-          } else if (envelope.type === "hello") {
-            modeRef.current = "edit";
-            setMode("edit");
           }
 
           if (envelope.type === "frame") {

@@ -37,4 +37,14 @@ describe("runtime config helpers", () => {
       "https://cdn.example.com/a.glb",
     );
   });
+
+  it("reads embed chrome and mode from the query string", async () => {
+    window.__SCENEIFY_CONFIG__ = { apiBase: "http://127.0.0.1:9000", chrome: "editor" };
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false }) as Response));
+    vi.stubGlobal("location", { search: "?chrome=none&mode=look" });
+    const { loadConfig, getConfig } = await import("./config");
+    await loadConfig();
+    expect(getConfig().chrome).toBe("none");
+    expect(getConfig().mode).toBe("look");
+  });
 });

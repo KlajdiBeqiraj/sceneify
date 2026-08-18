@@ -104,6 +104,8 @@ export type AnnotationNode = {
       cursor?: "pointer" | "default";
     };
     category?: string;
+    /** When false, hide the POI sphere; keep the HTML label. */
+    marker?: boolean;
     [key: string]: unknown;
   };
 };
@@ -186,6 +188,7 @@ export type ScenePayload = {
   primitives?: PrimitiveNode[];
   annotations: AnnotationNode[];
   trajectories: TrajectoryNode[];
+  experience?: ExperienceManifest | null;
   game?: GameManifest | null;
   prefabs?: Array<{ id: string; rootId?: string; label?: string | null; [key: string]: unknown }>;
   presentation?: {
@@ -219,6 +222,46 @@ export type ScenePayload = {
       }>;
     } | null;
   };
+};
+
+export type RuntimeSlot = "present" | "character_world" | "tabletop" | "none";
+export type ExperienceFamily = "present" | "character" | "board";
+export type PrimaryInteraction = "none" | "poi" | "overlap" | "cell_pick";
+
+export type ExperienceManifest = {
+  schemaVersion?: number;
+  family?: ExperienceFamily;
+  runtimeSlot?: RuntimeSlot;
+  sync?: number;
+  camera?: { mode?: string; distance?: number; height?: number; targetId?: string };
+  input?: { enabled?: boolean };
+  interaction?: { primary?: PrimaryInteraction };
+  hud?: {
+    enabled?: boolean;
+    title?: string;
+    hint?: string;
+    description?: string;
+    metrics?: Array<{ id: string; label: string; kind?: string; value?: string }>;
+    winMessage?: string;
+    loseMessage?: string;
+    drawMessage?: string;
+    startLabel?: string;
+  };
+  character?: GameManifest | null;
+  tabletop?: {
+    rows?: number;
+    cols?: number;
+    cellSize?: number;
+    origin?: number[];
+    pieces?: Array<{ id: string; cell: number[]; owner?: string | null }>;
+    turn?: number;
+    turnCount?: number;
+    selectedId?: string | null;
+    highlights?: string[];
+    owners?: string[];
+  } | null;
+  match?: { phase?: GamePhase };
+  objectives?: Array<{ kind?: string; need?: number; nodeId?: string; seconds?: number }>;
 };
 
 export type GameManifest = {
@@ -285,4 +328,4 @@ export type SnapSettings = {
 
 export type ConnectionState = "connecting" | "connected" | "disconnected";
 export type RuntimeMode = "edit" | "play";
-export type GamePhase = "menu" | "playing" | "won" | "lost";
+export type GamePhase = "menu" | "playing" | "won" | "lost" | "draw";

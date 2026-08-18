@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canReparent, editorReducer, initialEditorState } from "./editorStore";
 import type { ScenePayload } from "../types/scene";
-import { gameplayRoles, runtimeConfig } from "../game/runtime";
+import { gameplayRoles, runtimeConfig, runtimeSlot } from "../game/runtime";
 
 const scene: ScenePayload = {
   schemaVersion: 2,
@@ -76,6 +76,19 @@ describe("editor reducer", () => {
       sprintMult: 1.5,
       moveSpeed: 5,
     });
+
+    const experienced = {
+      ...scene,
+      game: null,
+      experience: {
+        family: "board" as const,
+        runtimeSlot: "tabletop" as const,
+        interaction: { primary: "cell_pick" as const },
+        tabletop: { rows: 8, cols: 8, highlights: ["cell_0_0"] },
+      },
+    };
+    expect(runtimeSlot(experienced)).toBe("tabletop");
+    expect(runtimeSlot(scene)).toBe("character_world");
   });
 
   it("merges runtime pose deltas unless replace is set", () => {

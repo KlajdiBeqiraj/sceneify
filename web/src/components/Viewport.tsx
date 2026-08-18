@@ -20,7 +20,7 @@ import type {
   TransformMode,
 } from "../types/scene";
 import { EcctrlPlayer } from "../game/EcctrlPlayer";
-import { gameplayRoles, primitiveById, runtimeConfig } from "../game/runtime";
+import { characterManifest, gameplayRoles, primitiveById, runtimeConfig, runtimeSlot } from "../game/runtime";
 import { assetUrl } from "../hooks/useScene";
 import { EnvironmentViz } from "./EnvironmentViz";
 import type { RuntimePose } from "../store/editorStore";
@@ -670,7 +670,7 @@ function EnemyWave({
   runId: number;
   onPlayerHit: (amount: number) => void;
 }) {
-  const config = scene.game?.enemies;
+  const config = characterManifest(scene)?.enemies;
   const types = config?.types ?? [];
   const spawnPoints = (config?.spawnPoints ?? []).filter((point) => point.length >= 3);
   type Actor = {
@@ -942,6 +942,14 @@ function SceneLights({
   );
 }
 
+function InvalidateOnPoses({ poses }: { poses: Record<string, RuntimePose> }) {
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    invalidate();
+  }, [invalidate, poses]);
+  return null;
+}
+
 export function Viewport({
   scene,
   runtimePoses = {},
@@ -954,6 +962,7 @@ export function Viewport({
   gameRun,
   transformMode,
   snap,
+  chrome = "editor",
   onSelect,
   onTransform,
   onGameEvent,
@@ -970,19 +979,27 @@ export function Viewport({
   gameRun: number;
   transformMode: TransformMode;
   snap: SnapSettings;
+  chrome?: "none" | "minimal" | "editor";
   onSelect: (id: string | null) => void;
   onTransform: (id: string, position: number[], rotation: number[], scale: number[]) => void;
   onGameEvent: (event: GameplayRole, nodeId: string) => void;
   onAnnotationEvent?: (name: string, nodeId: string) => void;
 }) {
   const primitives = useMemo(() => scene.primitives ?? [], [scene.primitives]);
-  const gamePlaying = playing && Boolean(scene.game);
+  const slot = runtimeSlot(scene);
+  const characterPlaying = playing && slot === "character_world";
+  const tabletopPlaying = playing && slot === "tabletop";
   const presentation = scene.presentation ?? {};
+  const showGrid = chrome !== "none" && presentation.grid !== false;
+  const showHelpers = chrome !== "none" && presentation.helpers !== false;
+  const highlights = scene.experience?.tabletop?.highlights ?? [];
+  const selectedPiece = scene.experience?.tabletop?.selectedId ?? null;
   const camera = presentation.camera;
   const annotations = useMemo(() => resolveAnnotations(scene), [scene]);
   const tourEnabled =
     !editing &&
-    !gamePlaying &&
+    !characterPlaying &&
+    !tabletopPlaying &&
     Boolean(presentation.cameraTour?.autoplay && (presentation.cameraTour.stops?.length ?? 0) > 0);
   const [tourStop, setTourStop] = useState<TourStop | null>(null);
   const [tourAnnotation, setTourAnnotation] = useState<AnnotationNode | null>(null);
@@ -1004,8 +1021,10 @@ export function Viewport({
   const showPerf =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("perf");
-  // Demand mode saves CPU in edit; force always-on when measuring (?perf=1).
-  const demandFrames = editing && !gamePlaying && !tourEnabled && !showPerf;
+  const livePoses = Object.keys(runtimePoses).length > 0;
+  // Demand mode saves CPU in edit; keep rendering when poses stream or ?perf=1.
+  const demandFrames =
+    editing && !characterPlaying && !tabletopPlaying && !tourEnabled && !showPerf && !livePoses;
 
   return (
     <>
@@ -1019,6 +1038,7 @@ export function Viewport({
         }}
         onPointerMissed={() => editing && onSelect(null)}
       >
+        <InvalidateOnPoses poses={runtimePoses} />
         <color attach="background" args={[scene.background || "#10131a"]} />
         {presentation.fog && (
           <fog
@@ -1048,26 +1068,28 @@ export function Viewport({
             <Environment preset={presentation.environmentPreset ?? "city"} />
           )}
         </Suspense>
-        {presentation.grid !== false && (
+        {showGrid && (
           <Grid infiniteGrid fadeDistance={35} sectionColor="#35405b" cellColor="#202737" />
         )}
-        {presentation.helpers !== false && <EnvironmentViz environment={scene.environment} />}
+        {showHelpers && <EnvironmentViz environment={scene.environment} />}
         {scene.environment?.worldMesh && <WorldMeshView world={scene.environment.worldMesh} />}
-        {!gamePlaying && (
+        {!characterPlaying && (
           <MeshAssets
             meshes={scene.meshes}
             objects={scene.objects}
             primitives={primitives}
             runtimePoses={runtimePoses}
             editMode={editing}
-            selectedId={selectedId}
+            selectedId={selectedPiece ?? selectedId}
+            highlightedIds={highlights}
             transformMode={transformMode}
             snap={snap}
             onSelect={onSelect}
             onTransform={onTransform}
+            onPlayPick={(nodeId) => onAnnotationEvent?.("node_picked", nodeId)}
           />
         )}
-        {!gamePlaying && (
+        {!characterPlaying && (
           <Annotations
             items={annotations}
             focusedId={tourAnnotation?.id ?? null}
@@ -1088,8 +1110,8 @@ export function Viewport({
             onSemanticEvent={onAnnotationEvent}
           />
         )}
-        {!gamePlaying && <Trajectories items={scene.trajectories} />}
-        {gamePlaying && (
+        {!characterPlaying && <Trajectories items={scene.trajectories} />}
+        {characterPlaying && (
           <GameWorld
             scene={scene}
             active={gameActive}
@@ -1098,7 +1120,7 @@ export function Viewport({
             onGameEvent={onGameEvent}
           />
         )}
-        {gamePlaying && (
+        {characterPlaying && (
           <MeshAssets
             meshes={scene.meshes.filter((mesh) => !mesh.meta?.visualFor)}
             objects={scene.objects}
@@ -1109,9 +1131,10 @@ export function Viewport({
             snap={snap}
             onSelect={() => undefined}
             onTransform={() => undefined}
+            onPlayPick={(nodeId) => onAnnotationEvent?.("node_picked", nodeId)}
           />
         )}
-        {!gamePlaying && !tourEnabled && (
+        {!characterPlaying && !tourEnabled && (
           <>
             <OrbitControls makeDefault target={camera?.target} />
             <FocusOnSelection

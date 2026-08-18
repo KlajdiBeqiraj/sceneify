@@ -36,6 +36,7 @@ export function Annotations({
       {items
         .filter((item) => item.visible)
         .map((item) => {
+          const showMarker = item.meta?.marker !== false;
           const isFocused = focusedId === item.id && !editing;
           const revealAlways = item.meta?.interaction?.reveal !== "hover";
           const showFloatingCard =
@@ -44,14 +45,16 @@ export function Annotations({
             (revealAlways || hovered === item.id || activeCardId === item.id);
           return (
             <group key={item.id} position={item.position as [number, number, number]}>
-              <mesh>
-                <sphereGeometry args={[0.13, 20, 20]} />
-                <meshStandardMaterial
-                  color={item.color}
-                  emissive={item.color}
-                  emissiveIntensity={isFocused ? 0.7 : 0.35}
-                />
-              </mesh>
+              {showMarker && (
+                <mesh>
+                  <sphereGeometry args={[0.13, 20, 20]} />
+                  <meshStandardMaterial
+                    color={item.color}
+                    emissive={item.color}
+                    emissiveIntensity={isFocused ? 0.7 : 0.35}
+                  />
+                </mesh>
+              )}
               <Html center distanceFactor={8} style={{ pointerEvents: "auto" }} zIndexRange={[20, 0]}>
                 <div className={`poi-anchor ${isFocused ? "focused" : ""}`}>
                   <button
