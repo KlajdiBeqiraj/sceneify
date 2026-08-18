@@ -18,7 +18,7 @@ Version 2 adds:
 * primitive nodes for box, sphere, capsule, and plane geometry
 * one explicit `parentId` per graph node
 * material, physics, tags, and validated graph relationships
-* a declarative game manifest separate from runtime state
+* a declarative `experience` runtime (`present` / `character_world` / `tabletop`)
 * optional presentation settings for local HDR environments, camera, fog, shadows, and helpers
 * typed browser metadata for GLB animation states, runtime visuals, and interactive POIs
 * optional reusable prefabs (schema subtrees with relative ids and game roles)
@@ -67,7 +67,7 @@ Example:
     ],
     "annotations": [],
     "trajectories": [],
-    "game": null,
+    "experience": null,
     "prefabs": [],
     "presentation": {
       "grid": false,

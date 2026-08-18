@@ -20,7 +20,8 @@ with a Streamlit-like API (`pip install sceneify`, then `scene.run()` /
 - Additional player controller presets (`simple` / `ecctrl`)
 - Episode recording and replay (versioned JSON + WebSocket protocol)
 - Dirty pose frame deltas for the play WebSocket loop
-- Static web export (hostable viewer frontend + live backend)
+- Static web export with first-class embed (`<sceneify-viewer>`, `embed.html` iframe, chrome=none)
+- Experience runtimes: present, character (collect/reach/survive), tabletop board DSL
 
 ## Next
 
@@ -52,6 +53,9 @@ reachable inside the current stack.
   tweaks. Consider Mantine or Radix only if the editor UI grows enough to need it.
 - Watch **Rapier Python** (`rapier3d`) for an optional headless extra once it is
   published on PyPI. Do not make it a core dependency today.
+- Treat `scene.experience` as the runtime switch (`present` / `character_world` /
+  `tabletop`). `sf.Game()` is the character collect recipe, not the only game type.
+  Table rules live in short Python (`add_board` / `on_pick`); match HUD is shared DOM.
 
 ### Don't
 
@@ -70,6 +74,8 @@ reachable inside the current stack.
 - Do not run a second authoritative physics world in Python and keep it in sync
   with the browser for interactive play. Keep Rapier in the browser as the
   gameplay source of truth.
+- Do not ship a catalog of named core games (`chess`, `go`, …) or `Game(kind="chess")`.
+  Board topology is data; rules stay in host Python.
 
 ### Priority order
 

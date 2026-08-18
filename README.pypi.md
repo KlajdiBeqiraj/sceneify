@@ -14,7 +14,8 @@ Build interactive browser-based 3D worlds and games from Python.
 `sceneify` is a Streamlit-like authoring API: Python defines the scene and game
 behavior, while a bundled web viewer provides view, edit, and play modes. The
 published wheel includes the viewer, so Node.js is not required to install or
-run a world.
+run a world. An optional MCP server lets Cursor, Claude Code, Codex, GitHub
+Copilot, and other coding agents edit those worlds through catalog-grounded tools.
 
 ## Features
 
@@ -42,13 +43,9 @@ Requires Python 3.12+.
 Optional extras:
 
 ```bash
-pip install "sceneify[mesh]"   # local geometry with trimesh and NumPy
 pip install "sceneify[mcp]"    # MCP stdio server for coding agents
+pip install "sceneify[mesh]"   # local geometry with trimesh and NumPy
 ```
-
-`sceneify[llm]` and `sceneify[rl]` are compatibility markers and do not install
-extra runtimes. RL training lives in
-[scenegym](https://github.com/KlajdiBeqiraj/scenegym).
 
 ## Quickstart
 
@@ -83,7 +80,37 @@ def game_event(current: sf.Scene, event: sf.SemanticEvent) -> None:
 scene.play()
 ```
 
-CLI:
+## Coding agents (MCP)
+
+Install the extra, copy the Agent Skill, and point the host at the stdio server:
+
+```bash
+pip install "sceneify[mcp]"
+sceneify install-skill
+```
+
+Cursor (`.cursor/mcp.json`) and Claude Code (`.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "sceneify": {
+      "command": "sceneify-mcp",
+      "args": ["--catalog", "assets.catalog.json"]
+    }
+  }
+}
+```
+
+VS Code / GitHub Copilot uses `.vscode/mcp.json` with a `servers` object. Codex uses
+`[mcp_servers.sceneify]` in its TOML config. `sceneify install-skill --target all`
+also writes host-specific skill copies (`.cursor`, `.claude`, `.codex`).
+Reinstall with `--force` if a host copy is stale (`--user --target cursor` for `~/.cursor/skills`).
+
+See the [GitHub README](https://github.com/KlajdiBeqiraj/sceneify#build-worlds-with-a-coding-agent-mcp)
+and [agent tools](https://github.com/KlajdiBeqiraj/sceneify/blob/main/docs/agent-tools.md).
+
+CLI without MCP:
 
 ```bash
 sceneify tool-spec

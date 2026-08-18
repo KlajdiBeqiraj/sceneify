@@ -1,6 +1,6 @@
 ---
 name: sceneify-mcp
-description: Build and edit sceneify 3D worlds, table games, character play, and website embeds through sceneify's Python API and MCP server. Use when creating scenes, interactive worlds, player gameplay, board grids, HUDs, catalog, Poly Haven models/HDRIs, OS3A environment GLBs, validating scene graphs, embedding <sceneify-viewer>, or running sceneify-mcp.
+description: Build and edit sceneify 3D worlds and browser games through sceneify's Python API and MCP server. Use when creating scenes, interactive worlds, player gameplay, physics, objectives, HUDs, catalog, Poly Haven models/HDRIs, OS3A environment GLBs, validating scene graphs, or running sceneify-mcp.
 ---
 
 # sceneify MCP
@@ -85,60 +85,29 @@ sceneify-mcp --session-manager --catalog assets.catalog.json
 
 ## Play vs editor
 
-* Infer the family from the user sentence, then call `sceneify_scaffold`.
-* `present` — museum room, HDRI, tour, put it on a site. Uses `.run()`.
-* `character` — walk, collect, reach an exit. Uses `.play()` plus objectives.
-* `board` — any table game. Grid, pieces, pick, turns, HUD; rules stay in short Python.
-* `scene.play()` — input, ticks, and `on_input` / `on_tick` / `on_event`.
+* `scene.play()` — input, ticks, and `on_input` / `on_tick` / `on_event`. Use this for games.
 * `scene.run()` — editor only. No WASD/click play loop.
-* `sceneify_create_example` may still write a file (`kind="world"` or `kind="game"`); the tool an agent should call is `sceneify_scaffold(family, title?, name?)`.
+* `create_example(kind="game")` scaffolds markers + `.play()`. `kind="world"` (default) uses `.run()`.
 
-### Three families
+### When to use `Game()` vs host Python
 
-| family | Sentence | Immediate result |
-| --- | --- | --- |
-| `present` | Room, HDRI, tour, embed on the site | Orbit / look / cameraTour + embed snippet |
-| `character` | Dungeon, walk, collect / reach exit | Controller + optional objectives + HUD |
-| `board` | Any table game | Grid, pieces, pick, turns, HUD; rules in Python |
+`sf.Game()` is a **collect-the-relic 3rd-person** DSL: controller, collectible, hazard, checkpoint, goal, timer, HUD, enemy wave. MCP can assign roles with `set_gameplay_role` but cannot author controller/HUD/timer.
 
-`sf.Game()` is sugar for a **character collect** recipe (controller, overlap pickup, timer, waves). It is not the only game type and not a catalog of titles.
+For **anything else** (board games, turn-based, chess, custom rules): keep logic in the example Python file with `@scene.on_input` / `@scene.on_tick` / `@scene.on_event`. MCP cannot write that runtime. Pattern: `examples/realtime/realtime_minigame.py`. Do not reverse-engineer the viewer or invent a ChessEngine in core.
 
-* Character objectives: `play.objective("collect", need=3)`, `"reach"`, `"survive"`, or `"callback"`.
-* Board: `scene.add_board(size=(n, m))`, `board.place`, `@board.on_pick`, `board.end("win"|"lose"|"draw")`. Never invent `kind="chess"` or a ChessEngine in core.
-* Do not attach overlap collect (`Game()` / character_world) to a board. Interaction is exclusive: overlap vs cell_pick.
+Play-mode click on a mesh/primitive/object emits semantic event `node_picked` (handle with `@scene.on_event`). Annotation POI clicks stay `poi_selected`.
 
-Play-mode click on a mesh/primitive emits `node_picked` (handle with `@scene.on_event` or `@board.on_pick`). Annotation POI clicks stay `poi_selected`. Character overlap worlds do not use click-to-pick on those primitives.
+`node_picked` is for `scene.play()` **without** `Game()`. With `Game()` active, primitives live in the overlap/pickup loop, not click-to-select. Do not mix overlap and pick in the same `Game()` run. There is no generic match HUD or GameWorld click layer — that split is the product boundary, not a missing feature.
 
 ### HUD vs annotations
 
-Every annotation with `visible=True` draws a **yellow POI sphere**. That is not a match HUD.
+Every annotation with `visible=True` draws a **yellow POI sphere**. That is not a match HUD. Sceneify does **not** ship a DOM overlay independent of `Game()`. Do not attach `Game()` only for a scoreboard.
 
-* Character and board share a DOM match HUD (menu / playing / won / lost / draw).
-* Present does not turn that HUD on. Annotations stay POI spheres.
-* Hide a node: `update_node` / `patch_node` with `visible=False`.
-* Label without the sphere: `add_annotation(..., marker=False)`.
+* Collect-the-relic status: `Game.set_hud` (requires `scene.set_game(game)`).
+* Other games: host Python (`on_input` / `on_tick` / labels). Pattern: `examples/realtime/realtime_minigame.py`.
+* Hide a node: `update_node` / `patch_node` with `visible=False` (supported live).
+* Label without the sphere: `add_annotation(..., marker=False)` (or `meta.marker=false`).
 * Never teleport labels to `y=-40` to hide the sphere.
-
-### Embed (sites)
-
-Present step 2 is export + paste. After decorating:
-
-```python
-scene.export_web("dist-web", api_base="http://127.0.0.1:8765")
-```
-
-Then paste `dist-web/EMBED.txt` on the host page:
-
-```html
-<sceneify-viewer
-  src="./embed.html"
-  api-base="http://127.0.0.1:8765"
-  mode="look"
-  chrome="none">
-</sceneify-viewer>
-```
-
-or the iframe snippet. Default embed chrome is `none` (no grid, gizmos, editor sidebar). The Python backend stays the source of truth for play/WebSocket.
 
 ## Remote assets (catalog-grounded)
 
@@ -216,44 +185,59 @@ For HDRI lighting, fetch a Poly Haven HDRI (`type=hdris`) then `set_presentation
 
 ### Game fundamentals (Python)
 
-MCP can assign character gameplay roles with `set_gameplay_role`, but it does **not** expose an
-action to configure controller bindings, HUD, timer, board rules, or objectives. Author those in
-the Python source (`Game()`, `scene.character()`, or `scene.add_board()`), then use live MCP to
-iterate on nodes.
-
-Character collect recipe (`Game()` sugar):
+MCP can assign gameplay roles with `set_gameplay_role`, but it does **not** expose an action to
+configure controller bindings, camera, HUD, timer, outcomes, or enemy waves. Author those in the
+Python source, then use live MCP to iterate on nodes and transforms.
 
 ```python
 import sceneify as sf
 
-play = scene.character(preset="third_person")
-play.hud(title="Find the relic", hint="Move: WASD · Jump: Space")
-play.objective("collect", need=1)
-play.objective("reach", node_id="exit", need=1)
+player_y = 1.0
+scene.create_primitive(
+    "player",
+    "capsule",
+    position=(0, player_y, 8),
+    radius=0.3,
+    height=0.8,
+    physics=sf.Physics(body="dynamic", collider="capsule", mass=1),
+    tags=["player"],
+)
+scene.create_primitive(
+    "relic_1",
+    "sphere",
+    position=(2, 1, 0),
+    radius=0.35,
+    tags=["pickup"],
+)
+scene.create_primitive(
+    "exit",
+    "box",
+    position=(0, 1, -12),
+    size=(2, 2, 1),
+    tags=["goal"],
+)
+
+game = sf.Game()
+game.action_map(
+    moveForward=["KeyW", "ArrowUp"],
+    moveBack=["KeyS", "ArrowDown"],
+    moveLeft=["KeyA", "ArrowLeft"],
+    moveRight=["KeyD", "ArrowRight"],
+    jump=["Space"],
+)
+game.add_controller("player", preset="ecctrl", move_speed=5, jump_speed=7)
+game.follow_camera("player", distance=6, height=3)
+game.add_collectible("relic_1")
+game.add_goal("exit", required_score=1)
+game.set_hud(title="Find the relic", controls_hint="Move: WASD · Jump: Space")
+game.set_timer(120)
+game.outcomes(win_message="The ruins are restored", lose_message="Time ran out")
+scene.set_game(game)
 ```
 
-Or the equivalent `sf.Game()` collect recipe with `scene.set_game(game)`.
-
-Board (rules in a few lines):
-
-```python
-board = scene.add_board(size=(8, 8), title="Tokens")
-board.place("token_a", cell=(1, 1), owner="P1")
-
-@board.on_pick
-def handle(current, pick):
-    if pick.kind == "piece":
-        current.select(pick.node_id)
-        current.highlight(current.empty_cells())
-    elif pick.kind == "cell" and current.selected_id and pick.cell in current.highlights:
-        current.move(current.selected_id, pick.cell)
-        current.clear_highlights()
-        current.next_turn()
-```
-
-Use `preset="simple"` / `ecctrl` on `Game.add_controller`. `scene.character(preset=...)` accepts
-`third_person`, `first_person`, or `topdown`. A player body needs a floor before the controller
-can be tested.
+Use `preset="simple"` for the default third-person controller. Use `preset="ecctrl"` for
+camera-relative movement, sprinting, and a follow camera. A player body needs a floor and
+appropriate colliders before the controller can be meaningfully tested.
 
 ### Gameplay design checklist
 
@@ -340,7 +324,7 @@ must be used with `set_world` or `add_asset`, never as the presentation `asset`.
 ### Mutations
 
 * `sceneify_apply` — `{ "action": "<name>", ...fields }` or `action` + `fields` object. Do **not** send `extra`.
-* With `--session-manager`: `sceneify_scaffold(family=present|character|board)`, `sceneify_create_example` (`kind=world|game` file helper), `sceneify_start_session`, `sceneify_list_sessions`, `sceneify_stop_session`, `sceneify_apply_session` (same payload; shared catalog with `fetch_remote`)
+* With `--session-manager`: `sceneify_create_example` (`kind=world|game`), `sceneify_start_session`, `sceneify_list_sessions`, `sceneify_stop_session`, `sceneify_apply_session` (same payload; shared catalog with `fetch_remote`)
 
 Every tool response includes `ok`. On failure read `error.code` / `error.message` and retry with a corrected payload.
 
@@ -404,20 +388,18 @@ Vectors are `[x, y, z]`.
 
 ## Agent rules
 
-1. Infer family (`present` | `character` | `board`) from the user sentence, then `sceneify_scaffold`.
-2. Turn a vague game request into a small playable loop before adding decoration.
-3. Before editing an existing scene: `describe_scene` → `topdown_map` → `get_node` / `spatial_query`.
-4. Use world poses and spatial_query for placement; do not guess from raw local transforms.
-5. Discover before place — search/list with provider and type, then fetch, then add or set world.
-6. One small MCP action at a time; check `ok` after mutations.
-7. Prefer dedicated perception/list/search/info tools; use `sceneify_apply` for world edits.
-8. Configure runtime in Python (`Game()` collect recipe, `scene.character()`, or `add_board`). MCP cannot author a title-specific engine.
-9. Keep live `--source` scripts patchable (marked region or simple literals).
-10. Run `sceneify_validate_scene` after structural changes and resolve graph/environment violations.
-11. Use HDRIs only through `set_presentation` with a catalog id; do not place them as meshes or hardcode `.sceneify_cache` paths.
-12. `capture_view` is visual confirmation only; use structured tools for meters and yaw.
-13. Do not use annotations as match HUD; do not hide POI spheres by moving them underground.
-14. Do not mix overlap collect with board cell pick. Do not add chess/go/checkers as core kinds.
-15. For present worlds, export and paste `<sceneify-viewer>` / iframe; do not ship a full-page export as the only embed.
-16. Do not sandbox-assume paths: MCP stdio is for a local trusted client.
-17. For full schemas see package docs `docs/agent-tools.md`, `docs/environment.md`, `docs/schema.md`, or `sceneify tool-spec --all`.
+1. Turn a vague game request into a small playable loop before adding decoration.
+2. Before editing an existing scene: `describe_scene` → `topdown_map` → `get_node` / `spatial_query`.
+3. Use world poses and spatial_query for placement; do not guess from raw local transforms.
+4. Discover before place — search/list with provider and type, then fetch, then add or set world.
+5. One small MCP action at a time; check `ok` after mutations.
+6. Prefer dedicated perception/list/search/info tools; use `sceneify_apply` for world edits.
+7. Configure game runtime in Python (`Game()` or `on_input`/`on_tick`). MCP cannot author custom game engines.
+8. Keep live `--source` scripts patchable (marked region or simple literals).
+9. Run `sceneify_validate_scene` after structural changes and resolve graph/environment violations.
+10. Use HDRIs only through `set_presentation` with a catalog id; do not place them as meshes or hardcode `.sceneify_cache` paths.
+11. `capture_view` is visual confirmation only; use structured tools for meters and yaw.
+12. Do not use annotations as match HUD; do not hide POI spheres by moving them underground.
+13. Do not attach `Game()` only for HUD, and do not expect click-to-pick on `Game()` primitives.
+14. Do not sandbox-assume paths: MCP stdio is for a local trusted client.
+15. For full schemas see package docs `docs/agent-tools.md`, `docs/environment.md`, `docs/schema.md`, or `sceneify tool-spec --all`.

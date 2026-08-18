@@ -9,7 +9,7 @@ The public contract has four parts:
 * `schemas/catalog.schema.json` defines the available asset catalog
 * `sceneify.agent_tools` applies deterministic catalog-grounded actions
 * `sceneify.remote_assets` can search/download remote CC0 assets into the local catalog:
-  * `polyhaven` — models (glTF) and HDRIs (`.hdr`)
+  * `polyhaven` — models packed to GLB at fetch time, and HDRIs (`.hdr`)
   * `os3a` — Open Source 3D Assets / Polygonal Mind environment GLB packs
 
 ```python
@@ -105,27 +105,45 @@ sceneify apply plan.json --catalog assets.catalog.json --save world.sceneify.jso
 
 ## Optional MCP server
 
-Install the optional extra and run a stdio server. Standalone mode owns an in-memory scene:
+`sceneify-mcp` is a stdio MCP server. Cursor, Claude Code, Codex, GitHub Copilot / VS Code,
+Windsurf, and other MCP hosts can call it. sceneify does not run a language model.
+
+Install the extra, copy the Agent Skill, then point the host at the server:
 
 ```bash
 uv add "sceneify[mcp]"
-sceneify-mcp --catalog assets.catalog.json
-```
-
-### Agent Skill (Cursor / Claude / Codex)
-
-sceneify ships a portable Agent Skill that teaches coding agents how to use the MCP tools.
-After installing the package, copy it into the project (or user) skills directory:
-
-```bash
 sceneify install-skill                 # .agents/skills/sceneify-mcp (portable default)
-sceneify install-skill --target all    # also .cursor / .claude / .codex
-sceneify install-skill --user          # ~/.agents/skills/sceneify-mcp
+sceneify install-skill --target all --force    # also .cursor / .claude / .codex
+sceneify install-skill --user --force          # ~/.agents/skills/sceneify-mcp
+sceneify install-skill --target cursor --user --force  # ~/.cursor/skills
 sceneify skill-path                    # print the bundled skill directory
 ```
 
-The skill format is standard `SKILL.md`. Hosts that understand Agent Skills (Cursor, Claude Code,
-Codex, and others) discover it from `.agents/skills/` or the host-specific path.
+The skill format is standard `SKILL.md`. Hosts that understand Agent Skills discover it from
+`.agents/skills/` or the host-specific path.
+
+Standalone mode owns an in-memory scene:
+
+```bash
+sceneify-mcp --catalog assets.catalog.json
+```
+
+Cursor (`.cursor/mcp.json`) and Claude Code (`.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "sceneify": {
+      "command": "uv",
+      "args": ["run", "sceneify-mcp", "--catalog", "assets.catalog.json"]
+    }
+  }
+}
+```
+
+VS Code / GitHub Copilot (`.vscode/mcp.json`) uses a `servers` object with `"type": "stdio"`.
+Codex uses `[mcp_servers.sceneify]` in `~/.codex/config.toml` or project `.codex/config.toml`.
+Host config examples live in the [README](../README.md#build-worlds-with-a-coding-agent-mcp).
 
 For incremental editing alongside the browser, run the world script first, then configure the
 coding-agent host to run MCP separately against that server:
@@ -134,6 +152,19 @@ coding-agent host to run MCP separately against that server:
 uv run python examples/workflows/sync_roundtrip.py
 sceneify-mcp --server http://127.0.0.1:8765 --source examples/workflows/sync_roundtrip.py
 ```
+
+Session-manager mode (`sceneify-mcp --session-manager --catalog assets.catalog.json`) shares **one
+catalog** between stdio tools (`fetch_remote`) and `sceneify_apply_session` (`add_asset` /
+`set_presentation`). After a fetch, place with the catalog id — never a `.sceneify_cache` path.
+`sceneify_scaffold(family="present"|"character"|"board")` writes a playable shell under
+`examples/mcp`. `sceneify_create_example(kind="game")` remains a file helper; `kind="world"`
+(default) uses `.run()`.
+Do not send a required `extra` field on `sceneify_apply` / `sceneify_apply_session`.
+
+Play vs editor: `Scene.play()` runs input/tick; `Scene.run()` is the editor. `sf.Game()` is the
+character collect recipe. Table games use `add_board` + short Python `on_pick`. Present worlds
+export `<sceneify-viewer>` / iframe snippets (`chrome=none`). Do not mix overlap collect with
+board cell pick, and do not add named chess/go kinds in core.
 
 The live server is the authoritative revisioned scene. Every successful MCP mutation is sent to
 that server, immediately broadcast to connected browsers, then written back to `--source` through

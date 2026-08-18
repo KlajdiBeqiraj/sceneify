@@ -11,7 +11,9 @@
 Build interactive browser-based 3D worlds from Python.
 
 `sceneify` is a PyPI library with a Streamlit-like authoring API. Python defines the scene and
-game behavior, while the bundled web viewer provides view, edit, and play modes.
+game behavior, while the bundled web viewer provides view, edit, and play modes. An optional
+MCP server lets Cursor, Claude Code, Codex, GitHub Copilot, and other coding agents discover
+assets and edit the world through catalog-grounded tools.
 
 ## Install
 
@@ -147,49 +149,124 @@ scene.add_annotation(
 
 See [docs/protocol.md](docs/protocol.md) for synchronization and semantic events.
 
-## Reinforcement learning
+## Build worlds with a coding agent (MCP)
 
-RL training lives in [scenegym](https://github.com/KlajdiBeqiraj/scenegym). sceneify remains
-the viewer and world authoring stack; install `scenegym` for Gymnasium envs and optional
-Stable Baselines3.
+sceneify does not run a language model. Any MCP-compatible coding agent can call `sceneify-mcp`
+over stdio: Cursor, Claude Code, Codex, GitHub Copilot / VS Code, Windsurf, and similar hosts.
+The agent discovers local catalog and remote CC0 assets (Poly Haven models/HDRIs, OS3A
+environment GLBs), inspects the scene, and applies catalog-grounded mutations. Game runtime
+features (controls, camera, HUD, timer, outcomes) stay in Python.
 
-## Build worlds with a coding agent
+### Install MCP support
 
-sceneify does not run a language model and does not install a model provider. It exposes a
-versioned scene schema, an asset catalog, and deterministic actions. A developer's coding agent
-can translate text into those actions using local catalog assets or remote CC0 downloads
-(Poly Haven models/HDRIs, OS3A environment GLBs).
-
-```python
-import sceneify as sf
-
-scene = sf.Scene("warehouse")
-catalog = sf.AssetCatalog()
-tools = sf.WorldTools(scene, catalog)
-
-tools.apply({"action": "search_remote", "query": "barrel", "provider": "polyhaven"})
-tools.apply({"action": "fetch_remote", "remoteId": "Barrel_01", "id": "barrel"})
-tools.apply(
-    {
-        "action": "add_asset",
-        "asset": "barrel",
-        "id": "barrel_1",
-        "position": [2, 0, -1],
-    }
-)
-tools.apply(
-    {
-        "action": "fetch_remote",
-        "remoteId": "kloppenheim_06",
-        "type": "hdris",
-        "id": "sky",
-    }
-)
-tools.apply({"action": "set_presentation", "asset": "sky", "shadows": True})
-tools.apply({"action": "save", "path": "warehouse.sceneify.json"})
+```bash
+uv add "sceneify[mcp]"
+# or: pip install "sceneify[mcp]"
+sceneify install-skill
 ```
 
-Useful CLI entry points:
+`sceneify install-skill` copies the bundled Agent Skill into `.agents/skills/sceneify-mcp`,
+the portable path used by Cursor, Codex, Claude Code, and other Agent Skills hosts.
+
+Host-specific copies:
+
+```bash
+sceneify install-skill --target cursor   # .cursor/skills
+sceneify install-skill --target claude   # .claude/skills
+sceneify install-skill --target codex    # .codex/skills
+sceneify install-skill --target all --force
+sceneify install-skill --user --force                 # ~/.agents/skills
+sceneify install-skill --target cursor --user --force # ~/.cursor/skills
+```
+
+### Point the host at `sceneify-mcp`
+
+Use `uv run` so the host finds the project environment. Restart the MCP server after changing
+the config.
+
+**Cursor** (`.cursor/mcp.json`) and **Claude Code** (`.mcp.json` at the project root):
+
+```json
+{
+  "mcpServers": {
+    "sceneify": {
+      "command": "uv",
+      "args": ["run", "sceneify-mcp", "--catalog", "assets.catalog.json"]
+    }
+  }
+}
+```
+
+Live browser editing, with the viewer already running:
+
+```json
+{
+  "mcpServers": {
+    "sceneify": {
+      "command": "uv",
+      "args": [
+        "run",
+        "sceneify-mcp",
+        "--server",
+        "http://127.0.0.1:8765",
+        "--source",
+        "examples/workflows/sync_roundtrip.py",
+        "--catalog",
+        "assets.catalog.json"
+      ]
+    }
+  }
+}
+```
+
+**VS Code / GitHub Copilot** (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "sceneify": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "sceneify-mcp", "--catalog", "assets.catalog.json"]
+    }
+  }
+}
+```
+
+**Codex** (`~/.codex/config.toml` or project `.codex/config.toml`):
+
+```toml
+[mcp_servers.sceneify]
+command = "uv"
+args = ["run", "sceneify-mcp", "--catalog", "assets.catalog.json"]
+```
+
+Windsurf and other MCP hosts use the same stdio command. If `sceneify-mcp` is already on
+`PATH`, you can set `"command": "sceneify-mcp"` and pass the flags in `"args"`.
+
+### Server modes
+
+| Mode | How to start | Notes |
+| --- | --- | --- |
+| Standalone | `sceneify-mcp --catalog …` | In-memory scene; `load` / `save` via `sceneify_apply` |
+| Live | `--server URL --source script.py` | Viewer is source of truth; mutations sync back to Python |
+| Sessions | `--session-manager --catalog assets.catalog.json` | Isolated examples; fetch and place share one catalog |
+
+Live example:
+
+```bash
+uv run python examples/workflows/sync_roundtrip.py
+sceneify-mcp --server http://127.0.0.1:8765 --source examples/workflows/sync_roundtrip.py
+```
+
+The agent uses dedicated tools for discovery (`sceneify_search_assets`,
+`sceneify_search_remote`, `sceneify_fetch_remote`), perception (`sceneify_describe_scene`,
+`sceneify_topdown_map`, `sceneify_spatial_query`, `sceneify_get_node`), and mutations
+(`sceneify_apply` / `sceneify_apply_session`). HDRI lighting is `set_presentation` with a
+catalog id — do not send a required `extra` field. Full schemas are in
+[docs/agent-tools.md](docs/agent-tools.md) and `sceneify tool-spec --all`.
+
+The same actions are available without MCP from Python (`sf.WorldTools`) and the CLI:
 
 ```bash
 sceneify tool-spec
@@ -197,44 +274,22 @@ sceneify search-remote barrel
 sceneify search-remote outdoor --type hdris
 sceneify search-remote floor --provider os3a
 sceneify fetch-remote Barrel_01 --id barrel
-sceneify fetch-remote kloppenheim_06 --type hdris --id sky
 sceneify apply plan.json --save world.sceneify.json
 ```
 
-Optional MCP stdio server for Cursor/Claude-compatible hosts:
-
-```bash
-uv add "sceneify[mcp]"
-sceneify install-skill
-uv run python examples/workflows/sync_roundtrip.py
-sceneify-mcp --server http://127.0.0.1:8765 --source examples/workflows/sync_roundtrip.py
-```
-
-`sceneify install-skill` copies the bundled Agent Skill into `.agents/skills/sceneify-mcp`
-(portable across Cursor, Codex, Claude Code, and similar hosts). Use
-`sceneify install-skill --target all` for host-specific copies, or `--user` for a home-directory
-install. Point the host MCP config at `sceneify-mcp` (see [docs/agent-tools.md](docs/agent-tools.md)).
-
-See [docs/agent-tools.md](docs/agent-tools.md), [docs/catalog.md](docs/catalog.md), and
-[docs/schema.md](docs/schema.md), and [docs/export.md](docs/export.md). Using the live Poly Haven
-API requires crediting Poly Haven; the assets themselves remain CC0. OS3A / Polygonal Mind
-environment packs are CC0.
-
-The `sceneify[llm]` extra is a dependency-free compatibility marker. Agent tools ship in the core
-package and remain independent from model SDKs. The `sceneify[mcp]` extra only adds the MCP SDK.
+Using the live Poly Haven API requires crediting Poly Haven; the assets themselves remain CC0.
+OS3A / Polygonal Mind environment packs are CC0. See [docs/catalog.md](docs/catalog.md),
+[docs/schema.md](docs/schema.md), and [docs/export.md](docs/export.md).
 
 ## Optional extras
 
 ```bash
-uv add "sceneify[mesh]"
-uv add "sceneify[llm]"
 uv add "sceneify[mcp]"
+uv add "sceneify[mesh]"
 ```
 
+* `mcp` adds the MCP stdio server used by coding agents
 * `mesh` adds local geometry processing with trimesh and NumPy
-* `llm` keeps a provider-neutral install target without installing model runtimes
-* `mcp` adds the optional MCP stdio server for coding agents
-* `rl` is an empty compatibility marker; use the separate `scenegym` package for training
 
 ## Examples and checks
 

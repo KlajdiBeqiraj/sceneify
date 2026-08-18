@@ -17,6 +17,18 @@ def test_bundled_skill_contains_skill_md() -> None:
         text = skill.read_text(encoding="utf-8")
         assert "name: sceneify-mcp" in text
         assert "sceneify_apply" in text
+        assert "scene.play()" in text
+        assert "scene.run()" in text
+        assert "on_input" in text
+        assert "on_tick" in text
+        assert "Do not use annotations as match HUD" in text
+        assert "packed to `.glb`" in text
+        assert "sceneify_scaffold" in text
+        assert "family=present" in text or "present | character | board" in text or "`present`" in text
+        assert "<sceneify-viewer>" in text
+        assert "add_board" in text
+        assert "Do not use annotations as match HUD" in text
+        assert "Do **not** send `extra`" in text
 
 
 def test_install_skill_default_agents_target(tmp_path: Path) -> None:

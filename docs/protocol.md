@@ -66,7 +66,10 @@ Python:
 }
 ```
 
-Callbacks registered with `Scene.on_event` receive `(scene, event)`.
+Callbacks registered with `Scene.on_event` receive `(scene, event)`. If the handler
+updates `scene.experience` (for example a board pick that moves a piece or ends the
+match), the server broadcasts a `snapshot` so the viewer HUD and highlights stay in
+sync without a command revision.
 
 ## Input
 

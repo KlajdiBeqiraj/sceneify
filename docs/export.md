@@ -35,9 +35,25 @@ Flags:
 ## Output
 
 * viewer files from the bundled Vite build (`src/sceneify/_web`)
-* `sceneify.config.json` + inline `window.__SCENEIFY_CONFIG__` in `index.html`
+* `index.html` (editor chrome) and `embed.html` (presentation chrome)
+* `sceneify-element.js` — defines `<sceneify-viewer>`
+* `EMBED.txt` — copy-paste iframe and web-component snippets
+* `sceneify.config.json` + inline `window.__SCENEIFY_CONFIG__`
 * `scene.json` bootstrap document (live state still comes from the backend)
 * optional `assets/` packed copies with remapped sources
+
+Embed defaults: `chrome=none` (no grid, gizmos, editor sidebar), `mode=look` for present
+worlds and `mode=play` for character/board. The Python backend remains the play/WebSocket
+source of truth.
+
+```html
+<sceneify-viewer
+  src="./embed.html"
+  api-base="http://127.0.0.1:8765"
+  mode="look"
+  chrome="none"></sceneify-viewer>
+<script src="./sceneify-element.js"></script>
+```
 
 ## Runtime config
 
