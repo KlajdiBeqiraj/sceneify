@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 CATALOG_FORMAT = "sceneify-asset-catalog"
 CATALOG_VERSION = 2
@@ -54,6 +54,23 @@ class AssetCatalog(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     assets: list[Asset] = Field(default_factory=list)
+    _persist_path: Path | None = PrivateAttr(default=None)
+
+    @property
+    def persist_path(self) -> Path | None:
+        """Filesystem path used by :meth:`persist` after catalog-grounded fetches."""
+        return self._persist_path
+
+    def bind_path(self, path: str | Path | None) -> AssetCatalog:
+        """Remember where this catalog should be written after upserts."""
+        self._persist_path = None if path is None else Path(path)
+        return self
+
+    def persist(self) -> Path | None:
+        """Write JSON when a persist path is bound; otherwise no-op."""
+        if self._persist_path is None:
+            return None
+        return self.save(self._persist_path)
 
     @model_validator(mode="after")
     def validate_unique_ids(self) -> AssetCatalog:
@@ -199,7 +216,17 @@ class AssetCatalog(BaseModel):
         version = raw.get("version")
         if isinstance(version, bool) or version not in SUPPORTED_CATALOG_VERSIONS:
             raise ValueError(f"Unsupported catalog version: {version!r}")
-        return cls.model_validate({"assets": raw.get("assets")})
+        catalog = cls.model_validate({"assets": raw.get("assets")})
+        catalog.bind_path(source)
+        return catalog
+
+    @classmethod
+    def load_or_create(cls, path: str | Path) -> AssetCatalog:
+        """Load an existing catalog file, or start empty and bind ``path`` for persist."""
+        source = Path(path)
+        if source.is_file():
+            return cls.load(source)
+        return cls().bind_path(source)
 
 
 def _import_yaml() -> Any:

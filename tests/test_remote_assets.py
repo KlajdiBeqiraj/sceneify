@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
@@ -164,18 +165,26 @@ def test_get_remote_asset_info(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_fetch_remote_asset_polyhaven(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import sceneify.remote_assets as remote
 
+    gltf_bytes = json.dumps(
+        {
+            "asset": {"version": "2.0"},
+            "buffers": [{"uri": "marble.bin", "byteLength": 4}],
+            "bufferViews": [{"buffer": 0, "byteOffset": 0, "byteLength": 4}],
+        }
+    ).encode("utf-8")
+    bin_bytes = b"bin!"
     files = {
         "gltf": {
             "1k": {
                 "gltf": {
                     "url": "https://dl.example.test/marble_1k.gltf",
-                    "size": 10,
-                    "md5": hashlib.md5(b"gltf-bytes").hexdigest(),
+                    "size": len(gltf_bytes),
+                    "md5": hashlib.md5(gltf_bytes).hexdigest(),
                     "include": {
                         "marble.bin": {
                             "url": "https://dl.example.test/marble.bin",
-                            "size": 4,
-                            "md5": hashlib.md5(b"bin!").hexdigest(),
+                            "size": len(bin_bytes),
+                            "md5": hashlib.md5(bin_bytes).hexdigest(),
                         }
                     },
                 }
@@ -189,13 +198,14 @@ def test_fetch_remote_asset_polyhaven(tmp_path: Path, monkeypatch: pytest.Monkey
 
     def fake_stream(method: str, url: str, **kwargs: Any) -> _FakeResponse:
         del method, kwargs
-        content = b"gltf-bytes" if str(url).endswith(".gltf") else b"bin!"
+        content = gltf_bytes if str(url).endswith(".gltf") else bin_bytes
         return _FakeResponse(content=content)
 
     monkeypatch.setattr(remote.httpx, "Client", fake_client)
     monkeypatch.setattr(remote.httpx, "stream", fake_stream)
 
-    catalog = AssetCatalog()
+    catalog_path = tmp_path / "assets.catalog.json"
+    catalog = AssetCatalog().bind_path(catalog_path)
     asset = fetch_remote_asset(
         "marble_bust_01",
         catalog=catalog,
@@ -204,10 +214,15 @@ def test_fetch_remote_asset_polyhaven(tmp_path: Path, monkeypatch: pytest.Monkey
         resolution="1k",
     )
     assert asset.id == "marble-bust"
-    assert asset.format == "gltf"
-    assert Path(asset.path or "").is_file()
+    assert asset.format == "glb"
+    packed = Path(asset.path or "")
+    assert packed.suffix == ".glb"
+    assert packed.is_file()
+    assert packed.read_bytes()[:4] == b"glTF"
     assert (tmp_path / "polyhaven" / "marble_bust_01" / "1k" / "marble.bin").is_file()
     assert catalog.get("marble-bust").source.endswith("marble_bust_01")
+    persisted = AssetCatalog.load(catalog_path)
+    assert persisted.get("marble-bust").format == "glb"
 
 
 def test_fetch_remote_rejects_include_outside_cache(

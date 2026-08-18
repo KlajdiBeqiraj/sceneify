@@ -13,7 +13,7 @@ PUBLIC_ASSETS: dict[str, dict[str, str]] = {
     "damaged_helmet": {
         "url": (
             "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/"
-            "master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb"
+            "main/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb"
         ),
         "filename": "DamagedHelmet.glb",
         "format": "glb",
@@ -22,7 +22,7 @@ PUBLIC_ASSETS: dict[str, dict[str, str]] = {
     "avocado": {
         "url": (
             "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/"
-            "master/2.0/Avocado/glTF-Binary/Avocado.glb"
+            "main/2.0/Avocado/glTF-Binary/Avocado.glb"
         ),
         "filename": "Avocado.glb",
         "format": "glb",

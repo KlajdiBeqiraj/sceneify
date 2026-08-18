@@ -9,9 +9,21 @@
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0",
       "checksum": "sha256:f575446600d30f7988b2862776d1ed4aa6b85b6235dde08ae6c69326342dae30",
-      "animations": ["Idle", "Walking_A", "Running_A", "Jump_Full_Short"],
-      "tags": ["character", "animated", "game", "enemy"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [
+        "Idle",
+        "Walking_A",
+        "Running_A",
+        "Jump_Full_Short"
+      ],
+      "tags": [
+        "character",
+        "animated",
+        "game",
+        "enemy"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-mage",
@@ -20,9 +32,21 @@
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0",
       "checksum": "sha256:d7b8aa86b80e4835b6a8b27c96263278f05915cf878c31cbbfbc5cec32895f39",
-      "animations": ["Idle", "Walking_A", "Running_A", "Spellcast_Shoot"],
-      "tags": ["character", "animated", "game", "enemy"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [
+        "Idle",
+        "Walking_A",
+        "Running_A",
+        "Spellcast_Shoot"
+      ],
+      "tags": [
+        "character",
+        "animated",
+        "game",
+        "enemy"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-coin",
@@ -30,8 +54,15 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
-      "tags": ["pickup", "dungeon", "game"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [],
+      "tags": [
+        "pickup",
+        "dungeon",
+        "game"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-chest",
@@ -39,8 +70,15 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
-      "tags": ["prop", "dungeon", "game"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [],
+      "tags": [
+        "prop",
+        "dungeon",
+        "game"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-arched-wall",
@@ -48,8 +86,15 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
-      "tags": ["architecture", "dungeon", "game"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [],
+      "tags": [
+        "architecture",
+        "dungeon",
+        "game"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-broken-wall",
@@ -57,8 +102,15 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
-      "tags": ["architecture", "dungeon", "game"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [],
+      "tags": [
+        "architecture",
+        "dungeon",
+        "game"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-pillar",
@@ -66,8 +118,15 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
-      "tags": ["architecture", "dungeon", "game"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [],
+      "tags": [
+        "architecture",
+        "dungeon",
+        "game"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-torch",
@@ -75,8 +134,16 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
-      "tags": ["prop", "light", "dungeon", "game"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [],
+      "tags": [
+        "prop",
+        "light",
+        "dungeon",
+        "game"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-barrel",
@@ -84,8 +151,15 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
-      "tags": ["prop", "dungeon", "game"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [],
+      "tags": [
+        "prop",
+        "dungeon",
+        "game"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "kaykit-floor-tile",
@@ -93,8 +167,16 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
-      "tags": ["architecture", "floor", "dungeon", "game"],
-      "metadata": {"creator": "Kay Lousberg"}
+      "animations": [],
+      "tags": [
+        "architecture",
+        "floor",
+        "dungeon",
+        "game"
+      ],
+      "metadata": {
+        "creator": "Kay Lousberg"
+      }
     },
     {
       "id": "roman-ruins",
@@ -103,8 +185,15 @@
       "license": "CC0-1.0",
       "source": "https://poly.pizza/m/F2LAK03B0r",
       "checksum": "sha256:0f942354dd20b00b91d2ce9d1641da481fab553361139877cd23dcdc62cfaa55",
-      "tags": ["architecture", "ruins", "roman"],
-      "metadata": {"creator": "Quaternius"}
+      "animations": [],
+      "tags": [
+        "architecture",
+        "ruins",
+        "roman"
+      ],
+      "metadata": {
+        "creator": "Quaternius"
+      }
     },
     {
       "id": "roman-fountain",
@@ -112,8 +201,15 @@
       "format": "glb",
       "license": "CC0-1.0",
       "source": "https://poly.pizza/m/WHc7dwttlk",
-      "tags": ["architecture", "fountain", "roman"],
-      "metadata": {"creator": "Isa Lousberg"}
+      "animations": [],
+      "tags": [
+        "architecture",
+        "fountain",
+        "roman"
+      ],
+      "metadata": {
+        "creator": "Isa Lousberg"
+      }
     },
     {
       "id": "roman-marble-bust",
@@ -122,8 +218,15 @@
       "license": "CC0-1.0",
       "source": "https://polyhaven.com/a/marble_bust_01",
       "checksum": "sha256:20f446aaa4f2c33728632283d0fc4e0169c8a64cae7d7c5de8de690b12d9cd10",
-      "tags": ["sculpture", "marble", "roman"],
-      "metadata": {"creator": "Poly Haven"}
+      "animations": [],
+      "tags": [
+        "sculpture",
+        "marble",
+        "roman"
+      ],
+      "metadata": {
+        "creator": "Poly Haven"
+      }
     },
     {
       "id": "roman-horse-statue",
@@ -132,8 +235,38 @@
       "license": "CC0-1.0",
       "source": "https://polyhaven.com/a/horse_statue_01",
       "checksum": "sha256:a479f160ec91e834ba84d0f55191cdaf973d38a84fbde862a80544676241d564",
-      "tags": ["sculpture", "monument", "roman"],
-      "metadata": {"creator": "Poly Haven"}
+      "animations": [],
+      "tags": [
+        "sculpture",
+        "monument",
+        "roman"
+      ],
+      "metadata": {
+        "creator": "Poly Haven"
+      }
+    },
+    {
+      "id": "studio-hdri",
+      "path": "/Users/klajdibeqiraj/Projects/mywai_repo_public/work/sceneify/.sceneify_cache/polyhaven/studio_small_09/1k/studio_small_09_1k.hdr",
+      "format": "hdr",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/studio_small_09",
+      "checksum": "sha256:e7cfda5f4e98e623db12b8bfd0184e048488e4855d9c83e2751fb44a32e80c45",
+      "byteSize": 1615248,
+      "animations": [],
+      "tags": [
+        "polyhaven",
+        "remote",
+        "hdri",
+        "1k"
+      ],
+      "metadata": {
+        "provider": "polyhaven",
+        "remoteId": "studio_small_09",
+        "resolution": "1k",
+        "assetType": "hdris",
+        "attribution": "Assets from Poly Haven (polyhaven.com), CC0."
+      }
     }
   ]
 }

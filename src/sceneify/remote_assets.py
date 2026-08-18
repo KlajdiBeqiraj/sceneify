@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 import httpx
 
 from sceneify.catalog import Asset, AssetCatalog
+from sceneify.gltf_pack import pack_gltf_to_glb
 
 DEFAULT_CACHE = Path.cwd() / ".sceneify_cache"
 USER_AGENT = "sceneify/0.4.0 (+https://github.com/KlajdiBeqiraj/sceneify)"
@@ -109,6 +110,7 @@ def fetch_remote_asset(
         )
     if catalog is not None:
         catalog.upsert(asset)
+        catalog.persist()
     return asset
 
 
@@ -395,21 +397,23 @@ def _fetch_polyhaven_model(
             encoding="utf-8",
         )
 
-    checksum = _sha256_file(main_path)
+    packed = pack_gltf_to_glb(main_path)
+    checksum = _sha256_file(packed)
     local_id = catalog_id or _slugify(asset_id)
     return Asset(
         id=local_id,
-        path=str(main_path),
-        format="gltf",
+        path=str(packed),
+        format="glb",
         license="CC0-1.0",
         source=f"https://polyhaven.com/a/{asset_id}",
         checksum=f"sha256:{checksum}",
-        byte_size=main_path.stat().st_size,
-        tags=["polyhaven", "remote", res],
+        byte_size=packed.stat().st_size,
+        tags=["polyhaven", "remote", res, "packed-glb"],
         metadata={
             "provider": "polyhaven",
             "remoteId": asset_id,
             "resolution": res,
+            "packedFrom": main_name,
             "attribution": "Assets from Poly Haven (polyhaven.com), CC0.",
         },
     )
