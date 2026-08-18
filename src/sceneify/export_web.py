@@ -50,16 +50,24 @@ def export_web(
     document["scene"] = payload
     (target / "scene.json").write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
 
+    family = _experience_family(payload)
+    mode = "play" if family in {"character", "board"} else "look"
     config = {
         "apiBase": api_base.rstrip("/"),
         "sceneFile": "scene.json",
         "assetMode": "static" if copy_assets else "api",
         "copiedAssets": copied,
+        "chrome": "none",
+        "mode": mode,
     }
     (target / "sceneify.config.json").write_text(
         json.dumps(config, indent=2) + "\n", encoding="utf-8"
     )
-    _inject_config(target / "index.html", config)
+    _inject_config(target / "index.html", {**config, "chrome": "editor"})
+    _write_embed(target, config)
+    (target / "sceneify-element.js").write_text(_element_script(), encoding="utf-8")
+    snippets = embed_snippets(api_base=config["apiBase"], mode=mode, src="./embed.html")
+    (target / "EMBED.txt").write_text(snippets["readme"], encoding="utf-8")
     (target / "README.sceneify-export.txt").write_text(
         _readme_text(api_base=config["apiBase"], asset_count=len(copied)),
         encoding="utf-8",
@@ -169,6 +177,84 @@ def _material_slots(material: dict[str, Any]):
             yield value, assign
 
 
+def embed_snippets(
+    *,
+    api_base: str = "http://127.0.0.1:8765",
+    mode: str = "look",
+    src: str = "./embed.html",
+    chrome: str = "none",
+) -> dict[str, str]:
+    """Copy-paste iframe and web-component snippets for a host page."""
+    iframe = (
+        f'<iframe src="{src}" title="Sceneify" '
+        'style="width:100%;height:480px;border:0" allow="fullscreen"></iframe>'
+    )
+    component = (
+        '<script src="./sceneify-element.js"></script>\n'
+        f'<sceneify-viewer src="{src}" api-base="{api_base}" mode="{mode}" chrome="{chrome}">'
+        "</sceneify-viewer>"
+    )
+    readme = (
+        "sceneify embed snippets\n"
+        "=======================\n\n"
+        "Keep the Python backend running. The viewer talks to it over HTTP/WebSocket.\n\n"
+        "iframe:\n"
+        f"{iframe}\n\n"
+        "web component:\n"
+        f"{component}\n"
+    )
+    return {"iframe": iframe, "webComponent": component, "readme": readme}
+
+
+def _experience_family(payload: dict[str, Any]) -> str | None:
+    experience = payload.get("experience")
+    if isinstance(experience, dict) and isinstance(experience.get("family"), str):
+        return experience["family"]
+    if payload.get("game"):
+        return "character"
+    return None
+
+
+def _write_embed(target: Path, config: dict[str, Any]) -> None:
+    index = target / "index.html"
+    embed = target / "embed.html"
+    if index.is_file():
+        shutil.copy2(index, embed)
+    _inject_config(embed, {**config, "chrome": "none"})
+
+
+def _element_script() -> str:
+    return """(() => {
+  class SceneifyViewer extends HTMLElement {
+    connectedCallback() {
+      if (this.dataset.ready === "1") return;
+      this.dataset.ready = "1";
+      const iframe = document.createElement("iframe");
+      const src = this.getAttribute("src") || "embed.html";
+      const url = new URL(src, document.baseURI);
+      const api = this.getAttribute("api-base");
+      const mode = this.getAttribute("mode") || "look";
+      const chrome = this.getAttribute("chrome") || "none";
+      if (api) url.searchParams.set("apiBase", api);
+      url.searchParams.set("mode", mode);
+      url.searchParams.set("chrome", chrome);
+      iframe.setAttribute("src", url.toString());
+      iframe.setAttribute("title", this.getAttribute("title") || "Sceneify");
+      iframe.setAttribute("allow", "fullscreen");
+      iframe.style.cssText = "width:100%;height:100%;border:0;display:block;background:transparent";
+      this.style.display = this.style.display || "block";
+      this.style.width = this.style.width || "100%";
+      this.style.height = this.style.height || "480px";
+      this.appendChild(iframe);
+    }
+  }
+  if (!customElements.get("sceneify-viewer")) {
+    customElements.define("sceneify-viewer", SceneifyViewer);
+  }
+})();
+"""
+
+
 def _inject_config(index_path: Path, config: dict[str, Any]) -> None:
     if not index_path.is_file():
         raise FileNotFoundError(f"Missing viewer index at {index_path}")
@@ -243,6 +329,8 @@ def _readme_text(*, api_base: str, asset_count: int) -> str:
         "==========================\n\n"
         "This folder is a hostable viewer frontend. Keep the Python backend running;\n"
         "the browser connects to it for scene sync, play loop, and WebSocket events.\n\n"
+        "Embed on another site with embed.html (iframe) or <sceneify-viewer> — see EMBED.txt.\n"
+        "Default embed chrome is none (no grid, gizmos, or editor sidebar).\n\n"
         f"Configured apiBase: {api_base or '(same origin)'}\n"
         f"Packed local assets: {asset_count}\n\n"
         "Example:\n"

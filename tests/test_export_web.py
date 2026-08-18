@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from sceneify import Scene
-from sceneify.export_web import export_web
+from sceneify.export_web import embed_snippets, export_web
 from sceneify.server import PACKAGE_WEB
 
 
@@ -45,6 +45,14 @@ def test_export_web_writes_viewer_config_and_packed_assets(tmp_path: Path) -> No
     html = (out / "index.html").read_text(encoding="utf-8")
     assert "window.__SCENEIFY_CONFIG__" in html
     assert "http://127.0.0.1:9000" in html
+    assert (out / "embed.html").is_file()
+    assert (out / "EMBED.txt").is_file()
+    assert (out / "sceneify-element.js").is_file()
+    embed_html = (out / "embed.html").read_text(encoding="utf-8")
+    assert '"chrome":"none"' in embed_html.replace(" ", "")
+    embed_txt = (out / "EMBED.txt").read_text(encoding="utf-8")
+    assert "<sceneify-viewer" in embed_txt
+    assert "<iframe" in embed_txt
 
     document = json.loads((out / "scene.json").read_text(encoding="utf-8"))
     assert document["scene"]["meshes"][0]["source"] == "assets/crate.glb"
@@ -71,3 +79,11 @@ def test_scene_export_web_helper(tmp_path: Path) -> None:
     scene = Scene("helper")
     path = scene.export_web(tmp_path / "bundle", api_base="http://localhost:8765")
     assert (path / "sceneify.config.json").is_file()
+
+
+def test_embed_snippets_are_drop_in() -> None:
+    snippets = embed_snippets(api_base="http://127.0.0.1:8765", mode="look")
+    assert "<sceneify-viewer" in snippets["webComponent"]
+    assert 'mode="look"' in snippets["webComponent"]
+    assert "chrome=\"none\"" in snippets["webComponent"]
+    assert "<iframe" in snippets["iframe"]
