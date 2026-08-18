@@ -11,8 +11,9 @@ from fastapi.testclient import TestClient
 
 from sceneify import Game, Material, Physics, Scene, SemanticEvent
 from sceneify.commands import CommandStack, RevisionConflict
+from sceneify.experience import character_payload
 from sceneify.io import SCENE_FORMAT
-from sceneify.server import PROTOCOL_VERSION, create_app
+from sceneify.server import PROTOCOL_VERSION, WEB_DIST, create_app
 
 
 def _minimal_glb() -> bytes:
@@ -135,11 +136,11 @@ def test_gameplay_role_is_undoable_and_redoable() -> None:
     scene.create_primitive("spawn", "capsule")
     stack = CommandStack(scene)
     stack.execute({"action": "set_gameplay_role", "id": "spawn", "role": "player-spawn"})
-    assert scene.to_dict()["game"]["controllers"][0]["nodeId"] == "spawn"
+    assert character_payload(scene.to_dict())["controllers"][0]["nodeId"] == "spawn"
     stack.undo()
-    assert scene.to_dict()["game"] is None
+    assert character_payload(scene.to_dict()) is None
     stack.redo()
-    assert scene.to_dict()["game"]["cameras"][0]["targetId"] == "spawn"
+    assert character_payload(scene.to_dict())["cameras"][0]["targetId"] == "spawn"
 
 
 def test_project_root_save_asset_upload_and_catalog(tmp_path: Path) -> None:
@@ -182,7 +183,7 @@ def test_controller_preset_ecctrl_roundtrip() -> None:
     )
     game.follow_camera("player", distance=7.0, height=2.5)
     scene.set_game(game)
-    controller = scene.to_dict()["game"]["controllers"][0]
+    controller = character_payload(scene.to_dict())["controllers"][0]
     assert controller == {
         "nodeId": "player",
         "moveSpeed": 4.5,
@@ -191,7 +192,7 @@ def test_controller_preset_ecctrl_roundtrip() -> None:
         "preset": "ecctrl",
         "sprintMult": 1.8,
     }
-    loaded = Game.from_dict(scene.to_dict()["game"])
+    loaded = Game.from_dict(character_payload(scene.to_dict()))
     assert loaded.controllers[0].preset == "ecctrl"
     assert loaded.controllers[0].sprint_mult == 1.8
     with pytest.raises(ValueError, match="preset"):
@@ -223,7 +224,7 @@ def test_game_manifest_and_protocol_v2_semantic_event() -> None:
         assert current is scene
         events.append(event)
 
-    manifest = scene.to_dict()["game"]
+    manifest = character_payload(scene.to_dict())
     assert manifest["actionMaps"]["default"]["moveForward"] == ["KeyW"]
     assert manifest["controllers"][0]["nodeId"] == "player"
     assert manifest["controllers"][0]["preset"] == "simple"
@@ -295,7 +296,7 @@ def test_frontend_v2_payloads_and_revision_guards(tmp_path: Path) -> None:
             },
         )
         assert player.status_code == 200
-        game = player.json()["scene"]["game"]
+        game = character_payload(player.json()["scene"])
         assert game["controllers"][0]["nodeId"] == "box"
         assert game["cameras"][0]["targetId"] == "box"
 
@@ -308,7 +309,7 @@ def test_frontend_v2_payloads_and_revision_guards(tmp_path: Path) -> None:
                 "role": "pickup",
             },
         )
-        game = pickup.json()["scene"]["game"]
+        game = character_payload(pickup.json()["scene"])
         assert game["controllers"] == []
         assert game["cameras"] == []
         assert game["collectibles"][0]["nodeId"] == "box"
@@ -435,3 +436,16 @@ def test_typed_project_catalog_filters_paths_and_unique_glb_import(tmp_path: Pat
             encoding="utf-8",
         )
         assert client.get("/api/assets").status_code == 400
+
+
+def test_viewer_html_is_not_cached() -> None:
+    with TestClient(create_app(Scene(), realtime=False)) as client:
+        page = client.get("/")
+        assert page.status_code == 200
+        assert "text/html" in page.headers["content-type"]
+        assert page.headers.get("cache-control") == "no-store"
+        hashed = next((WEB_DIST / "assets").glob("main-*.js"), None)
+        assert hashed is not None
+        asset = client.get(f"/assets/{hashed.name}")
+        assert asset.status_code == 200
+        assert "immutable" in asset.headers.get("cache-control", "")

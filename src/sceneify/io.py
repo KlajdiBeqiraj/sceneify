@@ -63,8 +63,13 @@ def migrate_scene_payload(
     data.setdefault("primitives", [])
     data.setdefault("annotations", [])
     data.setdefault("trajectories", [])
-    data.setdefault("game", None)
+    data.setdefault("experience", None)
     data.setdefault("prefabs", [])
+    if not isinstance(data.get("experience"), dict) and isinstance(data.get("game"), dict):
+        from sceneify.experience import experience_from_character
+
+        data["experience"] = experience_from_character(data["game"])
+    data.pop("game", None)
 
     ids = [
         str(node["id"])

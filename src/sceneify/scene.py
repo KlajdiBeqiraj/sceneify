@@ -10,6 +10,7 @@ from typing import Any
 
 from sceneify.annotations import Annotation, build_annotation
 from sceneify.environment import Environment, RuleViolation, build_default_environment
+from sceneify.experience import CHARACTER_PRESETS, ExperienceManifest, character_payload
 from sceneify.game import GameManifest
 from sceneify.objects import (
     Material,
@@ -50,6 +51,7 @@ class Scene:
         self._input_callbacks: list[InputCallback] = []
         self._event_callbacks: list[EventCallback] = []
         self._game_manifest: dict[str, Any] | None = None
+        self._experience: dict[str, Any] | None = None
         self._presentation: dict[str, Any] = {}
         self._prefabs: dict[str, Prefab] = {}
 
@@ -87,11 +89,108 @@ class Scene:
         return register(callback) if callback is not None else register
 
     def set_game(self, manifest: Any) -> None:
-        """Attach a declarative game manifest."""
+        """Attach a collect-the-relic character recipe (sugar for ``set_experience``)."""
         value = manifest.to_dict() if hasattr(manifest, "to_dict") else manifest
         if not isinstance(value, dict):
             raise TypeError("Game manifest must be a mapping or expose to_dict()")
-        self._game_manifest = copy.deepcopy(value)
+        self.set_experience(ExperienceManifest.character_world(value))
+
+    def set_experience(self, manifest: Any) -> None:
+        """Attach the viewer runtime switch: present, character world, or tabletop."""
+        value = manifest.to_dict() if hasattr(manifest, "to_dict") else manifest
+        if not isinstance(value, dict):
+            raise TypeError("Experience manifest must be a mapping or expose to_dict()")
+        parsed = ExperienceManifest.from_dict(value)
+        self._experience = parsed.to_dict()
+        character = parsed.character
+        self._game_manifest = copy.deepcopy(character) if isinstance(character, dict) else None
+
+    def add_board(
+        self,
+        size: tuple[int, int] | list[int] = (8, 8),
+        *,
+        cell_size: float = 1.0,
+        origin: tuple[float, float, float] = (0.0, 0.0, 0.0),
+        title: str | None = None,
+        owners: list[str] | None = None,
+        **options: Any,
+    ) -> Any:
+        """Create a clickable tabletop grid with pick, turns, and match HUD."""
+        from sceneify.board import Board
+        from sceneify.objects import Material, Physics
+
+        cols, rows = int(size[0]), int(size[1] if len(size) > 1 else size[0])
+        table_id = str(options.pop("table_id", "table"))
+        if table_id not in self._graph_nodes():
+            width = cols * cell_size + 0.5
+            depth = rows * cell_size + 0.5
+            self.create_primitive(
+                table_id,
+                "box",
+                size=(width, 0.14, depth),
+                position=(origin[0], origin[1] - 0.12, origin[2]),
+                material=options.pop("table_material", Material("#3d2f24")),
+                physics=Physics(body="fixed", collider="cuboid"),
+                tags=["board-table"],
+            )
+        return Board(
+            self,
+            rows=rows,
+            cols=cols,
+            cell_size=cell_size,
+            origin=origin,
+            title=title or self.name,
+            owners=owners,
+            **options,
+        )
+
+    def character(
+        self,
+        preset: str = "third_person",
+        *,
+        node_id: str = "player",
+        **options: Any,
+    ) -> Any:
+        """Enable a character controller and return a helper for HUD/objectives."""
+        from sceneify.objects import Material, Physics
+        from sceneify.play import CharacterPlay
+
+        if preset not in CHARACTER_PRESETS:
+            raise ValueError(
+                f"Unsupported character preset: {preset!r}. Use third_person, first_person, or topdown."
+            )
+        if node_id not in self._graph_nodes():
+            self.create_primitive(
+                node_id,
+                "capsule",
+                position=options.pop("position", (0.0, 1.0, 6.0)),
+                radius=float(options.pop("radius", 0.3)),
+                height=float(options.pop("height", 0.8)),
+                material=options.pop("material", Material("#7aa2ff")),
+                physics=Physics(body="dynamic", collider="capsule", mass=1.0),
+                tags=["player"],
+            )
+        camera = CHARACTER_PRESETS[preset]
+        game = GameManifest.from_dict(character_payload({"experience": self._experience}))
+        game.controllers = [item for item in game.controllers if item.node_id != node_id]
+        game.cameras = [item for item in game.cameras if item.target_id != node_id]
+        game.add_controller(
+            node_id,
+            preset=str(camera["controller"]),
+            move_speed=float(options.pop("move_speed", 5.0)),
+            jump_speed=float(options.pop("jump_speed", 7.0)),
+        )
+        game.follow_camera(
+            node_id,
+            distance=float(camera["distance"]),
+            height=float(camera["height"]),
+        )
+        if game.hud is None:
+            game.set_hud(title=self.name, controls_hint="Move: WASD · Jump: Space")
+        self.set_experience(
+            ExperienceManifest.character_world(game.to_dict(), preset=preset, title=self.name)  # type: ignore[arg-type]
+        )
+        return CharacterPlay(self)
 
     def set_presentation(self, **options: Any) -> None:
         """Configure browser lighting, camera, helpers, and environment presentation."""
@@ -862,10 +961,18 @@ class Scene:
                 meta=dict(traj.get("meta") or {}),
             )
         game = data.get("game")
-        if game is not None:
-            if not isinstance(game, dict):
-                raise ValueError("game must be an object")
-            scene._game_manifest = copy.deepcopy(game)
+        experience = data.get("experience")
+        if isinstance(experience, dict):
+            scene.set_experience(experience)
+        elif isinstance(game, dict):
+            scene.set_game(game)
+        elif game is not None:
+            raise ValueError("game must be an object")
+        elif experience is not None:
+            raise ValueError("experience must be an object")
+        else:
+            scene._experience = None
+            scene._game_manifest = None
         presentation = data.get("presentation")
         if presentation is not None:
             if not isinstance(presentation, dict):
@@ -920,7 +1027,7 @@ class Scene:
             "primitives": [p.to_dict() for p in self._primitives.values()],
             "annotations": [a.to_dict() for a in self._annotations.values()],
             "trajectories": [t.to_dict() for t in self._trajectories.values()],
-            "game": copy.deepcopy(self._game_manifest),
+            "experience": copy.deepcopy(self._experience),
             "presentation": copy.deepcopy(self._presentation),
             "prefabs": [prefab.to_dict() for prefab in self._prefabs.values()],
         }

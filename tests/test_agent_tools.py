@@ -9,6 +9,7 @@ import pytest
 from sceneify import load_schema
 from sceneify.agent_tools import WorldTools, tool_definition, tool_definitions
 from sceneify.catalog import Asset, AssetCatalog
+from sceneify.experience import character_payload
 from sceneify.scene import Scene
 
 
@@ -127,7 +128,24 @@ def test_world_tools_primitives_patch_and_roles(tmp_path: Path) -> None:
     assert Path(saved["result"]["path"]).is_file()
     scene = tools.scene.to_dict()
     assert scene["primitives"][1]["tags"] == ["pickup"]
-    assert scene["game"]["collectibles"][0]["nodeId"] == "coin"
+    assert character_payload(scene)["collectibles"][0]["nodeId"] == "coin"
+
+
+def test_world_tools_annotation_marker_false() -> None:
+    tools = WorldTools(Scene("hud"), AssetCatalog())
+    tools.apply(
+        {
+            "action": "add_annotation",
+            "id": "status",
+            "position": [0, 2, 0],
+            "label": "White to move",
+            "marker": False,
+        }
+    )
+    annotation = tools.scene.to_dict()["annotations"][0]
+    assert annotation["meta"]["marker"] is False
+    tools.apply({"action": "update_node", "id": "status", "visible": False})
+    assert tools.scene.to_dict()["annotations"][0]["visible"] is False
 
 
 def test_world_tools_local_catalog_pagination() -> None:

@@ -2,6 +2,7 @@
 
 from sceneify.agent_tools import WorldTools, tool_definition, tool_definitions
 from sceneify.annotations import Annotation
+from sceneify.board import Board, BoardPick
 from sceneify.catalog import Asset, AssetCatalog
 from sceneify.environment import (
     Bounds,
@@ -16,6 +17,12 @@ from sceneify.environment import (
     build_default_environment,
 )
 from sceneify.episode import Episode, EpisodeEvent
+from sceneify.experience import (
+    ExperienceManifest,
+    HudMetric,
+    HudPolicy,
+    Objective,
+)
 from sceneify.game import (
     HUD,
     ActionMap,
@@ -39,6 +46,7 @@ from sceneify.perception import (
     spatial_query,
     topdown_map,
 )
+from sceneify.play import CharacterPlay
 from sceneify.prefabs import Prefab
 from sceneify.realtime import InputEvent, SemanticEvent
 from sceneify.remote_assets import (
@@ -60,23 +68,30 @@ __all__ = [
     "Annotation",
     "Asset",
     "AssetCatalog",
+    "Board",
+    "BoardPick",
     "Bounds",
     "CameraFollow",
+    "CharacterPlay",
     "Checkpoint",
     "Collectible",
     "ControllerPreset",
     "Environment",
     "Episode",
     "EpisodeEvent",
+    "ExperienceManifest",
     "Game",
     "GameManifest",
     "GeometricRule",
     "Goal",
     "GroundPlane",
     "Hazard",
+    "HudMetric",
+    "HudPolicy",
     "InputEvent",
     "Material",
     "MeshAsset",
+    "Objective",
     "Physics",
     "Prefab",
     "PrimitiveNode",

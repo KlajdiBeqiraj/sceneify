@@ -111,6 +111,9 @@ class CommandStack:
             return {"id": node_id, "role": role, "game": manifest.to_dict()}
         if action == "add_annotation":
             target_id = command.get("targetId", command.get("target_id"))
+            extra_meta: dict[str, Any] = {}
+            if "marker" in command:
+                extra_meta["marker"] = bool(command["marker"])
             return self.scene.add_annotation(
                 _required(command, "id"),
                 None if target_id else command.get("position", (0.0, 0.0, 0.0)),
@@ -119,6 +122,7 @@ class CommandStack:
                 label=command.get("label"),
                 description=command.get("description"),
                 visible=bool(command.get("visible", True)),
+                **extra_meta,
             ).to_dict()
         if action == "set_world":
             source = command.get("source")
@@ -261,6 +265,7 @@ class CommandStack:
         self.scene._environment = restored._environment
         self.scene._presentation = restored._presentation
         self.scene._game_manifest = restored._game_manifest
+        self.scene._experience = restored._experience
         self.scene._prefabs = restored._prefabs
 
 

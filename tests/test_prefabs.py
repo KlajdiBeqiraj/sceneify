@@ -8,6 +8,7 @@ import pytest
 
 from sceneify import Prefab, Scene, load_schema
 from sceneify.commands import CommandStack
+from sceneify.experience import character_payload
 from sceneify.objects import Material, Physics
 
 
@@ -77,7 +78,7 @@ def test_define_instantiate_overrides_and_roundtrip(tmp_path: Path) -> None:
     assert lid.visible is False
     assert lid.parent_id == "crate_a"
 
-    game = scene.to_dict()["game"]
+    game = character_payload(scene.to_dict())
     assert game is not None
     assert any(item["nodeId"] == "crate_a" for item in game["collectibles"])
 
@@ -95,7 +96,7 @@ def test_game_role_override_and_unknown_prefab() -> None:
     scene.create_primitive("hazard_box", "box", position=(0, 0.5, 0))
     scene.define_prefab("spike", from_node="hazard_box", game_roles={"hazard_box": "hazard"})
     scene.instantiate("spike", id="spike_1", overrides={"game_role": "checkpoint"})
-    game = scene.to_dict()["game"]
+    game = character_payload(scene.to_dict())
     assert game is not None
     assert any(item["nodeId"] == "spike_1" for item in game["checkpoints"])
     assert not any(item["nodeId"] == "spike_1" for item in game["hazards"])

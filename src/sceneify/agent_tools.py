@@ -110,6 +110,13 @@ ACTION_SCHEMA: dict[str, Any] = {
         "z": {"type": "number"},
         "offsetY": {"type": "number"},
         "visible": {"type": "boolean"},
+        "marker": {
+            "type": "boolean",
+            "description": (
+                "For add_annotation: when false, hide the POI sphere and keep the 3D label. "
+                "Default true. Do not use annotations as match HUD; prefer Game.set_hud."
+            ),
+        },
         "material": {"type": "object"},
         "physics": {"type": "object"},
         "patch": {"type": "object"},
@@ -721,6 +728,9 @@ class WorldTools:
 
     def _add_annotation(self, command: Mapping[str, Any]) -> dict[str, Any]:
         target_id = _optional_string(command, "targetId")
+        extra_meta: dict[str, Any] = {}
+        if "marker" in command:
+            extra_meta["marker"] = bool(command["marker"])
         node = self.scene.add_annotation(
             _required_string(command, "id"),
             None if target_id else command.get("position", (0.0, 0.0, 0.0)),
@@ -729,6 +739,7 @@ class WorldTools:
             label=_optional_string(command, "label"),
             description=_optional_string(command, "description"),
             visible=bool(command.get("visible", True)),
+            **extra_meta,
         )
         return node.to_dict()
 

@@ -1,4 +1,9 @@
-"""Declarative browser game manifest models."""
+"""Declarative collect-the-relic character recipe.
+
+``sf.Game()`` is sugar for a character-world experience (controller, overlap
+pickup, HUD, timer, waves). It is not a generic game shell: tabletop rules use
+``scene.add_board()``. Present worlds use ``scene.experience`` family ``present``.
+"""
 
 from __future__ import annotations
 

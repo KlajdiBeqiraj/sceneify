@@ -161,7 +161,7 @@
     "scene": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "name", "background", "environment", "meshes", "objects", "primitives", "annotations", "trajectories", "game"],
+      "required": ["schemaVersion", "name", "background", "environment", "meshes", "objects", "primitives", "annotations", "trajectories", "experience"],
       "properties": {
         "schemaVersion": {"const": 2},
         "name": {"type": "string"},
@@ -172,7 +172,7 @@
         "primitives": {"type": "array", "items": {"$ref": "#/$defs/primitive"}},
         "annotations": {"type": "array", "items": {"$ref": "#/$defs/annotation"}},
         "trajectories": {"type": "array", "items": {"$ref": "#/$defs/trajectory"}},
-        "game": {"type": ["object", "null"]},
+        "experience": {"type": ["object", "null"]},
         "prefabs": {"type": "array", "items": {"$ref": "#/$defs/prefab"}},
         "presentation": {
           "type": "object",

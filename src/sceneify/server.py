@@ -55,6 +55,25 @@ MAX_ASSET_UPLOAD_BYTES = 100 * 1024 * 1024
 SUPPORTED_ASSET_SUFFIXES = {".glb", ".gltf", ".ply", ".obj", ".stl"}
 
 
+class ViewerStaticFiles(StaticFiles):
+    """Serve the bundled viewer without caching HTML entry points."""
+
+    def file_response(
+        self,
+        full_path: str | Path,
+        stat_result: os.stat_result,
+        scope: dict[str, Any],
+        status_code: int = 200,
+    ) -> Any:
+        response = super().file_response(full_path, stat_result, scope, status_code)
+        name = Path(str(full_path)).name.lower()
+        if name.endswith(".html") or name == "sceneify-element.js":
+            response.headers["Cache-Control"] = "no-store"
+        elif name.endswith((".js", ".css")):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
 class ServerHandle:
     """Handle for a running sceneify viewer server."""
 
@@ -536,6 +555,9 @@ class RealtimeRuntime:
             client_id=client_id,
             data=data,
         )
+        before_sync = int((self.scene._experience or {}).get("sync") or 0) if isinstance(
+            self.scene._experience, dict
+        ) else 0
         callbacks = tuple(self.scene._event_callbacks)
         try:
             for callback in callbacks:
@@ -547,6 +569,11 @@ class RealtimeRuntime:
             await self._send_error(websocket, f"Event callback failed: {exc}")
             return
         await websocket.send_json({"type": "event_ack", "name": name})
+        after_sync = int((self.scene._experience or {}).get("sync") or 0) if isinstance(
+            self.scene._experience, dict
+        ) else 0
+        if after_sync != before_sync:
+            await self._broadcast(self.commands.snapshot())
 
     async def _tick_loop(self) -> None:
         interval = 1.0 / self.tick_rate
@@ -1062,7 +1089,7 @@ def create_app(
         }
 
     if WEB_DIST.is_dir():
-        app.mount("/", StaticFiles(directory=str(WEB_DIST), html=True), name="viewer")
+        app.mount("/", ViewerStaticFiles(directory=str(WEB_DIST), html=True), name="viewer")
     else:
 
         @app.get("/")

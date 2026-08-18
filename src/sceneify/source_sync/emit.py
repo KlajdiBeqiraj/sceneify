@@ -174,11 +174,22 @@ def emit_build_scene(scene: Scene, *, function_name: str = "build_scene") -> str
             args.append(f"color={_fmt(ann['color'])}")
         if ann.get("visible") is False:
             args.append("visible=False")
+        meta = ann.get("meta") or {}
+        if isinstance(meta, dict) and meta.get("marker") is False:
+            args.append("marker=False")
         lines.append(f"    scene.add_annotation({', '.join(args)})")
 
-    game = data.get("game")
-    if game:
-        lines.append(f"    scene.set_game(Game.from_dict({_fmt(game)}))")
+    game = data.get("experience")
+    character = None
+    if isinstance(game, dict):
+        if game.get("family") == "character" and isinstance(game.get("character"), dict):
+            character = game["character"]
+        elif game.get("controllers") or game.get("collectibles"):
+            character = game
+    if character:
+        lines.append(f"    scene.set_game(Game.from_dict({_fmt(character)}))")
+    elif isinstance(game, dict):
+        lines.append(f"    scene.set_experience({_fmt(game)})")
 
     lines.append("    return scene")
     lines.append("")
